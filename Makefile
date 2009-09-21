@@ -10,13 +10,17 @@ THUMB    = -mthumb
 THUMB_IW = -mthumb-interwork
 
 # Target file name (without extension).
-BUILDDIR = ./build
+BUILDDIR = build
 TARGET = $(BUILDDIR)/maple_boot
+
+ST_LIB = stm32_lib
 
 # Optimization level [0,1,2,3,s]
 OPT = 0
 DEBUG = 
 #DEBUG = dwarf-2
+
+INCDIRS = $(ST_LIB)
 
 CFLAGS = $(DEBUG)
 CFLAGS += -O$(OPT)
@@ -26,7 +30,7 @@ CFLAGS += -Wcast-align
 CFLAGS += -Wpointer-arith -Wswitch
 CFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
 CFLAGS += -Wa,-adhlns=$(BUILDDIR)/$(subst $(suffix $<),.lst,$<) 
-#CFLAGS += $(patsubst %,-I%,$(INCDIRS))
+CFLAGS += $(patsubst %,-I%,$(INCDIRS))
 
 # Aeembler Flags
 ASFLAGS = -Wa,-adhlns=$(BUILDDIR)/$(<:.s=.lst)#,--g$(DEBUG)
@@ -34,10 +38,8 @@ ASFLAGS = -Wa,-adhlns=$(BUILDDIR)/$(<:.s=.lst)#,--g$(DEBUG)
 LDFLAGS = -nostartfiles -Wl,-Map=$(TARGET).map,--cref,--gc-sections
 LDFLAGS += -lc -lgcc
 
-# Set Linker-Script Depending On Selected Memory and Controller
-# Just use the STM32F103RBT6 linker script (PH May 2009)
-# This needs making processor dependant
-LDFLAGS +=-Tc_only_md.ld
+# Set the linker script
+LDFLAGS +=-T$(ST_LIB)/c_only_md.ld
 
 # Define programs and commands.
 SHELL = sh
@@ -76,7 +78,7 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 
 # --------------------------------------------- #
 # file management
-ASRC = c_only_startup.s
+ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
 STM32SRCS = 
 STM32USBSRCS = 

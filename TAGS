@@ -1,3 +1,81 @@
 
-main.c,15
-void main(1,0
+maple_lib.h,27
+#define __MAPLE_LIB_H2,22
+
+stm32_lib/cortexm3_macro.h,35
+#define __CORTEXM3_MACRO_H18,1030
+
+stm32_lib/stm32f10x_type.h,2120
+#define __STM32F10x_TYPE_H19,1106
+typedef signed long  s32;23,1300
+typedef signed short s16;24,1327
+typedef signed char  s8;25,1354
+typedef signed long  const sc32;27,1382
+typedef signed short const sc16;28,1433
+typedef signed char  const sc8;29,1484
+typedef volatile signed long  vs32;31,1537
+typedef volatile signed short vs16;32,1574
+typedef volatile signed char  vs8;33,1611
+typedef volatile signed long  const vsc32;35,1649
+typedef volatile signed short const vsc16;36,1710
+typedef volatile signed char  const vsc8;37,1771
+typedef unsigned long  u32;39,1834
+typedef unsigned short u16;40,1863
+typedef unsigned char  u8;41,1892
+typedef unsigned long  const uc32;43,1922
+typedef unsigned short const uc16;44,1975
+typedef unsigned char  const uc8;45,2028
+typedef volatile unsigned long  vu32;47,2083
+typedef volatile unsigned short vu16;48,2122
+typedef volatile unsigned char  vu8;49,2161
+typedef volatile unsigned long  const vuc32;51,2201
+typedef volatile unsigned short const vuc16;52,2264
+typedef volatile unsigned char  const vuc8;53,2327
+typedef enum {FALSE FALSE55,2392
+typedef enum {FALSE = 0, TRUE 55,2392
+typedef enum {FALSE = 0, TRUE = !FALSE}FALSE55,2392
+typedef enum {FALSE = 0, TRUE = !FALSE} bool;55,2392
+typedef enum {RESET RESET57,2441
+typedef enum {RESET = 0, SET 57,2441
+typedef enum {RESET = 0, SET = !RESET}RESET57,2441
+typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;57,2441
+typedef enum {DISABLE DISABLE59,2505
+typedef enum {DISABLE = 0, ENABLE 59,2505
+typedef enum {DISABLE = 0, ENABLE = !DISABLE}DISABLE59,2505
+typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;59,2505
+#define IS_FUNCTIONAL_STATE(60,2569
+typedef enum {ERROR ERROR62,2653
+typedef enum {ERROR = 0, SUCCESS 62,2653
+typedef enum {ERROR = 0, SUCCESS = !ERROR}ERROR62,2653
+typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
+#define U8_MAX 64,2712
+#define S8_MAX 65,2742
+#define S8_MIN 66,2772
+#define U16_MAX 67,2803
+#define S16_MAX 68,2837
+#define S16_MIN 69,2870
+#define U32_MAX 70,2904
+#define S32_MAX 71,2944
+#define S32_MIN 72,2982
+
+main.c,476
+#define RCC 3,29
+#define FLASH 4,54
+#define GPIOA 5,79
+#define CPIOC 6,104
+#define RCC_CR 8,130
+#define RCC_CFGR 9,154
+#define RCC_CIR 10,185
+#define RCC_AHBENR 11,216
+#define RCC_APB2ENR 12,247
+#define RCC_APB1ENR 13,278
+#define FLASH_KEYR 15,310
+#define FLASH_ACR 16,342
+#define GPIO_CRL(18,375
+#define GPIO_CRH(19,404
+#define GPIO_ODR(20,438
+#define GPIO_BSRR(21,472
+#define SET_REG(24,555
+#define GET_REG(25,600
+void systemReset(27,642
+int main 37,998
