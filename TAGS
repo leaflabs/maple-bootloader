@@ -1,6 +1,24 @@
 
-maple_lib.h,27
+maple_lib.h,481
 #define __MAPLE_LIB_H2,22
+#define SET_REG(26,750
+#define GET_REG(27,795
+#define RCC 31,888
+#define FLASH 32,913
+#define GPIOA 33,938
+#define CPIOC 34,963
+#define RCC_CR 36,989
+#define RCC_CFGR 37,1013
+#define RCC_CIR 38,1044
+#define RCC_AHBENR 39,1075
+#define RCC_APB2ENR 40,1106
+#define RCC_APB1ENR 41,1137
+#define FLASH_KEYR 43,1169
+#define FLASH_ACR 44,1201
+#define GPIO_CRL(46,1234
+#define GPIO_CRH(47,1263
+#define GPIO_ODR(48,1297
+#define GPIO_BSRR(49,1331
 
 stm32_lib/cortexm3_macro.h,35
 #define __CORTEXM3_MACRO_H18,1030
@@ -58,24 +76,10 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-main.c,476
-#define RCC 3,29
-#define FLASH 4,54
-#define GPIOA 5,79
-#define CPIOC 6,104
-#define RCC_CR 8,130
-#define RCC_CFGR 9,154
-#define RCC_CIR 10,185
-#define RCC_AHBENR 11,216
-#define RCC_APB2ENR 12,247
-#define RCC_APB1ENR 13,278
-#define FLASH_KEYR 15,310
-#define FLASH_ACR 16,342
-#define GPIO_CRL(18,375
-#define GPIO_CRH(19,404
-#define GPIO_ODR(20,438
-#define GPIO_BSRR(21,472
-#define SET_REG(24,555
-#define GET_REG(25,600
-void systemReset(27,642
-int main 37,998
+maple_lib.c,68
+void systemReset(3,24
+void setupCLK 13,380
+void setupLED 35,1136
+
+main.c,15
+int main 4,25

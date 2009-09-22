@@ -82,7 +82,7 @@ ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
 STM32SRCS = 
 STM32USBSRCS = 
-SRCS = main.c
+SRCS = main.c maple_lib.c
 
 
 SRC = $(STM32SRCS) $(STM32USBSRCS) $(SRCS)
