@@ -1,0 +1,24 @@
+macroize many magic board specific params into conf file:
+	 LED Pin
+	 USB Disc Pin
+	 Default Usr Flash/Ram prog location
+
+Adjust what DFU alternate configs are available:
+     1) Usercode -> default RAM loc (must match linker script from build env)
+     2) Usercode -> default FLASH loc (must match linker script from build env)
+     3) Usercode -> .maple format, includes metadata about where to put what (ala IHex)
+
+Build an interactive supervisor:
+     1) Serial/virtual serial debug (r/w reg/ram/flash)
+     2) offer hooks to usercode to modify conf regs or vector table
+
+Grow interactive supervisor into an actual privileged kernel:
+     1) mediates all direct cong register access
+     2) provides stock means for handling exceptions
+     3) provides stock interactive debug interface
+     4) principly owns FLASH, USB, location of vector table, exception handlers, clocks, system pins (usb disc)
+     5) everything else can probably be directly modded by usercode
+     6) potentially manage power/standby modes
+
+Provide stronger hooks between Makefile and preproc:
+    1) strictly define stack ptr addr, user stack, usr code loc, vector table addr, stack size, etc.

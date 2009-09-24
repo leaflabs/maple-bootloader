@@ -21,7 +21,7 @@ OPT = 0
 DEBUG = 
 #DEBUG = dwarf-2
 
-INCDIRS = $(ST_LIB) $(ST_USB)
+INCDIRS = ./$(ST_LIB) ./$(ST_USB)
 
 CFLAGS = $(DEBUG)
 CFLAGS += -O$(OPT)
@@ -82,7 +82,7 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
 STM32SRCS = 
-_STM32USBSRCS = usb_reg.c \
+_STM32USBSRCS = usb_regs.c \
 usb_int.c \
 usb_init.c \
 usb_core.c \
@@ -93,7 +93,7 @@ STM32USBSRCS = $(patsubst %, $(ST_USB)/%,$(_STM32USBSRCS))
 SRCS = main.c maple_lib.c
 
 
-SRC = $(SRCS) $(STM32SRCS) #$(STM32USBSRCS)
+SRC = $(SRCS) $(STM32SRCS) $(STM32USBSRCS)
 
 # Define all object files.
 _COBJ =  $(SRC:.c=.o)
@@ -214,8 +214,8 @@ clean_list :
 	$(REMOVE) $(AOBJ)
 	$(REMOVE) $(LST)
 	$(REMOVE) flash/tmpflash.bin
-	$(REMOVE) $(SRC:.c=.s)
-	$(REMOVE) $(SRC:.c=.d)
+#	$(REMOVE) $(SRC:.c=.s)
+#	$(REMOVE) $(SRC:.c=.d)
 	$(REMOVE) .dep/*
 
 # Include the dependency files.

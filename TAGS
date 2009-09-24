@@ -1,24 +1,24 @@
 
 maple_lib.h,482
 #define __MAPLE_LIB_H2,22
-#define SET_REG(26,763
-#define GET_REG(27,808
-#define RCC 31,901
-#define FLASH 32,926
-#define GPIOA 33,951
-#define CPIOC 34,976
-#define RCC_CR 36,1002
-#define RCC_CFGR 37,1026
-#define RCC_CIR 38,1057
-#define RCC_AHBENR 39,1088
-#define RCC_APB2ENR 40,1119
-#define RCC_APB1ENR 41,1150
-#define FLASH_KEYR 43,1182
-#define FLASH_ACR 44,1214
-#define GPIO_CRL(46,1247
-#define GPIO_CRH(47,1276
-#define GPIO_ODR(48,1310
-#define GPIO_BSRR(49,1344
+#define SET_REG(27,784
+#define GET_REG(28,829
+#define RCC 32,922
+#define FLASH 33,947
+#define GPIOA 34,972
+#define CPIOC 35,997
+#define RCC_CR 37,1023
+#define RCC_CFGR 38,1047
+#define RCC_CIR 39,1078
+#define RCC_AHBENR 40,1109
+#define RCC_APB2ENR 41,1140
+#define RCC_APB1ENR 42,1171
+#define FLASH_KEYR 44,1203
+#define FLASH_ACR 45,1235
+#define GPIO_CRL(47,1268
+#define GPIO_CRH(48,1297
+#define GPIO_ODR(49,1331
+#define GPIO_BSRR(50,1365
 
 stm32_lib/cortexm3_macro.h,35
 #define __CORTEXM3_MACRO_H18,1030
@@ -270,41 +270,41 @@ void PMAToUserBufferCopy(60,3056
 
 usb_lib/usb_type.h,1591
 #define __USB_TYPE_H18,1025
-#define NULL 26,1334
-typedef signed long      s32;31,1400
-typedef signed short     s16;32,1431
-typedef signed char      s8;33,1462
-typedef volatile signed long      vs32;35,1494
-typedef volatile signed short     vs16;36,1535
-typedef volatile signed char      vs8;37,1576
-typedef unsigned long       u32;39,1618
-typedef unsigned short      u16;40,1652
-typedef unsigned char       u8;41,1686
-typedef unsigned long  const    uc32;43,1721
-typedef unsigned short const    uc16;44,1777
-typedef unsigned char  const    uc8;45,1833
-typedef volatile unsigned long      vu32;47,1891
-typedef volatile unsigned short     vu16;48,1934
-typedef volatile unsigned char      vu8;49,1977
-typedef volatile unsigned long  const    vuc32;51,2021
-typedef volatile unsigned short const    vuc16;52,2087
-typedef volatile unsigned char  const    vuc8;53,2153
-  FALSE 58,2240
-  FALSE = 0, TRUE 58,2240
-  FALSE = 0, TRUE  = !FALSEFALSE58,2240
-bool;60,2272
-typedef enum { RESET 62,2281
-typedef enum { RESET = 0, SET 62,2281
-typedef enum { RESET = 0, SET   = !RESET RESET62,2281
-typedef enum { RESET = 0, SET   = !RESET } FlagStatus, ITStatus;62,2281
-typedef enum { DISABLE 64,2349
-typedef enum { DISABLE = 0, ENABLE 64,2349
-typedef enum { DISABLE = 0, ENABLE  = !DISABLE}DISABLE64,2349
-typedef enum { DISABLE = 0, ENABLE  = !DISABLE} FunctionalState;64,2349
-typedef enum { ERROR 66,2417
-typedef enum { ERROR = 0, SUCCESS 66,2417
-typedef enum { ERROR = 0, SUCCESS  = !ERROR}ERROR66,2417
-typedef enum { ERROR = 0, SUCCESS  = !ERROR} ErrorStatus;66,2417
+#define NULL 23,1227
+typedef signed long      s32;28,1293
+typedef signed short     s16;29,1324
+typedef signed char      s8;30,1355
+typedef volatile signed long      vs32;32,1387
+typedef volatile signed short     vs16;33,1428
+typedef volatile signed char      vs8;34,1469
+typedef unsigned long       u32;36,1511
+typedef unsigned short      u16;37,1545
+typedef unsigned char       u8;38,1579
+typedef unsigned long  const    uc32;40,1614
+typedef unsigned short const    uc16;41,1670
+typedef unsigned char  const    uc8;42,1726
+typedef volatile unsigned long      vu32;44,1784
+typedef volatile unsigned short     vu16;45,1827
+typedef volatile unsigned char      vu8;46,1870
+typedef volatile unsigned long  const    vuc32;48,1914
+typedef volatile unsigned short const    vuc16;49,1980
+typedef volatile unsigned char  const    vuc8;50,2046
+  FALSE 55,2133
+  FALSE = 0, TRUE 55,2133
+  FALSE = 0, TRUE  = !FALSEFALSE55,2133
+bool;57,2165
+typedef enum { RESET 59,2174
+typedef enum { RESET = 0, SET 59,2174
+typedef enum { RESET = 0, SET   = !RESET RESET59,2174
+typedef enum { RESET = 0, SET   = !RESET } FlagStatus, ITStatus;59,2174
+typedef enum { DISABLE 61,2242
+typedef enum { DISABLE = 0, ENABLE 61,2242
+typedef enum { DISABLE = 0, ENABLE  = !DISABLE}DISABLE61,2242
+typedef enum { DISABLE = 0, ENABLE  = !DISABLE} FunctionalState;61,2242
+typedef enum { ERROR 63,2310
+typedef enum { ERROR = 0, SUCCESS 63,2310
+typedef enum { ERROR = 0, SUCCESS  = !ERROR}ERROR63,2310
+typedef enum { ERROR = 0, SUCCESS  = !ERROR} ErrorStatus;63,2310
 
 usb_lib/usb_core.c,1093
 #define ValBit(20,1188
@@ -497,6 +497,28 @@ enum EP_BUF_NUM31,1391
 #define _SetEPDblBuffCount(537,24850
 #define _GetEPDblBuf0Count(549,25426
 #define _GetEPDblBuf1Count(550,25486
+
+usb_lib/usb_conf.h,653
+#define __USB_CONF_H18,1033
+#define EP_NUM 30,1754
+#define BTABLE_ADDRESS 37,2068
+#define ENDP0_RXADDR 41,2150
+#define ENDP0_TXADDR 42,2186
+#define IMR_MSK 51,2536
+#define  EP1_IN_Callback 62,2855
+#define  EP2_IN_Callback 63,2895
+#define  EP3_IN_Callback 64,2935
+#define  EP4_IN_Callback 65,2975
+#define  EP5_IN_Callback 66,3015
+#define  EP6_IN_Callback 67,3055
+#define  EP7_IN_Callback 68,3095
+#define  EP1_OUT_Callback 71,3139
+#define  EP2_OUT_Callback 72,3180
+#define  EP3_OUT_Callback 73,3221
+#define  EP4_OUT_Callback 74,3262
+#define  EP5_OUT_Callback 75,3303
+#define  EP6_OUT_Callback 76,3344
+#define  EP7_OUT_Callback 77,3385
 
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074

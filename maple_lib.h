@@ -3,6 +3,7 @@
 
 #include "stm32f10x_type.h" /* defines simple types (u32, vu16, etc) */
 #include "cortexm3_macro.h" /* provides asm instruction macros */
+#include "usb_lib.h"
 
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
