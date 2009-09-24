@@ -14,13 +14,14 @@ BUILDDIR = build
 TARGET = $(BUILDDIR)/maple_boot
 
 ST_LIB = stm32_lib
+ST_USB = usb_lib
 
 # Optimization level [0,1,2,3,s]
 OPT = 0
 DEBUG = 
 #DEBUG = dwarf-2
 
-INCDIRS = $(ST_LIB)
+INCDIRS = $(ST_LIB) $(ST_USB)
 
 CFLAGS = $(DEBUG)
 CFLAGS += -O$(OPT)
@@ -81,11 +82,18 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
 STM32SRCS = 
-STM32USBSRCS = 
+_STM32USBSRCS = usb_reg.c \
+usb_int.c \
+usb_init.c \
+usb_core.c \
+usb_mem.c
+
+STM32USBSRCS = $(patsubst %, $(ST_USB)/%,$(_STM32USBSRCS))
+
 SRCS = main.c maple_lib.c
 
 
-SRC = $(STM32SRCS) $(STM32USBSRCS) $(SRCS)
+SRC = $(SRCS) $(STM32SRCS) #$(STM32USBSRCS)
 
 # Define all object files.
 _COBJ =  $(SRC:.c=.o)

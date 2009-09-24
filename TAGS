@@ -1,24 +1,24 @@
 
-maple_lib.h,481
+maple_lib.h,482
 #define __MAPLE_LIB_H2,22
-#define SET_REG(26,750
-#define GET_REG(27,795
-#define RCC 31,888
-#define FLASH 32,913
-#define GPIOA 33,938
-#define CPIOC 34,963
-#define RCC_CR 36,989
-#define RCC_CFGR 37,1013
-#define RCC_CIR 38,1044
-#define RCC_AHBENR 39,1075
-#define RCC_APB2ENR 40,1106
-#define RCC_APB1ENR 41,1137
-#define FLASH_KEYR 43,1169
-#define FLASH_ACR 44,1201
-#define GPIO_CRL(46,1234
-#define GPIO_CRH(47,1263
-#define GPIO_ODR(48,1297
-#define GPIO_BSRR(49,1331
+#define SET_REG(26,763
+#define GET_REG(27,808
+#define RCC 31,901
+#define FLASH 32,926
+#define GPIOA 33,951
+#define CPIOC 34,976
+#define RCC_CR 36,1002
+#define RCC_CFGR 37,1026
+#define RCC_CIR 38,1057
+#define RCC_AHBENR 39,1088
+#define RCC_APB2ENR 40,1119
+#define RCC_APB1ENR 41,1150
+#define FLASH_KEYR 43,1182
+#define FLASH_ACR 44,1214
+#define GPIO_CRL(46,1247
+#define GPIO_CRH(47,1276
+#define GPIO_ODR(48,1310
+#define GPIO_BSRR(49,1344
 
 stm32_lib/cortexm3_macro.h,35
 #define __CORTEXM3_MACRO_H18,1030
@@ -76,10 +76,427 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-maple_lib.c,68
-void systemReset(3,24
-void setupCLK 13,380
-void setupLED 35,1136
+maple_lib.c,227
+void setPin(3,24
+void resetPin(8,125
+void strobePin(13,231
+void systemReset(25,448
+void setupCLK 35,804
+void setupLED 57,1566
+bool checkUserCode 66,1750
+void jumpToUser 76,1913
+  typedef void (*funcPtr)funcPtr77,1945
 
 main.c,15
 int main 4,25
+
+usb_lib/usb_init.c,302
+ u8	EPindex;24,1436
+DEVICE_INFO *pInformation;pInformation29,1672
+DEVICE_PROP *pProperty;pProperty32,1828
+u16	SaveState 37,2079
+u16  wInterrupt_Mask;38,2096
+DEVICE_INFO	Device_Info;39,2119
+USER_STANDARD_REQUESTS  *pUser_Standard_Requests;pUser_Standard_Requests40,2145
+void USB_Init(53,2763
+
+usb_lib/usb_core.h,1288
+#define __USB_CORE_H18,1034
+typedef enum _CONTROL_STATE22,1222
+  WAIT_SETUP,24,1254
+  SETTING_UP,25,1283
+  IN_DATA,26,1312
+  OUT_DATA,27,1341
+  LAST_IN_DATA,28,1370
+  LAST_OUT_DATA,29,1399
+  WAIT_STATUS_IN,30,1428
+  WAIT_STATUS_OUT,31,1457
+  STALLED,32,1486
+  PAUSE 33,1515
+} CONTROL_STATE;34,1545
+typedef struct OneDescriptor36,1617
+ONE_DESCRIPTOR, *PONE_DESCRIPTOR;PONE_DESCRIPTOR41,1696
+typedef enum _RESULT45,1904
+  USB_SUCCESS 47,1929
+  USB_ERROR,48,1978
+  USB_UNSUPPORT,49,1992
+  USB_NOT_READY 50,2010
+} RESULT;52,2139
+typedef struct _ENDPOINT_INFO56,2235
+}ENDPOINT_INFO;ENDPOINT_INFO84,3335
+typedef struct _DEVICE88,3437
+DEVICE;93,3599
+  struct BW98,3638
+} u16_u8;104,3694
+typedef struct _DEVICE_INFO106,3707
+}DEVICE_INFO;DEVICE_INFO122,4340
+typedef struct _DEVICE_PROP124,4357
+}DEVICE_PROP;DEVICE_PROP179,6654
+typedef struct _USER_STANDARD_REQUESTS181,6671
+USER_STANDARD_REQUESTS;193,7333
+#define Type_Recipient 196,7442
+#define Usb_rLength 198,7530
+#define Usb_rOffset 199,7563
+#define USBwValue 201,7598
+#define USBwValue0 202,7630
+#define USBwValue1 203,7668
+#define USBwIndex 204,7706
+#define USBwIndex0 205,7738
+#define USBwIndex1 206,7776
+#define USBwLength 207,7814
+#define USBwLength0 208,7848
+#define USBwLength1 209,7888
+
+usb_lib/usb_regs.c,1698
+void SetCNTR(34,1949
+u16 GetCNTR(46,2349
+void SetISTR(58,2744
+u16 GetISTR(70,3142
+u16 GetFNR(82,3526
+void SetDADDR(94,3920
+u16 GetDADDR(106,4323
+void SetBTABLE(118,4708
+u16 GetBTABLE(130,5112
+void SetENDPOINT(143,5543
+u16 GetENDPOINT(155,6000
+void SetEPType(168,6465
+u16 GetEPType(180,6888
+void SetEPTxStatus(193,7339
+void SetEPRxStatus(206,7811
+void SetDouBleBuffEPStall(219,8318
+u16 GetEPTxStatus(240,9085
+u16 GetEPRxStatus(252,9519
+void SetEPTxValid(264,9938
+void SetEPRxValid(276,10361
+void SetEP_KIND(288,10775
+void ClearEP_KIND(300,11172
+void Clear_Status_Out(311,11598
+void Set_Status_Out(322,12024
+void SetEPDoubleBuff(333,12456
+void ClearEPDoubleBuff(344,12892
+u16 GetTxStallStatus(355,13334
+u16 GetRxStallStatus(366,13787
+void ClearEP_CTR_RX(377,14203
+void ClearEP_CTR_TX(388,14608
+void ToggleDTOG_RX(399,15014
+void ToggleDTOG_TX(410,15418
+void ClearDTOG_RX(421,15821
+void ClearDTOG_TX(432,16222
+void SetEPAddress(444,16673
+u8 GetEPAddress(455,17105
+void SetEPTxAddr(467,17563
+void SetEPRxAddr(479,18030
+u16 GetEPTxAddr(490,18476
+u16 GetEPRxAddr(501,18911
+void SetEPTxCount(513,19356
+void SetEPCountRxReg(525,19848
+void SetEPRxCount(537,20319
+u16 GetEPTxCount(548,20743
+u16 GetEPRxCount(559,21155
+void SetEPDblBuffAddr(572,21698
+void SetEPDblBuf0Addr(584,22207
+void SetEPDblBuf1Addr(596,22690
+u16 GetEPDblBuf0Addr(607,23141
+u16 GetEPDblBuf1Addr(618,23592
+void SetEPDblBuffCount(630,24058
+void SetEPDblBuf0Count(642,24571
+void SetEPDblBuf1Count(654,25085
+u16 GetEPDblBuf0Count(666,25630
+u16 GetEPDblBuf1Count(678,26148
+EP_DBUF_DIR GetEPDblBufDir(690,26686
+void FreeUserBuffer(707,27370
+u16 ToWord(726,27974
+u16 ByteSwap(739,28411
+
+usb_lib/usb_init.h,29
+#define __USB_INIT_H18,1027
+
+usb_lib/usb_int.c,91
+u16 SaveRState;23,1370
+u16 SaveTState;24,1387
+void CTR_LP(41,2176
+void CTR_HP(158,5589
+
+usb_lib/usb_def.h,1111
+#define __USB_DEF_H18,1014
+typedef enum _RECIPIENT_TYPE22,1201
+  DEVICE_RECIPIENT,24,1234
+  INTERFACE_RECIPIENT,25,1282
+  ENDPOINT_RECIPIENT,26,1333
+  OTHER_RECIPIENT27,1383
+} RECIPIENT_TYPE;28,1402
+typedef enum _STANDARD_REQUESTS31,1425
+  GET_STATUS 33,1461
+  CLEAR_FEATURE,34,1480
+  RESERVED1,35,1498
+  SET_FEATURE,36,1512
+  RESERVED2,37,1528
+  SET_ADDRESS,38,1542
+  GET_DESCRIPTOR,39,1558
+  SET_DESCRIPTOR,40,1577
+  GET_CONFIGURATION,41,1596
+  SET_CONFIGURATION,42,1618
+  GET_INTERFACE,43,1640
+  SET_INTERFACE,44,1658
+  TOTAL_sREQUEST,45,1676
+  SYNCH_FRAME 46,1735
+} STANDARD_REQUESTS;47,1755
+typedef enum _DESCRIPTOR_TYPE50,1812
+  DEVICE_DESCRIPTOR 52,1846
+  CONFIG_DESCRIPTOR,53,1872
+  STRING_DESCRIPTOR,54,1894
+  INTERFACE_DESCRIPTOR,55,1916
+  ENDPOINT_DESCRIPTOR56,1941
+} DESCRIPTOR_TYPE;57,1964
+typedef enum _FEATURE_SELECTOR60,2044
+  ENDPOINT_STALL,62,2079
+  DEVICE_REMOTE_WAKEUP63,2098
+} FEATURE_SELECTOR;64,2122
+#define REQUEST_TYPE 68,2267
+#define STANDARD_REQUEST 69,2331
+#define CLASS_REQUEST 70,2387
+#define VENDOR_REQUEST 71,2440
+#define RECIPIENT 73,2496
+
+usb_lib/usb_mem.h,28
+#define __USB_MEM_H18,1036
+
+usb_lib/usb_lib.h,28
+#define __USB_LIB_H18,1008
+
+usb_lib/usb_mem.c,68
+void UserToPMABufferCopy(35,2123
+void PMAToUserBufferCopy(60,3056
+
+usb_lib/usb_type.h,1591
+#define __USB_TYPE_H18,1025
+#define NULL 26,1334
+typedef signed long      s32;31,1400
+typedef signed short     s16;32,1431
+typedef signed char      s8;33,1462
+typedef volatile signed long      vs32;35,1494
+typedef volatile signed short     vs16;36,1535
+typedef volatile signed char      vs8;37,1576
+typedef unsigned long       u32;39,1618
+typedef unsigned short      u16;40,1652
+typedef unsigned char       u8;41,1686
+typedef unsigned long  const    uc32;43,1721
+typedef unsigned short const    uc16;44,1777
+typedef unsigned char  const    uc8;45,1833
+typedef volatile unsigned long      vu32;47,1891
+typedef volatile unsigned short     vu16;48,1934
+typedef volatile unsigned char      vu8;49,1977
+typedef volatile unsigned long  const    vuc32;51,2021
+typedef volatile unsigned short const    vuc16;52,2087
+typedef volatile unsigned char  const    vuc8;53,2153
+  FALSE 58,2240
+  FALSE = 0, TRUE 58,2240
+  FALSE = 0, TRUE  = !FALSEFALSE58,2240
+bool;60,2272
+typedef enum { RESET 62,2281
+typedef enum { RESET = 0, SET 62,2281
+typedef enum { RESET = 0, SET   = !RESET RESET62,2281
+typedef enum { RESET = 0, SET   = !RESET } FlagStatus, ITStatus;62,2281
+typedef enum { DISABLE 64,2349
+typedef enum { DISABLE = 0, ENABLE 64,2349
+typedef enum { DISABLE = 0, ENABLE  = !DISABLE}DISABLE64,2349
+typedef enum { DISABLE = 0, ENABLE  = !DISABLE} FunctionalState;64,2349
+typedef enum { ERROR 66,2417
+typedef enum { ERROR = 0, SUCCESS 66,2417
+typedef enum { ERROR = 0, SUCCESS  = !ERROR}ERROR66,2417
+typedef enum { ERROR = 0, SUCCESS  = !ERROR} ErrorStatus;66,2417
+
+usb_lib/usb_core.c,1093
+#define ValBit(20,1188
+#define SetBit(21,1239
+#define ClrBit(22,1291
+#define Send0LengthData(24,1353
+#define vSetEPRxStatus(28,1452
+#define vSetEPTxStatus(29,1498
+#define USB_StatusIn(31,1546
+#define USB_StatusOut(32,1588
+#define StatusInfo0 34,1643
+#define StatusInfo1 35,1706
+u16_u8 StatusInfo;39,1911
+bool Data_Mul_MaxPacketSize 40,1931
+u8 *Standard_GetConfiguration(Standard_GetConfiguration56,2769
+RESULT Standard_SetConfiguration(77,3612
+u8 *Standard_GetInterface(Standard_GetInterface102,4549
+RESULT Standard_SetInterface(123,5389
+u8 *Standard_GetStatus(Standard_GetStatus158,6654
+RESULT Standard_ClearFeature(236,8580
+RESULT Standard_SetEndPointFeature(325,11075
+RESULT Standard_SetDeviceFeature(379,12559
+u8 *Standard_GetDescriptorData(Standard_GetDescriptorData405,13943
+void DataStageOut(426,14586
+void DataStageIn(483,16067
+void NoData_Setup0(542,17675
+void Data_Setup0(666,20727
+u8 Setup0_Process(844,25796
+u8 In0_Process(888,27143
+u8 Out0_Process(928,28278
+u8 Post0_Process(969,29411
+void SetDeviceAddress(989,30044
+void NOP_Process(1009,30656
+
+usb_lib/usb_regs.h,4600
+#define __USB_REGS_H18,1036
+typedef enum _EP_DBUF_DIR22,1224
+  EP_DBUF_ERR,25,1298
+  EP_DBUF_OUT,26,1314
+  EP_DBUF_IN27,1330
+}EP_DBUF_DIR;EP_DBUF_DIR28,1344
+enum EP_BUF_NUM31,1391
+  EP_NOBUF,33,1411
+  EP_BUF0,34,1424
+  EP_BUF135,1436
+#define RegBase 39,1535
+#define PMAAddr 40,1615
+#define CNTR 47,1969
+#define ISTR 49,2059
+#define FNR 51,2145
+#define DADDR 53,2233
+#define BTABLE 55,2327
+#define EP0REG 59,2630
+#define ENDP0 62,2745
+#define ENDP1 63,2770
+#define ENDP2 64,2795
+#define ENDP3 65,2820
+#define ENDP4 66,2845
+#define ENDP5 67,2870
+#define ENDP6 68,2895
+#define ENDP7 69,2920
+#define ISTR_CTR 73,3191
+#define ISTR_DOVR 74,3261
+#define ISTR_ERR 75,3332
+#define ISTR_WKUP 76,3391
+#define ISTR_SUSP 77,3452
+#define ISTR_RESET 78,3513
+#define ISTR_SOF 79,3572
+#define ISTR_ESOF 80,3640
+#define ISTR_DIR 83,3721
+#define ISTR_EP_ID 84,3800
+#define CLR_CTR 86,3876
+#define CLR_DOVR 87,3943
+#define CLR_ERR 88,4010
+#define CLR_WKUP 89,4066
+#define CLR_SUSP 90,4128
+#define CLR_RESET 91,4190
+#define CLR_SOF 92,4251
+#define CLR_ESOF 93,4318
+#define CNTR_CTRM 98,4640
+#define CNTR_DOVRM 99,4698
+#define CNTR_ERRM 100,4757
+#define CNTR_WKUPM 101,4804
+#define CNTR_SUSPM 102,4853
+#define CNTR_RESETM 103,4902
+#define CNTR_SOFM 104,4951
+#define CNTR_ESOFM 105,5007
+#define CNTR_RESUME 108,5076
+#define CNTR_FSUSP 109,5127
+#define CNTR_LPMODE 110,5177
+#define CNTR_PDWN 111,5228
+#define CNTR_FRES 112,5275
+#define FNR_RXDP 117,5575
+#define FNR_RXDM 118,5631
+#define FNR_LCK 119,5687
+#define FNR_LSOF 120,5727
+#define FNR_FN 121,5769
+#define DADDR_EF 125,6060
+#define DADDR_ADD 126,6085
+#define EP_CTR_RX 131,6378
+#define EP_DTOG_RX 132,6446
+#define EPRX_STAT 133,6509
+#define EP_SETUP 134,6577
+#define EP_T_FIELD 135,6631
+#define EP_KIND 136,6684
+#define EP_CTR_TX 137,6737
+#define EP_DTOG_TX 138,6805
+#define EPTX_STAT 139,6868
+#define EPADDR_FIELD 140,6936
+#define EPREG_MASK 143,7049
+#define EP_TYPE_MASK 146,7172
+#define EP_BULK 147,7230
+#define EP_CONTROL 148,7283
+#define EP_ISOCHRONOUS 149,7339
+#define EP_INTERRUPT 150,7399
+#define EP_T_MASK 151,7457
+#define EPKIND_MASK 155,7541
+#define EP_TX_DIS 158,7634
+#define EP_TX_STALL 159,7694
+#define EP_TX_NAK 160,7753
+#define EP_TX_VALID 161,7810
+#define EPTX_DTOG1 162,7867
+#define EPTX_DTOG2 163,7935
+#define EPTX_DTOGMASK 164,8003
+#define EP_RX_DIS 167,8095
+#define EP_RX_STALL 168,8155
+#define EP_RX_NAK 169,8214
+#define EP_RX_VALID 170,8271
+#define EPRX_DTOG1 171,8328
+#define EPRX_DTOG2 172,8396
+#define EPRX_DTOGMASK 173,8464
+#define _SetCNTR(176,8608
+#define _SetISTR(179,8682
+#define _SetDADDR(182,8757
+#define _SetBTABLE(185,8833
+#define _GetCNTR(188,8918
+#define _GetISTR(191,8971
+#define _GetFNR(194,9023
+#define _GetDADDR(197,9076
+#define _GetBTABLE(200,9132
+#define _SetENDPOINT(203,9191
+#define _GetENDPOINT(207,9297
+#define _SetEPType(217,9760
+#define _GetEPType(227,10280
+#define _SetEPTxStatus(237,10753
+#define _SetEPRxStatus(257,11605
+#define _GetEPTxStatus(277,12440
+#define _GetEPRxStatus(279,12514
+#define _SetEPTxValid(288,12982
+#define _SetEPRxValid(290,13057
+#define _GetTxStallStatus(299,13540
+#define _GetRxStallStatus(301,13653
+#define _SetEP_KIND(311,14122
+#define _ClearEP_KIND(313,14259
+#define _Set_Status_Out(323,14788
+#define _Clear_Status_Out(324,14844
+#define _SetEPDoubleBuff(333,15302
+#define _ClearEPDoubleBuff(334,15358
+#define _ClearEP_CTR_RX(343,15806
+#define _ClearEP_CTR_TX(345,15945
+#define _ToggleDTOG_RX(355,16476
+#define _ToggleDTOG_TX(357,16620
+#define _ClearDTOG_RX(367,17152
+#define _ClearDTOG_TX(369,17258
+#define _SetEPAddress(379,17754
+#define _GetEPAddress(389,18216
+#define _pEPTxAddr(391,18293
+#define _pEPTxCount(392,18370
+#define _pEPRxAddr(393,18448
+#define _pEPRxCount(394,18525
+#define _SetEPTxAddr(404,19036
+#define _SetEPRxAddr(405,19116
+#define _GetEPTxAddr(414,19577
+#define _GetEPRxAddr(415,19634
+#define _BlocksOf32(425,20097
+#define _BlocksOf2(432,20299
+#define _SetEPCountRxReg(439,20487
+#define _SetEPRxDblBuf0Count(447,20691
+#define _SetEPTxCount(459,21234
+#define _SetEPRxCount(460,21304
+#define _GetEPTxCount(471,21802
+#define _GetEPRxCount(472,21870
+#define _SetEPDblBuf0Addr(482,22380
+#define _SetEPDblBuf1Addr(483,22460
+#define _SetEPDblBuffAddr(494,23004
+#define _GetEPDblBuf0Addr(506,23573
+#define _GetEPDblBuf1Addr(507,23631
+#define _SetEPDblBuf0Count(519,24267
+#define _SetEPDblBuf1Count(528,24563
+#define _SetEPDblBuffCount(537,24850
+#define _GetEPDblBuf0Count(549,25426
+#define _GetEPDblBuf1Count(550,25486
+
+usb_lib/usb_int.h,28
+#define __USB_INT_H19,1074
