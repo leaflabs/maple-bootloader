@@ -55,12 +55,48 @@ void setupCLK (void) {
 }
 
 void setupLED (void) {
+  u32 rwmVal; /* read-write-modify place holder var */
+
   /* Setup APB2 (GPIOA) */
-  SET_REG(RCC_APB2ENR,0x00000004);
+  rwmVal =  GET_REG(RCC_APB2ENR);
+  rwmVal |= 0x00000004;
+  SET_REG(RCC_APB2ENR,rwmVal);
 
   /* Setup GPIOA Pin 5 as PP Out */
   SET_REG(GPIO_CRL(GPIOA), 0x00100000);
+
+  rwmVal =  GET_REG(GPIO_CRL(GPIOA));
+  rwmVal &= 0xFF0FFFFF;
+  rwmVal |= 0x00100000;
+  SET_REG(GPIO_CRL(GPIOA),rwmVal);
+
   setPin(GPIOA,5);
+}
+
+void setupUSB (void) {
+  u32 rwmVal; /* read-write-modify place holder var */
+
+  /* Setup the USB DISC Pin */
+  rwmVal  = GET_REG(RCC_APB2ENR);
+  rwmVal |= 0x00000010;
+  SET_REG(RCC_APB2ENR,rwmVal);
+  
+  /* Setup GPIOC Pin 12 as OD out */
+  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
+  rwmVal &= 0xFFF0FFFF;
+  rwmVal |= 0x00050000;
+  setPin (GPIOC,12);
+  SET_REG(GPIO_CRH(GPIOC),rwmVal);
+
+  /* setup the USB prescaler */
+  rwmVal  = GET_REG(RCC_CFGR);
+  rwmVal &= 0xFFBFFFFF; /* clear the usbpre bit if it is set*/
+  SET_REG(RCC_CFGR,rwmVal);
+
+  /* setup the apb1 usb periph clk */
+  rwmVal  = GET_REG(RCC_APB1ENR);
+  rwmVal |= 0x00800000;
+  SET_REG(RCC_APB1ENR,rwmVal);
 }
 
 bool checkUserCode (u32 usrAddr) {

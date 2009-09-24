@@ -1,9 +1,14 @@
 #ifndef __MAPLE_LIB_H
 #define __MAPLE_LIB_H
 
+/* ST Libs (stripped) */
 #include "stm32f10x_type.h" /* defines simple types (u32, vu16, etc) */
 #include "cortexm3_macro.h" /* provides asm instruction macros */
 #include "usb_lib.h"
+
+/* Local Includes */
+#include "maple_usb.h"
+#include "maple_dfu.h"
 
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
@@ -32,7 +37,7 @@ s8   flashGetStatus (void);
 #define RCC   0x40021000
 #define FLASH 0x40022000
 #define GPIOA 0x40010800
-#define CPIOC 0x40011000
+#define GPIOC 0x40011000
 
 #define RCC_CR      RCC
 #define RCC_CFGR    RCC + 0x04

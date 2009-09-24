@@ -6,7 +6,7 @@ maple_lib.h,482
 #define RCC 32,922
 #define FLASH 33,947
 #define GPIOA 34,972
-#define CPIOC 35,997
+#define GPIOC 35,997
 #define RCC_CR 37,1023
 #define RCC_CFGR 38,1047
 #define RCC_CIR 39,1078
@@ -76,16 +76,17 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-maple_lib.c,227
+maple_lib.c,253
 void setPin(3,24
 void resetPin(8,125
 void strobePin(13,231
 void systemReset(25,448
 void setupCLK 35,804
 void setupLED 57,1566
-bool checkUserCode 66,1750
-void jumpToUser 76,1913
-  typedef void (*funcPtr)funcPtr77,1945
+void setupUSB 76,1983
+bool checkUserCode 102,2650
+void jumpToUser 112,2813
+  typedef void (*funcPtr)funcPtr113,2845
 
 main.c,15
 int main 4,25
