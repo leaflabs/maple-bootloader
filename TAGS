@@ -1,24 +1,37 @@
 
-maple_lib.h,482
+maple_usb.h,224
+#define __MAPLE_USB_H2,22
+#define BTABLE_ADDRESS 8,128
+#define ENDP0_RXADDR 9,157
+#define ENDP0_TXADDR 10,186
+#define bMaxPacketSize 11,250
+#define wTransferSize 12,321
+#define ISR_MSK 15,441
+void usbEnbISTR(61,1817
+
+maple_lib.h,486
 #define __MAPLE_LIB_H2,22
-#define SET_REG(27,784
-#define GET_REG(28,829
-#define RCC 32,922
-#define FLASH 33,947
-#define GPIOA 34,972
-#define GPIOC 35,997
-#define RCC_CR 37,1023
-#define RCC_CFGR 38,1047
-#define RCC_CIR 39,1078
-#define RCC_AHBENR 40,1109
-#define RCC_APB2ENR 41,1140
-#define RCC_APB1ENR 42,1171
-#define FLASH_KEYR 44,1203
-#define FLASH_ACR 45,1235
-#define GPIO_CRL(47,1268
-#define GPIO_CRH(48,1297
-#define GPIO_ODR(49,1331
-#define GPIO_BSRR(50,1365
+#define SET_REG(32,881
+#define GET_REG(33,926
+#define RCC 37,1019
+#define FLASH 38,1044
+#define GPIOA 39,1069
+#define GPIOC 40,1094
+#define RCC_CR 42,1120
+#define RCC_CFGR 43,1144
+#define RCC_CIR 44,1175
+#define RCC_AHBENR 45,1206
+#define RCC_APB2ENR 46,1237
+#define RCC_APB1ENR 47,1268
+#define FLASH_KEYR 49,1300
+#define FLASH_ACR 50,1332
+#define GPIO_CRL(52,1365
+#define GPIO_CRH(53,1394
+#define GPIO_ODR(54,1428
+#define GPIO_BSRR(55,1462
+
+maple_usb_desc.h,32
+#define __MAPLE_USB_DESC_H2,27
 
 stm32_lib/cortexm3_macro.h,35
 #define __CORTEXM3_MACRO_H18,1030
@@ -87,6 +100,14 @@ void setupUSB 76,1983
 bool checkUserCode 102,2650
 void jumpToUser 112,2813
   typedef void (*funcPtr)funcPtr113,2845
+
+maple_dfu.h,167
+#define __MAPLE_DFU_H2,22
+typedef enum _DFUState 7,89
+} DFUState;8,114
+typedef enum _DFUEvent 10,127
+} DFUEvent;11,152
+typedef u8*(*ClassReqCB)ClassReqCB13,165
 
 main.c,15
 int main 4,25

@@ -7,8 +7,8 @@
 #include "usb_lib.h"
 
 /* Local Includes */
-#include "maple_usb.h"
-#include "maple_dfu.h"
+//#include "maple_usb.h"
+//#include "maple_dfu.h"
 
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
