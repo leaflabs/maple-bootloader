@@ -32,7 +32,7 @@ u8* u8_usbConfigDescriptor =
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
-    0x1B, /* wTotalLength: Bytes returned */
+    0x1B,   /* wTotalLength: Bytes returned */
     0x00,
     0x01,   /* bNumInterfaces: 1 interface */
     0x01,   /* bConfigurationValue: */
@@ -49,7 +49,7 @@ u8* u8_usbConfigDescriptor =
     0x00,   /* bNumEndpoints*/
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
-    0x01,   /* nInterfaceProtocol */
+    0x01,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
     0x00,   /* iInterface: */
 
     /******************** DFU Functional Descriptor********************/
