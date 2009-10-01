@@ -27,19 +27,18 @@ typedef struct _DFUStatus {
 /* } DFUEvent; */
 
 
-/* exposed enums */
-typedef enum _DFUbRequest {
-                  /* bmRequestType, wValue,    wIndex,    wLength, Data */
-  DFU_DETACH,     /* 0x21,          wTimeout,  Interface, Zero,    None */
-  DFU_DNLOAD,     /* 0x21,          wBlockNum, Interface, Length,  Firmware */
-  DFU_UPLOAD,     /* 0xA1,          Zero,      Interface, Length,  Firmware */
-  DFU_GETSTATUS,  /* 0xA1,          Zero,      Interface, 6,       Status */
-  DFU_CLRSTATUS,  /* 0x21,          Zero,      Interface, Zero,    None */
-  DFU_GETSTATE,   /* 0xA1,          Zero,      Interface, 1,       State */
-  DFU_ABORT,      /* 0x21,          Zero,      Interface, Zero,    None */
-} DFUbRequest;
 
 /* to avoid a bunch of extra casting (to u8), dont enumerate status/states */
+
+/*** DFU bRequest Values ******/
+                            /* bmRequestType, wValue,    wIndex,    wLength, Data */
+#define  DFU_DETACH    0x00 /* 0x21,          wTimeout,  Interface, Zero,    None */
+#define  DFU_DNLOAD    0x01 /* 0x21,          wBlockNum, Interface, Length,  Firmware */
+#define  DFU_UPLOAD    0x02 /* 0xA1,          Zero,      Interface, Length,  Firmware */
+#define  DFU_GETSTATUS 0x03 /* 0xA1,          Zero,      Interface, 6,       Status */
+#define  DFU_CLRSTATUS 0x04 /* 0x21,          Zero,      Interface, Zero,    None */
+#define  DFU_GETSTATE  0x05 /* 0xA1,          Zero,      Interface, 1,       State */
+#define  DFU_ABORT     0x06 /* 0x21,          Zero,      Interface, Zero,    None */
 
 /*** DFU Status Values ******/
 #define  OK              0x00 /* No error */
@@ -82,7 +81,9 @@ typedef enum _DFUbRequest {
 void dfuInit(void);  /* singleton dfu initializer */
 
 /* should consume dfuEvent type, but for now we can use pInfo (see comment above) */
-void dfuUpdateState(void); 
+void dfuUpdateByRequest(void); 
+void dfuUpdateByReset(void); 
+void dfuUpdateByTimeout(void); 
 
 /* hooks in with how usb_core expects class resquests to be handled by copy routines */
 ClassReqCB dfuGetClassHandler(void); 
