@@ -10,29 +10,6 @@
 //#include "maple_usb.h"
 //#include "maple_dfu.h"
 
-void setPin    (u32 bank, u8 pin);
-void resetPin  (u32 bank, u8 pin);
-void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
-
-void systemReset   (void);
-void setupCLK      (void);
-void setupUSB      (void);
-void setupLED      (void);
-bool checkUserCode (u32 usrAddr);
-void jumpToUser    (u32 usrAddr);
-
-void flashErasePage (u16 pageNum);
-s8   flashWritePage (u8 pageNum, u8 *srcBuf);
-void flashEraseAll  (void);
-void flashUnlock    (void);
-void flashBlock     (void);  /* waits until flash is ready */
-s8   flashGetStatus (void);
-
-/* todo, wrap in do whiles for the natural ; */
-#define SET_REG(addr,val) *(vu32*)(addr)=val
-#define GET_REG(addr)     *(vu32*)(addr)
-
-
 /* macro'd register and peripheral definitions */
 #define RCC   0x40021000
 #define FLASH 0x40022000
@@ -53,6 +30,79 @@ s8   flashGetStatus (void);
 #define GPIO_CRH(port)  port+0x04
 #define GPIO_ODR(port)  port+0x0c
 #define GPIO_BSRR(port) port+0x10
+
+#define SCS  = 0xE000E000
+#define NVIC = SCS+0x100
+#define SCB  = SCS+0xD00
+
+/* todo, wrap in do whiles for the natural ; */
+#define SET_REG(addr,val) *(vu32*)(addr)=val
+#define GET_REG(addr)     *(vu32*)(addr)
+
+/* exposed library structs */
+typedef struct {
+  vu32 ISER[2];
+  u32  RESERVED0[30];
+  vu32 ICER[2];
+  u32  RSERVED1[30];
+  vu32 ISPR[2];
+  u32  RESERVED2[30];
+  vu32 ICPR[2];
+  u32  RESERVED3[30];
+  vu32 IABR[2];
+  u32  RESERVED4[62];
+  vu32 IPR[15];
+} NVIC_Typedef;
+
+typedef struct
+{
+  u8 NVIC_IRQChannel;
+  u8 NVIC_IRQChannelPreemptionPriority;
+  u8 NVIC_IRQChannelSubPriority;
+  bool NVIC_IRQChannelCmd; /* TRUE for enable */
+} NVIC_InitTypeDef;
+
+typedef struct
+{
+  vuc32 CPUID;
+  vu32 ICSR;
+  vu32 VTOR;
+  vu32 AIRCR;
+  vu32 SCR;
+  vu32 CCR;
+  vu32 SHPR[3];
+  vu32 SHCSR;
+  vu32 CFSR;
+  vu32 HFSR;
+  vu32 DFSR;
+  vu32 MMFAR;
+  vu32 BFAR;
+  vu32 AFSR;
+} SCB_TypeDef;
+
+void setPin    (u32 bank, u8 pin);
+void resetPin  (u32 bank, u8 pin);
+void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
+
+void systemReset   (void);
+void setupCLK      (void);
+void setupUSB      (void);
+void setupLED      (void);
+bool checkUserCode (u32 usrAddr);
+void jumpToUser    (u32 usrAddr);
+
+void flashErasePage (u16 pageNum);
+s8   flashWritePage (u8 pageNum, u8 *srcBuf);
+void flashEraseAll  (void);
+void flashUnlock    (void);
+void flashBlock     (void);  /* waits until flash is ready */
+s8   flashGetStatus (void);
+
+void nvicInit(NVIC_InitTypeDef*);
+
+
+
+
 
 
 

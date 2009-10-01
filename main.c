@@ -1,5 +1,9 @@
 #include "maple_lib.h"
 
+/* overflow the weak definition in c_only_startup.c */
+void USB_LP_CAN1_RX0_IRQHandler(void) {
+  USB_Istr();  
+}
 
 int main (void) {
   systemReset();

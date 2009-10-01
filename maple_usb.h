@@ -12,7 +12,7 @@
 #define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
 #define NUM_ENDPTS      0x01
 
-#define ISR_MSK ( CNTR_CTRM  | \ /* defines which interrupts are handled */
+#define ISR_MSK (CNTR_CTRM   | \ /* defines which interrupts are handled */
                  CNTR_WKUPM  | \
                  CNTR_SUSPM  | \
                  CNTR_ERRM   | \
@@ -80,8 +80,8 @@ void usbSetDeviceAddress(void);
 /* Interrupt setup/handling exposed only so that 
    its obvious from main what interrupts are overloaded 
    from c_only_startup.s (see the top of main.c) */
-void usbSetupISR(void);
-void usbEnbISTR(void)
+void usbDsbISR(void);
+void usbEnbISR(void)
 void usbISTR(void);
 
 

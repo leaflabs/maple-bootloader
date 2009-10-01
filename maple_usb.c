@@ -5,6 +5,11 @@
    to as a single global
 */
 vu32 bDeviceState = UNCONNECTED;
+
+/* tracks sequential behavior of the ISTR */
+vu16 wIstr;
+vu8 bIntPackSOF = 0;
+
 DEVICE Device_Table = 
   {
     NUM_ENDPTS,
@@ -165,7 +170,8 @@ void usbInit(void) {
   _SetISTR(0);
   wInterrupt_Mask = IMR_MSK;
   _SetCNTR(wInterrupt_Mask);
-  usbEnbISTR();
+
+  usbEnbISR(); /* configure the cortex M3 private peripheral NVIC */
 
   bDeviceState = UNCONNECTED;
 }
@@ -244,7 +250,7 @@ u8* usbGetInterfaceSetting(u8 interface, u8 altSetting) {
   /* we only support alt setting 0 for now */
   if (altSetting < 1) {
     return USB_SUCCESS;
-  };
+  }
 
   return USB_UNSUPPORT;
 }
@@ -277,7 +283,18 @@ u8* usbGetStringDescriptor(u16 len) {
   //  return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
 }
 
-/* void usbGetConfiguration(void); */
+
+
+/***** start of USER STANDARD REQUESTS ******
+ * 
+ * These are the USER STANDARD REQUESTS, they are handled 
+ * in the core but we are given these callbacks at the 
+ * application level
+ *******************************************/
+
+void usbGetConfiguration(void) {
+  /* nothing process */
+}
 
 void usbSetConfiguration(void) {
   if (pInformation->Current_Configuration != 0)
@@ -286,17 +303,138 @@ void usbSetConfiguration(void) {
   }
 }
 
-/* void usbGetInterface(void); */
-/* void usbSetInterface(void); */
-/* void usbGetStatus(void); */
-/* void usbClearFeature(void); */
-/* void usbSetEndpointFeature(void); */
-/* void usbSetDeviceFeature(void); */
+void usbGetInterface(void) {
+  /* nothing process */
+}
+
+void usbSetInterface(void) {
+  /* nothing process */
+}
+
+void usbGetStatus(void) {
+  /* nothing process */
+}
+
+void usbClearFeature(void) {
+  /* nothing process */
+}
+
+void usbSetEndpointFeature(void) {
+  /* nothing process */
+}
+
+void usbSetDeviceFeature(void) {
+  /* nothing process */
+}
 
 void usbSetDeviceAddress(void) {
   bDeviceState = ADDRESSED;
 }
+/***** end of USER STANDARD REQUESTS *****/
 
-/* void usbSetupISR(void); */
-/* void usbEnbISTR(void) */
-/* void usbISTR(void); */
+
+void usbEnbISR(void) {
+  NVIC_InitTypeDef NVIC_InitStructure;
+
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN_RX0_IRQChannel;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = TRUE;
+  nvicInit(&NVIC_InitStructure);
+}
+
+void usbDsbISR(void) {
+  NVIC_InitTypeDef NVIC_InitStructure;
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN_RX0_IRQChannel;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = FALSE;
+  nvicInit(&NVIC_InitStructure);
+}
+
+void usbISTR(void) {
+  wIstr = _GetISTR();
+
+  /* go nuts with the preproc switches since this is an ISTR and must be FAST */
+#if (IMR_MSK & ISTR_RESET)
+  if (wIstr & ISTR_RESET & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_RESET);
+    Device_Property.Reset();
+  }
+#endif
+
+
+#if (IMR_MSK & ISTR_DOVR)
+  if (wIstr & ISTR_DOVR & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_DOVR);
+  }
+#endif
+
+
+#if (IMR_MSK & ISTR_ERR)
+  if (wIstr & ISTR_ERR & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_ERR);
+  }
+#endif
+
+
+#if (IMR_MSK & ISTR_WKUP)
+  if (wIstr & ISTR_WKUP & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_WKUP);
+    usbResume(RESUME_EXTERNAL);
+  }
+#endif
+
+  /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+#if (IMR_MSK & ISTR_SUSP)
+  if (wIstr & ISTR_SUSP & wInterrupt_Mask)
+  {
+
+    /* check if SUSPEND is possible */
+    if (fSuspendEnabled)
+    {
+      usbSuspend();
+    }
+    else
+    {
+      /* if not possible then resume after xx ms */
+      usbResume(RESUME_LATER);
+    }
+    /* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
+    _SetISTR((u16)CLR_SUSP);
+  }
+#endif
+
+
+#if (IMR_MSK & ISTR_SOF)
+  if (wIstr & ISTR_SOF & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_SOF);
+    bIntPackSOF++;
+  }
+#endif
+
+
+#if (IMR_MSK & ISTR_ESOF)
+  if (wIstr & ISTR_ESOF & wInterrupt_Mask)
+  {
+    _SetISTR((u16)CLR_ESOF);
+    /* resume handling timing is made with ESOFs */
+    usbResume(RESUME_ESOF); /* request without change of the machine state */
+  }
+#endif
+
+  /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+#if (IMR_MSK & ISTR_CTR)
+  if (wIstr & ISTR_CTR & wInterrupt_Mask)
+  {
+    /* servicing of the endpoint correct transfer interrupt */
+    /* clear of the CTR flag into the sub */
+    CTR_LP(); /* low priority ISR defined in the usb core lib */
+  }
+#endif
+}

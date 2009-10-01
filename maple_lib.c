@@ -97,6 +97,9 @@ void setupUSB (void) {
   rwmVal  = GET_REG(RCC_APB1ENR);
   rwmVal |= 0x00800000;
   SET_REG(RCC_APB1ENR,rwmVal);
+
+  /* initialize the usb application */
+  usbAppInit();
 }
 
 bool checkUserCode (u32 usrAddr) {
@@ -117,4 +120,44 @@ void jumpToUser (u32 usrAddr) {
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
   usrMain();                                /* go! */
+}
+
+void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
+  u32 tmppriority = 0x00, tmpreg = 0x00, tmpmask = 0x00;
+  u32 tmppre = 0, tmpsub = 0x0F;
+
+  rSCB = (SCB_TypeDef *) SCB;
+  rNVIC = (NVIC_TypeDef *) NVIC;
+
+  if (NVIC_InitStruct->NVIC_IRQChannelCmd != FALSE)
+  {
+    /* Compute the Corresponding IRQ Priority --------------------------------*/    
+    tmppriority = (0x700 - (rSCB->AIRCR & (u32)0x700))>> 0x08;
+    tmppre = (0x4 - tmppriority);
+    tmpsub = tmpsub >> tmppriority;
+    
+    tmppriority = (u32)NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << tmppre;
+    tmppriority |=  NVIC_InitStruct->NVIC_IRQChannelSubPriority & tmpsub;
+
+    tmppriority = tmppriority << 0x04;
+    tmppriority = ((u32)tmppriority) << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
+    
+    tmpreg = rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)];
+    tmpmask = (u32)0xFF << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
+    tmpreg &= ~tmpmask;
+    tmppriority &= tmpmask;  
+    tmpreg |= tmppriority;
+
+    rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)] = tmpreg;
+    
+    /* Enable the Selected IRQ Channels --------------------------------------*/
+    rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
+      (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
+  }
+  else
+  {
+    /* Disable the Selected IRQ Channels -------------------------------------*/
+    rNVIC->ICER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
+      (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
+  }
 }
