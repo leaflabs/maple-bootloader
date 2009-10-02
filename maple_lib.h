@@ -7,8 +7,8 @@
 #include "usb_lib.h"
 
 /* Local Includes */
-//#include "maple_usb.h"
-//#include "maple_dfu.h"
+#include "maple_usb.h"
+#include "maple_dfu.h"
 
 /* macro'd register and peripheral definitions */
 #define RCC   0x40021000
@@ -54,16 +54,14 @@ typedef struct {
   vu32 IPR[15];
 } NVIC_Typedef;
 
-typedef struct
-{
+typedef struct {
   u8 NVIC_IRQChannel;
   u8 NVIC_IRQChannelPreemptionPriority;
   u8 NVIC_IRQChannelSubPriority;
   bool NVIC_IRQChannelCmd; /* TRUE for enable */
 } NVIC_InitTypeDef;
 
-typedef struct
-{
+typedef struct {
   vuc32 CPUID;
   vu32 ICSR;
   vu32 VTOR;

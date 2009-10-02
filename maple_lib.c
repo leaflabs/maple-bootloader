@@ -126,8 +126,8 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
   u32 tmppriority = 0x00, tmpreg = 0x00, tmpmask = 0x00;
   u32 tmppre = 0, tmpsub = 0x0F;
 
-  rSCB = (SCB_TypeDef *) SCB;
-  rNVIC = (NVIC_TypeDef *) NVIC;
+  SCB_TypeDef rSCB = (SCB_TypeDef *) SCB;
+  NVIC_TypeDef rNVIC = (NVIC_TypeDef *) NVIC;
 
   if (NVIC_InitStruct->NVIC_IRQChannelCmd != FALSE)
   {

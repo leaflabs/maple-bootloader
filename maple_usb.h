@@ -12,7 +12,8 @@
 #define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
 #define NUM_ENDPTS      0x01
 
-#define ISR_MSK (CNTR_CTRM   | \ /* defines which interrupts are handled */
+/* defines which interrupts are handled */
+#define ISR_MSK (CNTR_CTRM   | \
                  CNTR_WKUPM  | \
                  CNTR_SUSPM  | \
                  CNTR_ERRM   | \
@@ -23,16 +24,16 @@
 
 /* any structs or enums */
 typedef enum _RESUME_STATE
- {
-   RESUME_EXTERNAL,
-   RESUME_INTERNAL,
-   RESUME_LATER,
-   RESUME_WAIT,
-   RESUME_START,
-   RESUME_ON,
-   RESUME_OFF,
-   RESUME_ESOF,
- } RESUME_STATE;
+  {
+    RESUME_EXTERNAL,
+    RESUME_INTERNAL,
+    RESUME_LATER,
+    RESUME_WAIT,
+    RESUME_START,
+    RESUME_ON,
+    RESUME_OFF,
+    RESUME_ESOF
+  } RESUME_STATE;
 
 typedef enum _DEVICE_STATE
   {
@@ -50,7 +51,7 @@ void usbAppInit(void); /* singleton usb initializer */
 /* internal usb HW layer power management */
 void usbSuspend(void);
 void usbResumeInit(void);
-void usbResume(RESUME_STATE);
+void usbResume(RESUME_STATE state);
 RESULT usbPowerOn(void);
 RESULT usbPowerOff(void);
 
@@ -59,12 +60,12 @@ void usbInit(void);
 void usbReset(void);
 void usbStatusIn(void);
 void usbStatusOut(void);
-RESULT usbDataSetup(u8);
-RESULT usbNoDataSetup(u8);
+RESULT usbDataSetup(u8 request);
+RESULT usbNoDataSetup(u8 request);
+u8* usbGetDeviceDescriptor(u16 length);
+u8* usbGetConfigDescriptor(u16 length);
+u8* usbGetStringDescriptor(u16 length);
 u8* usbGetInterfaceSetting(u8,u8);
-u8* usbGetDeviceDescriptor(u16);
-u8* usbGetConfigDescriptor(u16);
-u8* usbGetStringDescriptor(u16);
 
 /* internal callbacks to respond to standard requests */
 void usbGetConfiguration(void);
@@ -81,7 +82,7 @@ void usbSetDeviceAddress(void);
    its obvious from main what interrupts are overloaded 
    from c_only_startup.s (see the top of main.c) */
 void usbDsbISR(void);
-void usbEnbISR(void)
+void usbEnbISR(void);
 void usbISTR(void);
 
 
