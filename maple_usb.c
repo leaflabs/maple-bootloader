@@ -254,6 +254,9 @@ RESULT usbDataSetup(u8 request) {
 	break;
       case (DFU_DNLOAD):
 	CopyRoutine = dfuCopyDNLOAD;
+	break;
+      case (DFU_UPLOAD):
+	CopyRoutine = dfuCopyUPLOAD;
       default:
 	/* leave copy routine null */
 	break;

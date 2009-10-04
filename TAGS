@@ -67,23 +67,23 @@ void usbReset(204,3864
 void usbStatusIn(229,4494
 void usbStatusOut(235,4711
 RESULT usbDataSetup(239,4797
-RESULT usbNoDataSetup(276,5586
-u8* usbGetInterfaceSetting(287,5834
-u8* usbGetDeviceDescriptor(296,6018
-u8* usbGetConfigDescriptor(304,6293
-u8* usbGetStringDescriptor(312,6568
-void usbGetConfiguration(333,7206
-void usbSetConfiguration(337,7266
-void usbGetInterface(344,7389
-void usbSetInterface(348,7445
-void usbGetStatus(352,7501
-void usbClearFeature(356,7554
-void usbSetEndpointFeature(360,7610
-void usbSetDeviceFeature(364,7672
-void usbSetDeviceAddress(368,7732
-void usbEnbISR(374,7841
-void usbDsbISR(389,8288
-void usbISTR(398,8599
+RESULT usbNoDataSetup(279,5649
+u8* usbGetInterfaceSetting(290,5897
+u8* usbGetDeviceDescriptor(299,6081
+u8* usbGetConfigDescriptor(307,6356
+u8* usbGetStringDescriptor(315,6631
+void usbGetConfiguration(336,7269
+void usbSetConfiguration(340,7329
+void usbGetInterface(347,7452
+void usbSetInterface(351,7508
+void usbGetStatus(355,7564
+void usbClearFeature(359,7617
+void usbSetEndpointFeature(363,7673
+void usbSetDeviceFeature(367,7735
+void usbSetDeviceAddress(371,7795
+void usbEnbISR(377,7904
+void usbDsbISR(392,8351
+void usbISTR(401,8662
 
 maple_usb_desc.h,32
 #define __MAPLE_USB_DESC_H2,27
@@ -680,17 +680,21 @@ usb_lib/usb_conf.h,653
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074
 
-maple_dfu.c,365
+maple_dfu.c,472
 u32 userAppAddr 4,42
 DFUStatus dfuAppStatus;5,109
 bool copyLock 6,160
 u8 recvBuffer[recvBuffer8,184
 u8 currentBlock 9,214
-void dfuInit(12,301
-bool dfuUpdateByRequest(21,694
-void dfuUpdateByReset(214,7570
-void dfuUpdateByTimeout(255,9054
-u8* dfuCopyState(258,9089
-u8* dfuCopyStatus(267,9256
-u8* dfuCopyDNLOAD(277,9417
-void dfuCopyBufferToExec(288,9706
+u32* userSpace 10,235
+u32 userFirmwareLen 11,274
+u32* lastUserSpace 12,299
+void dfuInit(15,408
+bool dfuUpdateByRequest(24,801
+void dfuUpdateByReset(221,7819
+void dfuUpdateByTimeout(261,9299
+u8* dfuCopyState(264,9334
+u8* dfuCopyStatus(273,9501
+u8* dfuCopyDNLOAD(283,9662
+u8* dfuCopyUPLOAD(292,9925
+void dfuCopyBufferToExec(309,10595

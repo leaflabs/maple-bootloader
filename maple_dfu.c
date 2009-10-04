@@ -7,6 +7,9 @@ bool copyLock = FALSE;
 
 u8 recvBuffer[wTransferSize];
 u8 currentBlock = 0;
+u32* userSpace = (u32*) USER_CODE_RAM;
+u32 userFirmwareLen = 0;
+u32* lastUserSpace = (u32*) USER_CODE_RAM;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
@@ -21,6 +24,16 @@ void dfuInit(void) {
 bool dfuUpdateByRequest(void) {
   /* were using the global pInformation struct from usb_lib here,
      see comment in maple_dfu.h around DFUEvent struct */
+
+  if ((pInformation->USBbRequest == DFU_DNLOAD)
+      && (pInformation->USBwValues.w == 0)) {
+    userSpace = (u32*) USER_CODE_RAM;
+  }
+  if ((pInformation->USBbRequest == DFU_UPLOAD)
+      && (pInformation->USBwValues.w == 0)) {
+    userSpace = (u32*) USER_CODE_RAM;
+  }
+
   
   u8 startState = dfuAppStatus.bState;
   /* often leaner to nest if's then embed a switch/case */
@@ -68,13 +81,10 @@ bool dfuUpdateByRequest(void) {
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;
       dfuAppStatus.bStatus = OK;  /* are we really ok? we were just aborted */    
-      currentBlock=0;
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
       dfuAppStatus.bState  = dfuIDLE;
-      currentBlock=0;
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuIDLE;
-      currentBlock=0;
     } else {
       dfuAppStatus.bState  = dfuERROR;
       dfuAppStatus.bStatus = errSTALLEDPKT;      
@@ -111,13 +121,10 @@ bool dfuUpdateByRequest(void) {
       }      
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;
-      currentBlock=0;
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
       dfuAppStatus.bState  = dfuIDLE;
-      currentBlock=0;
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuIDLE;
-      currentBlock=0;
     } else {
       dfuAppStatus.bState  = dfuERROR;
       dfuAppStatus.bStatus = errSTALLEDPKT;      
@@ -213,15 +220,14 @@ bool dfuUpdateByRequest(void) {
 
 void dfuUpdateByReset(void) {
   u8 startState = dfuAppStatus.bState;
+  userSpace = (u32*) USER_CODE_RAM;
 
   if (startState == appIDLE) {
     dfuAppStatus.bStatus  = OK;
   } else if (startState == appDETACH) {
-    currentBlock=0;
     dfuAppStatus.bState  = dfuIDLE;
     usbConfigDescriptor.Descriptor[16] = 0x02;
   } else if (startState == dfuIDLE) {
-    currentBlock=0;
     dfuAppStatus.bState  = dfuIDLE;
     //    usbConfigDescriptor.Descriptor[16] = 0x01;
   } else if (startState == dfuDNLOAD_SYNC) {
@@ -283,14 +289,30 @@ u8* dfuCopyDNLOAD(u16 length) {
   }
 }
 
-/* u8* dfuUPLOAD(16); */
+u8* dfuCopyUPLOAD(u16 length) {
+  u32 frameLen = (u32) userFirmwareLen - ((u32) userSpace - (u32) USER_CODE_RAM);
+  if (length == 0) {
+    if (frameLen > wTransferSize) {
+      pInformation->Ctrl_Info.Usb_wLength = wTransferSize - pInformation->Ctrl_Info.Usb_wOffset;
+      lastUserSpace = userSpace;
+      userSpace = (u32*)(userSpace + pInformation->Ctrl_Info.Usb_wLength);
+    } else {
+      pInformation->Ctrl_Info.Usb_wLength = frameLen - pInformation->Ctrl_Info.Usb_wOffset;
+      userSpace = (u32*)(userSpace + pInformation->Ctrl_Info.Usb_wLength);
+    }
+    return NULL;
+  } else {
+    return ((u8*)(lastUserSpace + pInformation->Ctrl_Info.Usb_wOffset));
+  }
+}
 
 void dfuCopyBufferToExec() {
   int i;
-  u8* userSpace = (u8*) USER_CODE_RAM + currentBlock*wTransferSize;
   for (i=0;i<wTransferSize;i++) {
-    *userSpace++ = recvBuffer[i];
+    *userSpace = *(u32*)recvBuffer[i];
+    userSpace++;
   }
+  userFirmwareLen = (u32)userSpace - (u32)USER_CODE_RAM;
 }
 
 /* DFUState dfuGetState(); */
