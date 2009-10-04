@@ -1,34 +1,88 @@
 
-maple_usb.h,224
+maple_usb.h,680
 #define __MAPLE_USB_H2,22
 #define BTABLE_ADDRESS 8,128
 #define ENDP0_RXADDR 9,157
 #define ENDP0_TXADDR 10,186
 #define bMaxPacketSize 11,250
 #define wTransferSize 12,321
-#define ISR_MSK 15,441
-void usbEnbISTR(61,1817
+#define NUM_ENDPTS 13,439
+#define ISR_MSK 16,512
+typedef enum _RESUME_STATE27,777
+    RESUME_EXTERNAL,29,808
+    RESUME_INTERNAL,30,829
+    RESUME_LATER,31,850
+    RESUME_WAIT,32,868
+    RESUME_START,33,885
+    RESUME_ON,34,903
+    RESUME_OFF,35,918
+    RESUME_ESOF36,934
+  } RESUME_STATE;37,950
+typedef enum _DEVICE_STATE39,969
+    UNCONNECTED,41,1000
+    ATTACHED,42,1017
+    POWERED,43,1031
+    SUSPENDED,44,1044
+    ADDRESSED,45,1059
+    CONFIGURED46,1074
+  } DEVICE_STATE;47,1089
 
-maple_lib.h,486
+maple_usb_desc.c,402
+u8 u8_usbDeviceDescriptor[u8_usbDeviceDescriptor3,29
+ONE_DESCRIPTOR usbDeviceDescriptor 25,745
+u8 u8_usbConfigDescriptor[u8_usbConfigDescriptor31,830
+ONE_DESCRIPTOR usbConfigDescriptor 69,2185
+ONE_DESCRIPTOR usbStringDescriptor 75,2270
+u8 u8_usbStringLandId 84,2388
+u8 u8_usbStringVendor 85,2421
+u8 u8_usbStringProduct 86,2454
+u8 u8_usbStringSerial 87,2487
+u8 u8_usbStringInterface 88,2520
+
+maple_lib.h,134
 #define __MAPLE_LIB_H2,22
-#define SET_REG(32,881
-#define GET_REG(33,926
-#define RCC 37,1019
-#define FLASH 38,1044
-#define GPIOA 39,1069
-#define GPIOC 40,1094
-#define RCC_CR 42,1120
-#define RCC_CFGR 43,1144
-#define RCC_CIR 44,1175
-#define RCC_AHBENR 45,1206
-#define RCC_APB2ENR 46,1237
-#define RCC_APB1ENR 47,1268
-#define FLASH_KEYR 49,1300
-#define FLASH_ACR 50,1332
-#define GPIO_CRL(52,1365
-#define GPIO_CRH(53,1394
-#define GPIO_ODR(54,1428
-#define GPIO_BSRR(55,1462
+#define F_SUSPEND_ENABLED 16,355
+} NVIC_TypeDef;31,636
+} NVIC_InitTypeDef;38,814
+} SCB_TypeDef;55,1040
+
+maple_usb.c,1074
+vu32 bDeviceState 7,175
+vu16 wIstr;10,254
+vu8 bIntPackSOF 11,266
+DEVICE Device_Table 13,288
+DEVICE_PROP Device_Property 19,343
+USER_STANDARD_REQUESTS User_Standard_Requests 35,622
+} ResumeS;74,1271
+void nothingProc(78,1301
+void usbAppInit(82,1356
+void usbSuspend(88,1483
+void usbResumeInit(98,1671
+void usbResume(112,1899
+RESULT usbPowerOn(162,2982
+RESULT usbPowerOff(177,3275
+void usbInit(190,3593
+void usbReset(204,3866
+void usbStatusIn(229,4500
+void usbStatusOut(235,4717
+RESULT usbDataSetup(239,4803
+RESULT usbNoDataSetup(265,5407
+u8* usbGetInterfaceSetting(276,5693
+u8* usbGetDeviceDescriptor(285,5877
+u8* usbGetConfigDescriptor(293,6152
+u8* usbGetStringDescriptor(301,6427
+void usbGetConfiguration(322,7065
+void usbSetConfiguration(326,7125
+void usbGetInterface(333,7248
+void usbSetInterface(337,7304
+void usbGetStatus(341,7360
+void usbClearFeature(345,7413
+void usbSetEndpointFeature(349,7469
+void usbSetDeviceFeature(353,7531
+void usbSetDeviceAddress(357,7591
+void usbEnbISR(363,7700
+void usbDsbISR(378,8147
+void usbISTR(387,8458
 
 maple_usb_desc.h,32
 #define __MAPLE_USB_DESC_H2,27
@@ -89,7 +143,7 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-maple_lib.c,253
+maple_lib.c,303
 void setPin(3,24
 void resetPin(8,125
 void strobePin(13,231
@@ -97,20 +151,100 @@ void systemReset(25,448
 void setupCLK 35,804
 void setupLED 57,1566
 void setupUSB 76,1983
-bool checkUserCode 102,2650
-void jumpToUser 112,2813
-  typedef void (*funcPtr)funcPtr113,2845
+void setupTimer(115,2922
+bool checkUserCode 119,2973
+void jumpToUser 129,3136
+  typedef void (*funcPtr)funcPtr130,3168
+void nvicInit(139,3452
 
-maple_dfu.h,167
+maple_regs.h,1044
+#define __MAPLE_REGS_H2,23
+#define RCC 5,97
+#define FLASH 6,129
+#define GPIOA 7,161
+#define GPIOC 8,193
+#define RCC_CR 10,226
+#define RCC_CFGR 11,250
+#define RCC_CIR 12,281
+#define RCC_AHBENR 13,312
+#define RCC_APB2ENR 14,343
+#define RCC_APB1ENR 15,374
+#define FLASH_KEYR 17,406
+#define FLASH_ACR 18,438
+#define GPIO_CRL(20,471
+#define GPIO_CRH(21,500
+#define GPIO_ODR(22,534
+#define GPIO_BSRR(23,568
+#define SCS_BASE 25,603
+#define NVIC_BASE 26,640
+#define SCB_BASE 27,679
+#define SCS 30,720
+#define NVIC 31,745
+#define SCB 32,769
+#define TIM1_APB2_ENB 34,794
+#define TIM1 35,834
+#define TIM1_PSC 36,874
+#define TIM1_ARR 37,906
+#define TIM1_RCR 38,938
+#define TIM1_CR1 39,970
+#define TIM1_CR2 40,1002
+#define TIM1_DIER 41,1034
+#define TIM1_UP_IRQ_Channel 42,1066
+#define USB_HP_IRQ 44,1106
+#define USB_LP_IRQ 45,1137
+#define TIM2_IRQ 46,1168
+#define __VAL(49,1245
+#define __PSC(50,1311
+#define __ARR(51,1398
+#define SET_REG(54,1545
+#define GET_REG(55,1590
+} RCC_RegStruct;73,2088
+#define pRCC 75,2106
+
+maple_dfu.h,1118
 #define __MAPLE_DFU_H2,22
-typedef enum _DFUState 7,89
-} DFUState;8,114
-typedef enum _DFUEvent 10,127
-} DFUEvent;11,152
-typedef u8*(*ClassReqCB)ClassReqCB13,165
+typedef u8*(*ClassReqCB)ClassReqCB10,201
+typedef struct _DFUStatus 13,255
+} DFUStatus;20,453
+#define  DFU_DETACH 35,940
+#define  DFU_DNLOAD 36,1025
+#define  DFU_UPLOAD 37,1114
+#define  DFU_GETSTATUS 38,1203
+#define  DFU_CLRSTATUS 39,1290
+#define  DFU_GETSTATE 40,1375
+#define  DFU_ABORT 41,1461
+#define  OK 44,1578
+#define  errTARGET 45,1623
+#define  errFILE 46,1699
+#define  errWRITE 47,1764
+#define  errERASE 48,1833
+#define  errCHECK_ERASED 49,1889
+#define  errPROG 50,1951
+#define  errVERIFY 51,2018
+#define  errADDRESS 52,2090
+#define  errNOTDONE 53,2147
+#define  errFIRMWARE 54,2245
+#define  errVENDOR 55,2344
+#define  errUSBR 56,2402
+#define  errPOR 57,2460
+#define  errUNKNOWN 58,2522
+#define  errSTALLEDPKT 59,2572
+#define  appIDLE 63,2711
+#define  appDETACH 64,2748
+#define  dfuIDLE 65,2785
+#define  dfuDNLOAD_SYNC 66,2822
+#define  dfuDNBUSY 67,2859
+#define  dfuDNLOAD_IDLE 68,2896
+#define  dfuMANIFEST_SYNC 69,2933
+#define  dfuMANIFEST 70,2970
+#define  dfuMANIFEST_WAIT_RESET 71,3007
+#define  dfuUPLOAD_IDLE 72,3044
+#define  dfuERROR 73,3081
 
-main.c,15
-int main 4,25
+main.c,83
+void USB_LP_CAN1_RX0_IRQHandler(4,79
+void TIM2_IRQHandler(8,137
+int main 11,169
 
 usb_lib/usb_init.c,302
  u8	EPindex;24,1436
@@ -544,3 +678,11 @@ usb_lib/usb_conf.h,653
 
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074
+
+maple_dfu.c,170
+u32 userAppAddr 4,42
+DFUStatus dfuAppStatus;5,109
+void dfuInit(9,227
+void dfuUpdateByRequest(18,620
+void dfuUpdateByReset(185,6867
+void dfuUpdateByTimeout(224,8305

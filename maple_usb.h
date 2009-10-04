@@ -19,7 +19,8 @@
                  CNTR_ERRM   | \
                  CNTR_SOFM   | \
                  CNTR_ESOFM  | \
-                 CNTR_RESETM )
+                 CNTR_RESETM   \
+		 )
 
 
 /* any structs or enums */
@@ -85,6 +86,7 @@ void usbDsbISR(void);
 void usbEnbISR(void);
 void usbISTR(void);
 
+void nothingProc(void);
 
 /*
 notes from manual:

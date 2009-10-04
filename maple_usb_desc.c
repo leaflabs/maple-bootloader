@@ -1,6 +1,6 @@
 #include "maple_usb_desc.h"
 
-u8* u8_usbDeviceDescriptor = 
+u8 u8_usbDeviceDescriptor[18] = 
   {
     0x12,   /* bLength */
     0x01,   /* bDescriptorType */
@@ -28,7 +28,7 @@ ONE_DESCRIPTOR usbDeviceDescriptor =
     0x12
   };
 
-u8* u8_usbConfigDescriptor = 
+u8 u8_usbConfigDescriptor[27] = 
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
@@ -72,13 +72,17 @@ ONE_DESCRIPTOR usbConfigDescriptor =
     0x1B
   };
 
-ONE_DESCRIPTOR* usbStringDescriptor = 
-  {{u8_usbStringLangId,
-    0x01}
+ONE_DESCRIPTOR usbStringDescriptor = 
+  {
+    NULL,
+    0x00
   };
+  //  {{u8_usbStringLangId,
+  //    0x01}
+  //  };
 
-u8* u8_usbStringLandId    = {'0'};
-u8* u8_usbStringVendor    = {'0'};
-u8* u8_usbStringProduct   = {'0'};
-u8* u8_usbStringSerial    = {'0'};
-u8* u8_usbStringInterface = {'0'};
+u8 u8_usbStringLandId    = NULL;
+u8 u8_usbStringVendor    = NULL;
+u8 u8_usbStringProduct   = NULL;
+u8 u8_usbStringSerial    = NULL;
+u8 u8_usbStringInterface = NULL;

@@ -14,7 +14,7 @@ DEVICE Device_Table =
   {
     NUM_ENDPTS,
     1
-  }
+  };
 
 DEVICE_PROP Device_Property = 
   {
@@ -41,10 +41,31 @@ USER_STANDARD_REQUESTS User_Standard_Requests =
     usbGetStatus,
     usbClearFeature,
     usbSetEndpointFeature,
-    usbSetDeviceFeature.
+    usbSetDeviceFeature,
     usbSetDeviceAddress
   };
 
+void (*pEpInt_IN[7])(void) =
+  { 
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+  };
+
+void (*pEpInt_OUT[7])(void) =
+  {
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+  };
 
 struct
 {
@@ -53,6 +74,9 @@ struct
 } ResumeS;
 
 
+/* dummy proc */
+void nothingProc(void) {
+}
 
 /* Function Definitions */
 void usbAppInit(void) {
@@ -82,7 +106,7 @@ void usbResumeInit(void) {
 
   /* undo power reduction handlers here */
 
-  _SetCNTR(IMR_MSK);
+  _SetCNTR(ISR_MSK);
 }
 
 void usbResume(RESUME_STATE eResumeSetVal) {
@@ -94,11 +118,11 @@ void usbResume(RESUME_STATE eResumeSetVal) {
   switch (ResumeS.eState)
     {
     case RESUME_EXTERNAL:
-      Resume_Init();
+      usbResumeInit();
       ResumeS.eState = RESUME_OFF;
       break;
     case RESUME_INTERNAL:
-      Resume_Init();
+      usbResumeInit();
       ResumeS.eState = RESUME_START;
       break;
     case RESUME_LATER:
@@ -164,19 +188,22 @@ RESULT usbPowerOff(void) {
 }
 
 void usbInit(void) {
+  //dfuInit();
+
   pInformation->Current_Configuration = 0;
   usbPowerOn();
 
   _SetISTR(0);
-  wInterrupt_Mask = IMR_MSK;
+  wInterrupt_Mask = ISR_MSK;
   _SetCNTR(wInterrupt_Mask);
 
   usbEnbISR(); /* configure the cortex M3 private peripheral NVIC */
-
   bDeviceState = UNCONNECTED;
 }
 
 void usbReset(void) {
+  //  dfuUpdateByReset();
+
   pInformation->Current_Configuration = 0;
   pInformation->Current_Feature = usbConfigDescriptor.Descriptor[7];
 
@@ -336,16 +363,21 @@ void usbSetDeviceAddress(void) {
 void usbEnbISR(void) {
   NVIC_InitTypeDef NVIC_InitStructure;
 
-  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN_RX0_IRQChannel;
+  
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_IRQ;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = TRUE;
   nvicInit(&NVIC_InitStructure);
+
+  //  NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC;
+  //  rNVIC->ISER[(USB_LP_IRQ >> 0x05)] = (u32)0x01 << (USB_LP_IRQ & (u8)0x1F);
+
 }
 
 void usbDsbISR(void) {
   NVIC_InitTypeDef NVIC_InitStructure;
-  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN_RX0_IRQChannel;
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_IRQ;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = FALSE;
@@ -356,7 +388,7 @@ void usbISTR(void) {
   wIstr = _GetISTR();
 
   /* go nuts with the preproc switches since this is an ISTR and must be FAST */
-#if (IMR_MSK & ISTR_RESET)
+#if (ISR_MSK & ISTR_RESET)
   if (wIstr & ISTR_RESET & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_RESET);
@@ -365,7 +397,7 @@ void usbISTR(void) {
 #endif
 
 
-#if (IMR_MSK & ISTR_DOVR)
+#if (ISR_MSK & ISTR_DOVR)
   if (wIstr & ISTR_DOVR & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_DOVR);
@@ -373,7 +405,7 @@ void usbISTR(void) {
 #endif
 
 
-#if (IMR_MSK & ISTR_ERR)
+#if (ISR_MSK & ISTR_ERR)
   if (wIstr & ISTR_ERR & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_ERR);
@@ -381,7 +413,7 @@ void usbISTR(void) {
 #endif
 
 
-#if (IMR_MSK & ISTR_WKUP)
+#if (ISR_MSK & ISTR_WKUP)
   if (wIstr & ISTR_WKUP & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_WKUP);
@@ -390,12 +422,12 @@ void usbISTR(void) {
 #endif
 
   /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-#if (IMR_MSK & ISTR_SUSP)
+#if (ISR_MSK & ISTR_SUSP)
   if (wIstr & ISTR_SUSP & wInterrupt_Mask)
   {
 
     /* check if SUSPEND is possible */
-    if (fSuspendEnabled)
+    if (F_SUSPEND_ENABLED)
     {
       usbSuspend();
     }
@@ -410,7 +442,7 @@ void usbISTR(void) {
 #endif
 
 
-#if (IMR_MSK & ISTR_SOF)
+#if (ISR_MSK & ISTR_SOF)
   if (wIstr & ISTR_SOF & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_SOF);
@@ -419,7 +451,7 @@ void usbISTR(void) {
 #endif
 
 
-#if (IMR_MSK & ISTR_ESOF)
+#if (ISR_MSK & ISTR_ESOF)
   if (wIstr & ISTR_ESOF & wInterrupt_Mask)
   {
     _SetISTR((u16)CLR_ESOF);
@@ -429,7 +461,7 @@ void usbISTR(void) {
 #endif
 
   /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-#if (IMR_MSK & ISTR_CTR)
+#if (ISR_MSK & ISTR_CTR)
   if (wIstr & ISTR_CTR & wInterrupt_Mask)
   {
     /* servicing of the endpoint correct transfer interrupt */
@@ -437,4 +469,5 @@ void usbISTR(void) {
     CTR_LP(); /* low priority ISR defined in the usb core lib */
   }
 #endif
+  
 }

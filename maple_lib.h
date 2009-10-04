@@ -9,35 +9,11 @@
 /* Local Includes */
 #include "maple_usb.h"
 #include "maple_dfu.h"
+#include "maple_regs.h"
 
-/* macro'd register and peripheral definitions */
-#define RCC   0x40021000
-#define FLASH 0x40022000
-#define GPIOA 0x40010800
-#define GPIOC 0x40011000
 
-#define RCC_CR      RCC
-#define RCC_CFGR    RCC + 0x04
-#define RCC_CIR     RCC + 0x08
-#define RCC_AHBENR  RCC + 0x14
-#define RCC_APB2ENR RCC + 0x18
-#define RCC_APB1ENR RCC + 0x16
-
-#define FLASH_KEYR FLASH + 0x04
-#define FLASH_ACR  FLASH + 0x00
-
-#define GPIO_CRL(port)  port
-#define GPIO_CRH(port)  port+0x04
-#define GPIO_ODR(port)  port+0x0c
-#define GPIO_BSRR(port) port+0x10
-
-#define SCS  = 0xE000E000
-#define NVIC = SCS+0x100
-#define SCB  = SCS+0xD00
-
-/* todo, wrap in do whiles for the natural ; */
-#define SET_REG(addr,val) *(vu32*)(addr)=val
-#define GET_REG(addr)     *(vu32*)(addr)
+/* any global setting macros */
+#define F_SUSPEND_ENABLED 1
 
 /* exposed library structs */
 typedef struct {
@@ -52,7 +28,7 @@ typedef struct {
   vu32 IABR[2];
   u32  RESERVED4[62];
   vu32 IPR[15];
-} NVIC_Typedef;
+} NVIC_TypeDef;
 
 typedef struct {
   u8 NVIC_IRQChannel;
@@ -86,6 +62,7 @@ void systemReset   (void);
 void setupCLK      (void);
 void setupUSB      (void);
 void setupLED      (void);
+void setupTimer    (void);
 bool checkUserCode (u32 usrAddr);
 void jumpToUser    (u32 usrAddr);
 

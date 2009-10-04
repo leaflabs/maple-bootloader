@@ -90,7 +90,7 @@ usb_mem.c
 
 STM32USBSRCS = $(patsubst %, $(ST_USB)/%,$(_STM32USBSRCS))
 
-SRCS = main.c maple_lib.c maple_usb.c maple_desc.c maple_dfu.c
+SRCS = main.c maple_lib.c maple_usb.c maple_usb_desc.c maple_dfu.c
 
 
 SRC = $(SRCS) $(STM32SRCS) $(STM32USBSRCS)

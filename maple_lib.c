@@ -89,17 +89,31 @@ void setupUSB (void) {
   SET_REG(GPIO_CRH(GPIOC),rwmVal);
 
   /* setup the USB prescaler */
-  rwmVal  = GET_REG(RCC_CFGR);
-  rwmVal &= 0xFFBFFFFF; /* clear the usbpre bit if it is set*/
-  SET_REG(RCC_CFGR,rwmVal);
+/*   rwmVal  = GET_REG(RCC_CFGR); */
+/*   rwmVal &= 0xFFBFFFFF; /\* clear the usbpre bit if it is set*\/ */
+/*   SET_REG(RCC_CFGR,rwmVal); */
+
+
+
+/********* todo Why doesnt this work? ******/
 
   /* setup the apb1 usb periph clk */
-  rwmVal  = GET_REG(RCC_APB1ENR);
-  rwmVal |= 0x00800000;
-  SET_REG(RCC_APB1ENR,rwmVal);
+/*   rwmVal  = GET_REG(RCC_APB1ENR); */
+/*   rwmVal |= 0x00800000; */
+/*   SET_REG(RCC_APB1ENR,rwmVal); */
+
+/******** temporary fix *********/
+
+  pRCC->APB1ENR |= 0x00800000;
 
   /* initialize the usb application */
+  resetPin (GPIOC,12);  /* present ourselves to the host */
   usbAppInit();
+
+}
+
+void setupTimer(void) {
+  //  SET_REG(TIM1_PSC,
 }
 
 bool checkUserCode (u32 usrAddr) {
@@ -123,41 +137,36 @@ void jumpToUser (u32 usrAddr) {
 }
 
 void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
-  u32 tmppriority = 0x00, tmpreg = 0x00, tmpmask = 0x00;
-  u32 tmppre = 0, tmpsub = 0x0F;
+  u32 tmppriority = 0x00;
+  u32 tmpreg      = 0x00;
+  u32 tmpmask     = 0x00;
+  u32 tmppre      = 0;
+  u32 tmpsub      = 0x0F;
 
-  SCB_TypeDef rSCB = (SCB_TypeDef *) SCB;
-  NVIC_TypeDef rNVIC = (NVIC_TypeDef *) NVIC;
+  SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
+  NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC_BASE;
 
-  if (NVIC_InitStruct->NVIC_IRQChannelCmd != FALSE)
-  {
-    /* Compute the Corresponding IRQ Priority --------------------------------*/    
-    tmppriority = (0x700 - (rSCB->AIRCR & (u32)0x700))>> 0x08;
-    tmppre = (0x4 - tmppriority);
-    tmpsub = tmpsub >> tmppriority;
+
+  /* Compute the Corresponding IRQ Priority --------------------------------*/    
+  tmppriority = (0x700 - (rSCB->AIRCR & (u32)0x700))>> 0x08;
+  tmppre = (0x4 - tmppriority);
+  tmpsub = tmpsub >> tmppriority;
+  
+  tmppriority = (u32)NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << tmppre;
+  tmppriority |=  NVIC_InitStruct->NVIC_IRQChannelSubPriority & tmpsub;
+
+  tmppriority = tmppriority << 0x04;
+  tmppriority = ((u32)tmppriority) << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
     
-    tmppriority = (u32)NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << tmppre;
-    tmppriority |=  NVIC_InitStruct->NVIC_IRQChannelSubPriority & tmpsub;
+  tmpreg = rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)];
+  tmpmask = (u32)0xFF << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
+  tmpreg &= ~tmpmask;
+  tmppriority &= tmpmask;  
+  tmpreg |= tmppriority;
 
-    tmppriority = tmppriority << 0x04;
-    tmppriority = ((u32)tmppriority) << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
+  rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)] = tmpreg;
     
-    tmpreg = rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)];
-    tmpmask = (u32)0xFF << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
-    tmpreg &= ~tmpmask;
-    tmppriority &= tmpmask;  
-    tmpreg |= tmppriority;
-
-    rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)] = tmpreg;
-    
-    /* Enable the Selected IRQ Channels --------------------------------------*/
-    rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
-      (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
-  }
-  else
-  {
-    /* Disable the Selected IRQ Channels -------------------------------------*/
-    rNVIC->ICER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
-      (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
-  }
+  /* Enable the Selected IRQ Channels --------------------------------------*/
+  rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
+    (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
 }

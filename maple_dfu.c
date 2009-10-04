@@ -12,7 +12,7 @@ void dfuInit(void) {
   dfuAppStatus.bwPollTimeout1 = 0x00;  /* todo: unionize the 3 bytes */
   dfuAppStatus.bwPollTimeout2 = 0x00;  /* todo: unionize the 3 bytes */
   dfuAppStatus.bState = appIDLE;
-  dfuAppStatus.iString = 0x00          /* all strings must be 0x00 until we make them! */
+  dfuAppStatus.iString = 0x00;          /* all strings must be 0x00 until we make them! */
 }
 
 void dfuUpdateByRequest(void) {
@@ -53,7 +53,7 @@ void dfuUpdateByRequest(void) {
     /*  device running inside DFU mode */
 
     if (pInformation->USBbRequest == DFU_DNLOAD) {
-      if (pInformation->USBwLengths > 0) {
+      if (pInformation->USBwLengths.w > 0) {
 	dfuAppStatus.bState  = dfuDNLOAD_SYNC;
       } else {
 	dfuAppStatus.bState  = dfuERROR;
@@ -69,7 +69,7 @@ void dfuUpdateByRequest(void) {
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuIDLE;
     } else {
-      dfuAppStatus.bState  = appERROR;
+      dfuAppStatus.bState  = dfuERROR;
       dfuAppStatus.bStatus = errSTALLEDPKT;      
     }
 
@@ -82,7 +82,7 @@ void dfuUpdateByRequest(void) {
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuDNLOAD_SYNC;
     } else {
-      dfuAppStatus.bState  = appERROR;
+      dfuAppStatus.bState  = dfuERROR;
       dfuAppStatus.bStatus = errSTALLEDPKT;      
     }
 
@@ -95,7 +95,7 @@ void dfuUpdateByRequest(void) {
     /* device is expecting dfu_dnload requests */
 
     if (pInformation->USBbRequest == DFU_DNLOAD) {
-      if (pInformation->USBwLengths > 0) {
+      if (pInformation->USBwLengths.w > 0) {
 	dfuAppStatus.bState  = dfuDNLOAD_SYNC;
       } else {
 	/* todo, support "disagreement" if device expects more data than this */
@@ -180,6 +180,48 @@ void dfuUpdateByRequest(void) {
     dfuAppStatus.bState  = dfuERROR;
     dfuAppStatus.bStatus = errSTALLEDPKT;      
   }
+}
+
+void dfuUpdateByReset(void) {
+  u8 startState = dfuAppStatus.bState;
+
+  if (startState == appIDLE) {
+    dfuAppStatus.bStatus  = OK;
+  } else if (startState == appDETACH) {
+    dfuAppStatus.bState  = dfuIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x02;
+  } else if (startState == dfuIDLE) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuDNLOAD_SYNC) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuDNBUSY) {
+    dfuAppStatus.bState  = dfuERROR;
+    dfuAppStatus.bStatus = errSTALLEDPKT;      
+  } else if (startState == dfuDNLOAD_IDLE) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuMANIFEST_SYNC) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuMANIFEST) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuMANIFEST_WAIT_RESET) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuUPLOAD_IDLE) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+  } else if (startState == dfuERROR) {
+    dfuAppStatus.bState  = appIDLE;
+    usbConfigDescriptor.Descriptor[16] = 0x01;
+    dfuAppStatus.bStatus  = OK;
+  }
+}
+
+void dfuUpdateByTimeout(void) {
 }
 
 /* DFUState dfuGetState(); */

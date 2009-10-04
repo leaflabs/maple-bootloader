@@ -179,13 +179,25 @@ g_pfnVectors:
 	.word	EXTI15_10_IRQHandler
 	.word	RTCAlarm_IRQHandler
 	.word	USBWakeUp_IRQHandler	
-  .word	0
-	.word	0
-	.word	0
-	.word	0
-	.word	0
-	.word	0
-	.word	0
+/*
+        .word	TIM8_BRK
+	.word	TIM8_UP
+	.word	TIM8_TRG_COM
+	.word	TIM8_CC
+	.word	ADC3
+	.word	FSMC
+	.word	SDIO
+	.word 	TIM5
+	.word	SPI3
+	.word	UART4
+	.word	UART5
+	.word	TIM6
+	.word 	TIM7
+	.word	DMA2_Channel1
+	.word	DMA2_Channel2
+	.word	DMA2_Channel3
+	.word	DMA2_Channel5
+*/
 	.word	BootRAM          /* @0x108. This is for boot in RAM mode for 
                             STM32F10x Medium Density devices. */
    
