@@ -55,7 +55,7 @@ u8 u8_usbConfigDescriptor[27] =
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
     0x21,   /* DFU Functional Descriptor*/
-    0x03,   /*bmAttribute */
+    0x01,   /*bmAttribute, can only download for now */
     0xFF,   /*DetachTimeOut= 255 ms*/
     0xFF,
     (wTransferSize & 0x00FF),
