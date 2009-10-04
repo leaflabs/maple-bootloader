@@ -129,10 +129,14 @@ bool checkUserCode (u32 usrAddr) {
 void jumpToUser (u32 usrAddr) {
   typedef void (*funcPtr)(void);
 
+  u32 flashVal = *(vu32*) (usrAddr + 0x08);
+  strobePin(GPIOA,5,20,0x5000);
+
   u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
   funcPtr usrMain = (funcPtr) jumpAddr;
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
+
   usrMain();                                /* go! */
 }
 

@@ -39,12 +39,13 @@ u8 u8_usbStringProduct 86,2454
 u8 u8_usbStringSerial 87,2487
 u8 u8_usbStringInterface 88,2520
 
-maple_lib.h,134
+maple_lib.h,164
 #define __MAPLE_LIB_H2,22
 #define F_SUSPEND_ENABLED 16,355
-} NVIC_TypeDef;31,636
-} NVIC_InitTypeDef;38,814
-} SCB_TypeDef;55,1040
+#define USER_CODE_RAM 17,383
+} NVIC_TypeDef;32,676
+} NVIC_InitTypeDef;39,854
+} SCB_TypeDef;56,1080
 
 maple_usb.c,1074
 vu32 bDeviceState 7,175
@@ -62,27 +63,27 @@ void usbResume(112,1899
 RESULT usbPowerOn(162,2982
 RESULT usbPowerOff(177,3275
 void usbInit(190,3593
-void usbReset(204,3866
-void usbStatusIn(229,4500
-void usbStatusOut(235,4717
-RESULT usbDataSetup(239,4803
-RESULT usbNoDataSetup(265,5407
-u8* usbGetInterfaceSetting(276,5693
-u8* usbGetDeviceDescriptor(285,5877
-u8* usbGetConfigDescriptor(293,6152
-u8* usbGetStringDescriptor(301,6427
-void usbGetConfiguration(322,7065
-void usbSetConfiguration(326,7125
-void usbGetInterface(333,7248
-void usbSetInterface(337,7304
-void usbGetStatus(341,7360
-void usbClearFeature(345,7413
-void usbSetEndpointFeature(349,7469
-void usbSetDeviceFeature(353,7531
-void usbSetDeviceAddress(357,7591
-void usbEnbISR(363,7700
-void usbDsbISR(378,8147
-void usbISTR(387,8458
+void usbReset(204,3864
+void usbStatusIn(229,4494
+void usbStatusOut(235,4711
+RESULT usbDataSetup(239,4797
+RESULT usbNoDataSetup(276,5586
+u8* usbGetInterfaceSetting(287,5834
+u8* usbGetDeviceDescriptor(296,6018
+u8* usbGetConfigDescriptor(304,6293
+u8* usbGetStringDescriptor(312,6568
+void usbGetConfiguration(333,7206
+void usbSetConfiguration(337,7266
+void usbGetInterface(344,7389
+void usbSetInterface(348,7445
+void usbGetStatus(352,7501
+void usbClearFeature(356,7554
+void usbSetEndpointFeature(360,7610
+void usbSetDeviceFeature(364,7672
+void usbSetDeviceAddress(368,7732
+void usbEnbISR(374,7841
+void usbDsbISR(389,8288
+void usbISTR(398,8599
 
 maple_usb_desc.h,32
 #define __MAPLE_USB_DESC_H2,27
@@ -155,7 +156,7 @@ void setupTimer(115,2922
 bool checkUserCode 119,2973
 void jumpToUser 129,3136
   typedef void (*funcPtr)funcPtr130,3168
-void nvicInit(139,3452
+void nvicInit(143,3530
 
 maple_regs.h,1044
 #define __MAPLE_REGS_H2,23
@@ -679,10 +680,17 @@ usb_lib/usb_conf.h,653
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074
 
-maple_dfu.c,170
+maple_dfu.c,365
 u32 userAppAddr 4,42
 DFUStatus dfuAppStatus;5,109
-void dfuInit(9,227
-void dfuUpdateByRequest(18,620
-void dfuUpdateByReset(185,6867
-void dfuUpdateByTimeout(224,8305
+bool copyLock 6,160
+u8 recvBuffer[recvBuffer8,184
+u8 currentBlock 9,214
+void dfuInit(12,301
+bool dfuUpdateByRequest(21,694
+void dfuUpdateByReset(214,7570
+void dfuUpdateByTimeout(255,9054
+u8* dfuCopyState(258,9089
+u8* dfuCopyStatus(267,9256
+u8* dfuCopyDNLOAD(277,9417
+void dfuCopyBufferToExec(288,9706

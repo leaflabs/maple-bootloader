@@ -14,6 +14,7 @@
 
 /* any global setting macros */
 #define F_SUSPEND_ENABLED 1
+#define USER_CODE_RAM ((u32)0x20000BB8)
 
 /* exposed library structs */
 typedef struct {

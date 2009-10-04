@@ -188,7 +188,7 @@ RESULT usbPowerOff(void) {
 }
 
 void usbInit(void) {
-  //dfuInit();
+  dfuInit();
 
   pInformation->Current_Configuration = 0;
   usbPowerOn();
@@ -202,7 +202,7 @@ void usbInit(void) {
 }
 
 void usbReset(void) {
-  //  dfuUpdateByReset();
+  dfuUpdateByReset();
 
   pInformation->Current_Configuration = 0;
   pInformation->Current_Feature = usbConfigDescriptor.Descriptor[7];
@@ -242,13 +242,24 @@ RESULT usbDataSetup(u8 request) {
 
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
   {
-    /* switch over the various CLASS Interface requests
-       setting the copyroutine as appropriate
-    */
 
-/*     if (request == DFU_REQUEST_ITEM) { */
-/*     } else if (...) { */
-/*     } */
+    if (dfuUpdateByRequest()) {
+      /* successfull state transition, handle the request */
+      switch (request) {
+      case (DFU_GETSTATUS):
+	CopyRoutine = dfuCopyStatus;
+	break;
+      case (DFU_GETSTATE):
+	CopyRoutine = dfuCopyState;
+	break;
+      case (DFU_DNLOAD):
+	CopyRoutine = dfuCopyDNLOAD;
+      default:
+	/* leave copy routine null */
+	break;
+      }
+    }
+       
   }
 
   if (CopyRoutine != NULL) {
@@ -265,9 +276,9 @@ RESULT usbDataSetup(u8 request) {
 RESULT usbNoDataSetup(u8 requestNo) {
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
   {
-    /* switch over the various CLASS Interface requests 
-     return USB_SUCCESS when appropriate */
-
+    if (dfuUpdateByRequest()) {
+      return USB_SUCCESS;
+    }
   }
 
   return USB_UNSUPPORT;

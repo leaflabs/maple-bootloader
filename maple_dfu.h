@@ -81,12 +81,16 @@ typedef struct _DFUStatus {
 void dfuInit(void);  /* singleton dfu initializer */
 
 /* should consume dfuEvent type, but for now we can use pInfo (see comment above) */
-void dfuUpdateByRequest(void); 
+bool dfuUpdateByRequest(void);  /* returns if new status is OK */
 void dfuUpdateByReset(void); 
 void dfuUpdateByTimeout(void); 
 
-/* hooks in with how usb_core expects class resquests to be handled by copy routines */
-ClassReqCB dfuGetClassHandler(void); 
+u8* dfuCopyState(u16);
+u8* dfuCopyStatus(u16);
+u8* dfuCopyDNLOAD(u16);
+u8* dfuCopyUPLOAD(u16);
+
+void dfuCopyBufferToExec();
 
 /* cruft */
 /* DFUState dfuGetState(); */ /* negated by use of global dfuAppStatus */
