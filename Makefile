@@ -118,6 +118,8 @@ bin: $(TARGET).bin
 elf: $(TARGET).elf
 lss: $(TARGET).lss 
 sym: $(TARGET).sym
+dfu: $(TARGET).bin
+	sudo dfu-util -d 0110:1001 -a 0 -D $(TARGET).bin
 
 begin:
 	@echo --

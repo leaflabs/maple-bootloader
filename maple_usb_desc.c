@@ -28,6 +28,27 @@ ONE_DESCRIPTOR usbDeviceDescriptor =
     0x12
   };
 
+u8 u8_usbFunctionalDescriptor[9] = 
+  {
+    /******************** DFU Functional Descriptor********************/
+    0x09,   /*blength = 7 Bytes*/
+    0x21,   /* DFU Functional Descriptor*/
+    0x01,   /*bmAttribute, can only download for now */
+    0xFF,   /*DetachTimeOut= 255 ms*/
+    0xFF,
+    (wTransferSize & 0x00FF),
+    (wTransferSize & 0xFF00) >> 8, /* TransferSize = 1024 Byte*/
+    0x1A,                          /* bcdDFUVersion*/
+    0x01
+  };
+
+ONE_DESCRIPTOR usbFunctionalDescriptor = 
+  {
+    u8_usbFunctionalDescriptor,
+    0x09
+  };
+
+
 u8 u8_usbConfigDescriptor[27] = 
   {
     0x09,   /* bLength: Configuation Descriptor size */

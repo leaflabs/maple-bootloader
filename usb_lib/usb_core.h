@@ -172,6 +172,7 @@ typedef struct _DEVICE_PROP
   u8* (*GetDeviceDescriptor)(u16 Length);
   u8* (*GetConfigDescriptor)(u16 Length);
   u8* (*GetStringDescriptor)(u16 Length);
+  u8* (*GetFunctionalDescriptor)(u16 Length);
 
   u8* RxEP_buffer;
   u8 MaxPacketSize;

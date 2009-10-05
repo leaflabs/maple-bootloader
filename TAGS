@@ -27,17 +27,19 @@ typedef enum _DEVICE_STATE39,969
     CONFIGURED46,1074
   } DEVICE_STATE;47,1089
 
-maple_usb_desc.c,402
+maple_usb_desc.c,521
 u8 u8_usbDeviceDescriptor[u8_usbDeviceDescriptor3,29
 ONE_DESCRIPTOR usbDeviceDescriptor 25,745
-u8 u8_usbConfigDescriptor[u8_usbConfigDescriptor31,830
-ONE_DESCRIPTOR usbConfigDescriptor 69,2185
-ONE_DESCRIPTOR usbStringDescriptor 75,2270
-u8 u8_usbStringLandId 84,2388
-u8 u8_usbStringVendor 85,2421
-u8 u8_usbStringProduct 86,2454
-u8 u8_usbStringSerial 87,2487
-u8 u8_usbStringInterface 88,2520
+u8 u8_usbFunctionalDescriptor[u8_usbFunctionalDescriptor31,830
+ONE_DESCRIPTOR usbFunctionalDescriptor 45,1288
+u8 u8_usbConfigDescriptor[u8_usbConfigDescriptor52,1382
+ONE_DESCRIPTOR usbConfigDescriptor 90,2764
+ONE_DESCRIPTOR usbStringDescriptor 96,2849
+u8 u8_usbStringLandId 105,2967
+u8 u8_usbStringVendor 106,3000
+u8 u8_usbStringProduct 107,3033
+u8 u8_usbStringSerial 108,3066
+u8 u8_usbStringInterface 109,3099
 
 maple_lib.h,164
 #define __MAPLE_LIB_H2,22
@@ -47,43 +49,44 @@ maple_lib.h,164
 } NVIC_InitTypeDef;39,854
 } SCB_TypeDef;56,1080
 
-maple_usb.c,1074
+maple_usb.c,1118
 vu32 bDeviceState 7,175
 vu16 wIstr;10,254
 vu8 bIntPackSOF 11,266
 DEVICE Device_Table 13,288
 DEVICE_PROP Device_Property 19,343
-USER_STANDARD_REQUESTS User_Standard_Requests 35,622
-} ResumeS;74,1271
-void nothingProc(78,1301
-void usbAppInit(82,1356
-void usbSuspend(88,1483
-void usbResumeInit(98,1671
-void usbResume(112,1899
-RESULT usbPowerOn(162,2982
-RESULT usbPowerOff(177,3275
-void usbInit(190,3593
-void usbReset(204,3864
-void usbStatusIn(229,4494
-void usbStatusOut(235,4711
-RESULT usbDataSetup(239,4797
-RESULT usbNoDataSetup(279,5649
-u8* usbGetInterfaceSetting(290,5897
-u8* usbGetDeviceDescriptor(299,6081
-u8* usbGetConfigDescriptor(307,6356
-u8* usbGetStringDescriptor(315,6631
-void usbGetConfiguration(336,7269
-void usbSetConfiguration(340,7329
-void usbGetInterface(347,7452
-void usbSetInterface(351,7508
-void usbGetStatus(355,7564
-void usbClearFeature(359,7617
-void usbSetEndpointFeature(363,7673
-void usbSetDeviceFeature(367,7735
-void usbSetDeviceAddress(371,7795
-void usbEnbISR(377,7904
-void usbDsbISR(392,8351
-void usbISTR(401,8662
+USER_STANDARD_REQUESTS User_Standard_Requests 36,654
+} ResumeS;75,1303
+void nothingProc(79,1333
+void usbAppInit(83,1388
+void usbSuspend(89,1515
+void usbResumeInit(99,1703
+void usbResume(113,1931
+RESULT usbPowerOn(163,3014
+RESULT usbPowerOff(178,3307
+void usbInit(191,3625
+void usbReset(205,3896
+void usbStatusIn(230,4526
+void usbStatusOut(236,4743
+RESULT usbDataSetup(240,4829
+RESULT usbNoDataSetup(280,5681
+RESULT usbGetInterfaceSetting(291,5929
+u8* usbGetDeviceDescriptor(300,6132
+u8* usbGetConfigDescriptor(308,6407
+u8* usbGetStringDescriptor(316,6682
+u8* usbGetFunctionalDescriptor(328,7085
+void usbGetConfiguration(341,7433
+void usbSetConfiguration(345,7493
+void usbGetInterface(352,7616
+void usbSetInterface(356,7672
+void usbGetStatus(360,7728
+void usbClearFeature(364,7781
+void usbSetEndpointFeature(368,7837
+void usbSetDeviceFeature(372,7899
+void usbSetDeviceAddress(376,7959
+void usbEnbISR(382,8068
+void usbDsbISR(397,8515
+void usbISTR(406,8826
 
 maple_usb_desc.h,32
 #define __MAPLE_USB_DESC_H2,27
@@ -288,21 +291,21 @@ DEVICE;93,3599
 typedef struct _DEVICE_INFO106,3707
 }DEVICE_INFO;DEVICE_INFO122,4340
 typedef struct _DEVICE_PROP124,4357
-}DEVICE_PROP;DEVICE_PROP179,6654
-typedef struct _USER_STANDARD_REQUESTS181,6671
-USER_STANDARD_REQUESTS;193,7333
-#define Type_Recipient 196,7442
-#define Usb_rLength 198,7530
-#define Usb_rOffset 199,7563
-#define USBwValue 201,7598
-#define USBwValue0 202,7630
-#define USBwValue1 203,7668
-#define USBwIndex 204,7706
-#define USBwIndex0 205,7738
-#define USBwIndex1 206,7776
-#define USBwLength 207,7814
-#define USBwLength0 208,7848
-#define USBwLength1 209,7888
+}DEVICE_PROP;DEVICE_PROP180,6701
+typedef struct _USER_STANDARD_REQUESTS182,6718
+USER_STANDARD_REQUESTS;194,7380
+#define Type_Recipient 197,7489
+#define Usb_rLength 199,7577
+#define Usb_rOffset 200,7610
+#define USBwValue 202,7645
+#define USBwValue0 203,7677
+#define USBwValue1 204,7715
+#define USBwIndex 205,7753
+#define USBwIndex0 206,7785
+#define USBwIndex1 207,7823
+#define USBwLength 208,7861
+#define USBwLength0 209,7895
+#define USBwLength1 210,7935
 
 usb_lib/usb_regs.c,1698
 void SetCNTR(34,1949
@@ -489,12 +492,12 @@ void DataStageOut(426,14586
 void DataStageIn(483,16067
 void NoData_Setup0(542,17675
 void Data_Setup0(666,20727
-u8 Setup0_Process(844,25796
-u8 In0_Process(888,27143
-u8 Out0_Process(928,28278
-u8 Post0_Process(969,29411
-void SetDeviceAddress(989,30044
-void NOP_Process(1009,30656
+u8 Setup0_Process(847,25937
+u8 In0_Process(891,27284
+u8 Out0_Process(931,28419
+u8 Post0_Process(972,29552
+void SetDeviceAddress(992,30185
+void NOP_Process(1012,30797
 
 usb_lib/usb_regs.h,4600
 #define __USB_REGS_H18,1036
@@ -680,7 +683,7 @@ usb_lib/usb_conf.h,653
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074
 
-maple_dfu.c,472
+maple_dfu.c,503
 u32 userAppAddr 4,42
 DFUStatus dfuAppStatus;5,109
 bool copyLock 6,160
@@ -691,10 +694,11 @@ u32 userFirmwareLen 11,274
 u32* lastUserSpace 12,299
 void dfuInit(15,408
 bool dfuUpdateByRequest(24,801
-void dfuUpdateByReset(221,7819
-void dfuUpdateByTimeout(261,9299
-u8* dfuCopyState(264,9334
-u8* dfuCopyStatus(273,9501
-u8* dfuCopyDNLOAD(283,9662
-u8* dfuCopyUPLOAD(292,9925
-void dfuCopyBufferToExec(309,10595
+void dfuUpdateByReset(230,7989
+void dfuUpdateByTimeout(270,9469
+u8* dfuCopyState(273,9504
+u8* dfuCopyStatus(282,9671
+u8* dfuCopyDNLOAD(292,9832
+u8* dfuCopyUPLOAD(301,10095
+void dfuCopyBufferToExec(318,10765
+bool checkTestFile(327,10957

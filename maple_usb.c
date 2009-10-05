@@ -28,6 +28,7 @@ DEVICE_PROP Device_Property =
     usbGetDeviceDescriptor,
     usbGetConfigDescriptor,
     usbGetStringDescriptor,
+    usbGetFunctionalDescriptor,
     0,
     bMaxPacketSize
   };
@@ -287,13 +288,13 @@ RESULT usbNoDataSetup(u8 requestNo) {
   return USB_UNSUPPORT;
 }
 
-u8* usbGetInterfaceSetting(u8 interface, u8 altSetting) {
+RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
   /* we only support alt setting 0 for now */
-  if (altSetting < 1) {
+  //  if (altSetting < 1) {
     return USB_SUCCESS;
-  }
+    //  }
 
-  return USB_UNSUPPORT;
+    //  return USB_UNSUPPORT;
 }
 
 u8* usbGetDeviceDescriptor(u16 len) {
@@ -322,6 +323,10 @@ u8* usbGetStringDescriptor(u16 len) {
   u8 strIndex = pInformation->USBwValue0;
   return NULL;
   //  return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
+}
+
+u8* usbGetFunctionalDescriptor(u16 len) {
+  return Standard_GetDescriptorData(len, &usbFunctionalDescriptor);
 }
 
 

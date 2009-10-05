@@ -63,10 +63,11 @@ void usbStatusIn(void);
 void usbStatusOut(void);
 RESULT usbDataSetup(u8 request);
 RESULT usbNoDataSetup(u8 request);
+RESULT usbGetInterfaceSetting(u8,u8);
 u8* usbGetDeviceDescriptor(u16 length);
 u8* usbGetConfigDescriptor(u16 length);
 u8* usbGetStringDescriptor(u16 length);
-u8* usbGetInterfaceSetting(u8,u8);
+u8* usbGetFunctionalDescriptor(u16 length);
 
 /* internal callbacks to respond to standard requests */
 void usbGetConfiguration(void);

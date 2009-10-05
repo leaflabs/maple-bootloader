@@ -91,7 +91,7 @@ u8* dfuCopyDNLOAD(u16);
 u8* dfuCopyUPLOAD(u16);
 
 void dfuCopyBufferToExec();
-
+bool checkTestFile();
 /* cruft */
 /* DFUState dfuGetState(); */ /* negated by use of global dfuAppStatus */
 /* void dfuSetState(DFUState); */ /* just unecessary */

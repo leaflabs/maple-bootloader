@@ -693,7 +693,10 @@ void Data_Setup0(void)
       else if (wValue1 == STRING_DESCRIPTOR)
       {
         CopyRoutine = pProperty->GetStringDescriptor;
-      }  /* End of GET_DESCRIPTOR */
+      } else if (wValue1 == 0x21) /* added to support functional descriptors */
+      {
+	CopyRoutine = pProperty->GetFunctionalDescriptor;
+      } /* End of GET_DESCRIPTOR */
     }
   }
 

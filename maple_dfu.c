@@ -135,6 +135,7 @@ bool dfuUpdateByRequest(void) {
     
     if (pInformation->USBbRequest == DFU_GETSTATUS) {
       /* for now we have no manifestation, so jump straight to end! */
+#if 0
       if (checkUserCode(USER_CODE_RAM)) {
 	  dfuAppStatus.bState  = appIDLE;
 	  usbConfigDescriptor.Descriptor[16] = 0x01;
@@ -147,6 +148,14 @@ bool dfuUpdateByRequest(void) {
 	dfuAppStatus.bStatus = errFIRMWARE;
 	strobePin(GPIOA,5,3,0xA0000);
       }
+#else
+      if (checkTestFile()) {
+	strobePin(GPIOA,5,20,0x4000);
+      } else {
+	strobePin(GPIOA,5,5,0xF0000);
+      }
+      dfuAppStatus.bState = dfuIDLE;
+#endif
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuMANIFEST_SYNC;
     } else {
@@ -315,5 +324,16 @@ void dfuCopyBufferToExec() {
   userFirmwareLen = (u32)userSpace - (u32)USER_CODE_RAM;
 }
 
+bool checkTestFile(void) {
+  int i;
+  u32* usrPtr = (u32*)USER_CODE_RAM;
+
+  for (i=0;i<800;i++) {
+    if (*usrPtr++ != i) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
 /* DFUState dfuGetState(); */
 /* void dfuSetState(DFUState); */
