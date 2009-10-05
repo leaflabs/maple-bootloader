@@ -58,6 +58,7 @@ typedef struct {
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
 void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
+void strobeCode (u32 bank, u8 pin, u8 val);
 
 void systemReset   (void);
 void setupCLK      (void);

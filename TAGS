@@ -147,19 +147,20 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-maple_lib.c,303
+maple_lib.c,328
 void setPin(3,24
 void resetPin(8,125
 void strobePin(13,231
-void systemReset(25,448
-void setupCLK 35,804
-void setupLED 57,1566
-void setupUSB 76,1983
-void setupTimer(115,2922
-bool checkUserCode 119,2973
-void jumpToUser 129,3136
-  typedef void (*funcPtr)funcPtr130,3168
-void nvicInit(143,3530
+void strobeCode 25,448
+void systemReset(44,842
+void setupCLK 54,1198
+void setupLED 76,1960
+void setupUSB 95,2377
+void setupTimer(134,3316
+bool checkUserCode 138,3367
+void jumpToUser 148,3530
+  typedef void (*funcPtr)funcPtr149,3562
+void nvicInit(162,3924
 
 maple_regs.h,1044
 #define __MAPLE_REGS_H2,23
@@ -683,7 +684,7 @@ usb_lib/usb_conf.h,653
 usb_lib/usb_int.h,28
 #define __USB_INT_H19,1074
 
-maple_dfu.c,503
+maple_dfu.c,588
 u32 userAppAddr 4,42
 DFUStatus dfuAppStatus;5,109
 bool copyLock 6,160
@@ -692,13 +693,16 @@ u8 currentBlock 9,214
 u32* userSpace 10,235
 u32 userFirmwareLen 11,274
 u32* lastUserSpace 12,299
-void dfuInit(15,408
-bool dfuUpdateByRequest(24,801
-void dfuUpdateByReset(230,7989
-void dfuUpdateByTimeout(270,9469
-u8* dfuCopyState(273,9504
-u8* dfuCopyStatus(282,9671
-u8* dfuCopyDNLOAD(292,9832
-u8* dfuCopyUPLOAD(301,10095
-void dfuCopyBufferToExec(318,10765
-bool checkTestFile(327,10957
+u16 localBlockCount 13,342
+bool code_copy_lock 14,367
+u16 thisBlockLen 15,396
+void dfuInit(18,485
+bool dfuUpdateByRequest(27,878
+void dfuUpdateByReset(266,9170
+void dfuUpdateByTimeout(306,10650
+u8* dfuCopyState(309,10685
+u8* dfuCopyStatus(318,10852
+u8* dfuCopyDNLOAD(328,11013
+u8* dfuCopyUPLOAD(337,11276
+void dfuCopyBufferToExec(354,11946
+bool checkTestFile(369,12211

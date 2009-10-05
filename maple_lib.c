@@ -22,6 +22,25 @@ void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
   } 
 } 
 
+void strobeCode (u32 bank, u8 pin, u8 val) {
+  u8 highNib = val >> 4;
+  u8 lowNib = val & 0xF;
+
+  strobePin(bank,pin,40,0x10000);
+  if (highNib != 0) {
+    strobePin(bank,pin,highNib,0x200000);
+  } else {
+    strobePin(bank,pin,6,0x50000);
+  }
+
+  strobePin(bank,pin,40,0x10000);
+  if (lowNib != 0) {
+    strobePin(bank,pin,lowNib,0x200000);
+  } else {
+    strobePin(bank,pin,6,0x50000);
+  }
+}
+
 void systemReset(void) {
   SET_REG(RCC_CR, GET_REG(RCC_CR)     | 0x00000001);
   SET_REG(RCC_CFGR, GET_REG(RCC_CFGR) & 0xF8FF0000);

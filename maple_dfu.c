@@ -10,6 +10,9 @@ u8 currentBlock = 0;
 u32* userSpace = (u32*) USER_CODE_RAM;
 u32 userFirmwareLen = 0;
 u32* lastUserSpace = (u32*) USER_CODE_RAM;
+u16 localBlockCount = 0;
+bool code_copy_lock = FALSE;
+u16 thisBlockLen = 0;;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
@@ -70,6 +73,7 @@ bool dfuUpdateByRequest(void) {
 
     if (pInformation->USBbRequest == DFU_DNLOAD) {
       if (pInformation->USBwLengths.w > 0) {
+	userFirmwareLen = 0;
 	dfuAppStatus.bState  = dfuDNLOAD_SYNC;
 	dfuAppStatus.bwPollTimeout0 = 0xFF; /* throw in constant wait */
       } else {
@@ -95,8 +99,11 @@ bool dfuUpdateByRequest(void) {
 
     if (pInformation->USBbRequest == DFU_GETSTATUS) {      
       /* todo, add routine to wait for last block write to finish */
-      dfuCopyBufferToExec();
-      dfuAppStatus.bState  = dfuDNLOAD_IDLE;
+	dfuAppStatus.bState  = dfuDNLOAD_IDLE;
+	dfuAppStatus.bwPollTimeout0 = 0xFF;
+	if (!code_copy_lock) {
+	  dfuCopyBufferToExec();
+	}
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuDNLOAD_SYNC;
     } else {
@@ -105,16 +112,17 @@ bool dfuUpdateByRequest(void) {
     }
 
   } else if (startState == dfuDNBUSY)              {
-    /* device is busy programming non-volatile memories, please wait */
-
+    /* if were actually done writing, goto sync, else stay busy */
     dfuAppStatus.bState  = dfuDNLOAD_SYNC;
 
   } else if (startState == dfuDNLOAD_IDLE)         {
     /* device is expecting dfu_dnload requests */
-
+    dfuAppStatus.bwPollTimeout0 = 0x00;
     if (pInformation->USBbRequest == DFU_DNLOAD) {
       if (pInformation->USBwLengths.w > 0) {
 	dfuAppStatus.bState  = dfuDNLOAD_SYNC;
+	thisBlockLen = pInformation->USBwLengths.bw.bb0*0x100;
+	thisBlockLen += pInformation->USBwLengths.bw.bb1;
       } else {
 	/* todo, support "disagreement" if device expects more data than this */
 	dfuAppStatus.bState  = dfuMANIFEST_SYNC;
@@ -149,11 +157,39 @@ bool dfuUpdateByRequest(void) {
 	strobePin(GPIOA,5,3,0xA0000);
       }
 #else
-      if (checkTestFile()) {
-	strobePin(GPIOA,5,20,0x4000);
-      } else {
-	strobePin(GPIOA,5,5,0xF0000);
+      strobeCode(GPIOA,5,recvBuffer[0]);
+      strobeCode(GPIOA,5,recvBuffer[1]);
+      strobeCode(GPIOA,5,recvBuffer[2]);
+      strobeCode(GPIOA,5,recvBuffer[3]);
+
+      
+      u8* usrPtr = (u8*)USER_CODE_RAM;
+      int i;
+      for (i=0;i<8;i++) {
+	*usrPtr++ = recvBuffer[i];
       }
+      u32 firstVal = *(u32*) USER_CODE_RAM;
+
+      strobeCode(GPIOA,5, firstVal                >> 24);
+      strobeCode(GPIOA,5, (firstVal & 0x00FF0000) >> 16);
+      strobeCode(GPIOA,5, (firstVal & 0x0000FF00) >> 8);
+      strobeCode(GPIOA,5, firstVal  & 0x000000FF);
+
+      if (firstVal == 0x20005000) {
+	strobePin(GPIOA,5,100,0x30000);
+      }
+
+      usrPtr = (u8*)USER_CODE_RAM;
+      for (i=0;i<4;i++) {
+	*usrPtr++ = 2*i+((2*i+1)<<4);
+      }
+      firstVal = *(u32*) USER_CODE_RAM;
+
+      strobeCode(GPIOA,5, firstVal                >> 24);
+      strobeCode(GPIOA,5, (firstVal & 0x00FF0000) >> 16);
+      strobeCode(GPIOA,5, (firstVal & 0x0000FF00) >> 8);
+      strobeCode(GPIOA,5, firstVal  & 0x000000FF);
+
       dfuAppStatus.bState = dfuIDLE;
 #endif
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
@@ -316,24 +352,29 @@ u8* dfuCopyUPLOAD(u16 length) {
 }
 
 void dfuCopyBufferToExec() {
+  code_copy_lock = TRUE;
   int i;
-  for (i=0;i<wTransferSize;i++) {
-    *userSpace = *(u32*)recvBuffer[i];
-    userSpace++;
+  u32 thisVal;
+  for (i=0;i<thisBlockLen;i++) {
+    *userSpace++ = *(u32*)recvBuffer[i];
   }
-  userFirmwareLen = (u32)userSpace - (u32)USER_CODE_RAM;
+  userFirmwareLen += thisBlockLen;
+
+  
+  localBlockCount++;
+  thisBlockLen = 0;
+  code_copy_lock = FALSE;
 }
 
 bool checkTestFile(void) {
   int i;
   u32* usrPtr = (u32*)USER_CODE_RAM;
 
-  for (i=0;i<800;i++) {
-    if (*usrPtr++ != i) {
-      return FALSE;
-    }
+  if (*usrPtr == 0x20005000) {
+    return TRUE;
+  } else {
+    return FALSE;
   }
-  return TRUE;
 }
 /* DFUState dfuGetState(); */
 /* void dfuSetState(DFUState); */
