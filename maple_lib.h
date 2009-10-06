@@ -14,7 +14,7 @@
 
 /* any global setting macros */
 #define F_SUSPEND_ENABLED 1
-#define USER_CODE_RAM ((u32)0x20000BB8)
+#define USER_CODE_RAM ((u32)0x20000C00)
 
 /* exposed library structs */
 typedef struct {
@@ -60,6 +60,7 @@ void resetPin  (u32 bank, u8 pin);
 void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
 void strobeCode (u32 bank, u8 pin, u8 val);
 
+void systemHardReset(void);
 void systemReset   (void);
 void setupCLK      (void);
 void setupUSB      (void);

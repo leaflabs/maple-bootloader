@@ -148,11 +148,16 @@ bool checkUserCode (u32 usrAddr) {
 void jumpToUser (u32 usrAddr) {
   typedef void (*funcPtr)(void);
 
-  u32 flashVal = *(vu32*) (usrAddr + 0x08);
-  strobePin(GPIOA,5,20,0x5000);
-
   u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
   funcPtr usrMain = (funcPtr) jumpAddr;
+
+#ifdef USER_VECTOR_TABLE
+  SCB_TypeDef* rSCB = (SCB_TypeDef*) SCB_BASE;
+  u32 rwm = rSCB->VTOR;
+  rwm &= (u32)0xC00001FF;
+  rwm |= ((u32)(USER_CODE_RAM) & 0xFFFFFE00);
+  rSCB->VTOR = rwm;
+#endif
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
 
@@ -192,4 +197,11 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
   /* Enable the Selected IRQ Channels --------------------------------------*/
   rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
     (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
+}
+
+void systemHardReset(void) {
+  SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
+  u32 rwmVal = rSCB->AIRCR;
+  rwmVal |= 0x04;
+  rSCB->AIRCR = rwmVal;
 }
