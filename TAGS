@@ -147,7 +147,7 @@ typedef enum {ERROR = 0, SUCCESS = !ERROR} ErrorStatus;62,2653
 #define S32_MAX 71,2944
 #define S32_MIN 72,2982
 
-maple_lib.c,359
+maple_lib.c,402
 void setPin(3,24
 void resetPin(8,125
 void strobePin(13,231
@@ -160,8 +160,9 @@ void setupTimer(134,3316
 bool checkUserCode 138,3367
 void jumpToUser 148,3530
   typedef void (*funcPtr)funcPtr149,3562
-void nvicInit(167,4043
-void systemHardReset(202,5331
+void nvicInit(165,4041
+void systemHardReset(200,5329
+  typedef void (*funcPtr)funcPtr201,5358
 
 maple_regs.h,1044
 #define __MAPLE_REGS_H2,23
@@ -700,12 +701,12 @@ enum PLOT 12,263
 void dfuInit(19,388
 bool dfuUpdateByRequest(28,781
 void dfuUpdateByReset(208,7325
-void dfuUpdateByTimeout(253,8923
-u8* dfuCopyState(256,8958
-u8* dfuCopyStatus(265,9125
-u8* dfuCopyDNLOAD(275,9286
-u8* dfuCopyUPLOAD(285,9597
-void dfuCopyBufferToExec(303,10366
-bool checkTestFile(315,10627
-u8 dfuGetState(326,10785
-void dfuSetState(330,10841
+void dfuUpdateByTimeout(249,8715
+u8* dfuCopyState(252,8750
+u8* dfuCopyStatus(261,8917
+u8* dfuCopyDNLOAD(271,9078
+u8* dfuCopyUPLOAD(281,9389
+void dfuCopyBufferToExec(299,10158
+bool checkTestFile(311,10419
+u8 dfuGetState(322,10577
+void dfuSetState(326,10633

@@ -151,13 +151,11 @@ void jumpToUser (u32 usrAddr) {
   u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
   funcPtr usrMain = (funcPtr) jumpAddr;
 
-#ifdef USER_VECTOR_TABLE
-  SCB_TypeDef* rSCB = (SCB_TypeDef*) SCB_BASE;
-  u32 rwm = rSCB->VTOR;
-  rwm &= (u32)0xC00001FF;
-  rwm |= ((u32)(USER_CODE_RAM) & 0xFFFFFE00);
-  rSCB->VTOR = rwm;
-#endif
+/*   SCB_TypeDef* rSCB = (SCB_TypeDef*) SCB_BASE; */
+/*   u32 rwm = rSCB->VTOR; */
+/*   rwm &= (u32)0xC00001FF; */
+/*   rwm |= ((u32)(USER_CODE_RAM) & 0xFFFFFE00); */
+/*   rSCB->VTOR = rwm; */
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
 
@@ -200,8 +198,17 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
 }
 
 void systemHardReset(void) {
-  SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
-  u32 rwmVal = rSCB->AIRCR;
-  rwmVal |= 0x04;
-  rSCB->AIRCR = rwmVal;
+  typedef void (*funcPtr)(void);
+
+  setPin(GPIOC,12);
+  usbPowerOff();
+  
+  strobePin(GPIOA,5,10,0x40000);
+  systemReset();
+  
+  u32 jumpAddr = *(vu32*) (0x04);
+  funcPtr reset = (funcPtr) jumpAddr;
+
+  __MSR_MSP(*((vu32*) 0x00));  /* clear to bootloader stack ptr */
+  reset();
 }

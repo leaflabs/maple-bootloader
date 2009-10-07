@@ -232,13 +232,9 @@ void dfuUpdateByReset(void) {
     dfuAppStatus.bState  = appIDLE;
     usbConfigDescriptor.Descriptor[16] = 0x01;
   } else if (startState == dfuMANIFEST_WAIT_RESET) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
     
     /* hard reset the chip */
-    __MSR_MSP(*(vu32*) (u32*)0x08000000);              /* set the users stack ptr */
-    void (*resetPtr)(void) = (u32*)0x08000004;
-    resetPtr();
+    systemHardReset();
 
   } else if (startState == dfuUPLOAD_IDLE) {
     dfuAppStatus.bState  = appIDLE;
