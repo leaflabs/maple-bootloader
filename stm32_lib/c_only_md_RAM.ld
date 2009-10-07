@@ -24,7 +24,7 @@ _Minimum_Stack_Size = 0x100 ;
 
 MEMORY
 {
-  RAM (xrw)     : ORIGIN = 0x20000BB8, LENGTH =  17K
+  RAM (xrw)     : ORIGIN = 0x20000C00, LENGTH =  17K
 }
 
 /* higher address of the user mode stack */
