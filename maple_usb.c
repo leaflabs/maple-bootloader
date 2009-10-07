@@ -412,6 +412,19 @@ void usbISTR(void) {
   {
     _SetISTR((u16)CLR_RESET);
     Device_Property.Reset();
+
+/******* perry stub ******/
+/*
+    if dfuGetState() == MANIFEST   - we have received NEW user code
+       if checkUserCode()          - and its valid
+         do some stack magic to return from this ISR to the user code
+       else
+         do some magic to return from this isr to the bootloader
+
+       alternatively, always return to the bootloader, which will
+       handle the jumping to user code
+ */
+/**************************/
   }
 #endif
 
