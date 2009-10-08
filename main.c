@@ -5,7 +5,39 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
   usbISTR();  
 }
 
-void TIM2_IRQHandler(void) {
+void NMI_Handler(void) {
+  while (1) {
+    strobePin(GPIOA,5,50,0x40000);
+    strobePin(GPIOA,5,1,0xF0000);
+  }
+}
+
+void HardFault_Handler(void) {
+  while (1) {
+    strobePin(GPIOA,5,50,0x40000);
+    strobePin(GPIOA,5,2,0xF0000);
+  }
+}
+
+void MemManage_Handler(void) {
+  while (1) {
+    strobePin(GPIOA,5,50,0x40000);
+    strobePin(GPIOA,5,3,0xF0000);
+  }
+}
+
+void BusFault_Handler(void) {
+  while (1) {
+    strobePin(GPIOA,5,50,0x40000);
+    strobePin(GPIOA,5,4,0xF0000);
+  }
+}
+
+void UsageFault_Handler(void) {
+  while (1) {
+    strobePin(GPIOA,5,50,0x40000);
+    strobePin(GPIOA,5,5,0xF0000);
+  }
 }
 
 int main (void) {

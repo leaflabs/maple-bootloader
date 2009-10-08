@@ -248,10 +248,14 @@ typedef struct _DFUStatus 13,255
 #define  dfuUPLOAD_IDLE 72,3044
 #define  dfuERROR 73,3081
 
-main.c,83
+main.c,203
 void USB_LP_CAN1_RX0_IRQHandler(4,79
-void TIM2_IRQHandler(8,137
-int main 11,169
+void NMI_Handler(8,137
+void HardFault_Handler(15,252
+void MemManage_Handler(22,373
+void BusFault_Handler(29,494
+void UsageFault_Handler(36,614
+int main 43,736
 
 usb_lib/usb_init.c,302
  u8	EPindex;24,1436
