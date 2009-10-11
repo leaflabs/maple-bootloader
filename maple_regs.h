@@ -45,6 +45,11 @@
 #define USB_LP_IRQ  ((u8)0x14)
 #define TIM2_IRQ    ((u8)0x1C)
 
+
+/* AIRCR  */
+#define AIRCR_RESET         0x05FA0000
+#define AIRCR_RESET_REQ     (AIRCR_RESET | (u32)0x04);
+
 /* temporary copyage of example from kiel */
 #define __VAL(__TIMCLK, __PERIOD) ((__TIMCLK/1000000UL)*__PERIOD)
 #define __PSC(__TIMCLK, __PERIOD)  (((__VAL(__TIMCLK, __PERIOD)+49999UL)/50000UL) - 1)

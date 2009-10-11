@@ -198,12 +198,21 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
 }
 
 void systemHardReset(void) {
+  SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
   typedef void (*funcPtr)(void);
 
   setPin(GPIOC,12);
   usbPowerOff();
   
-  strobePin(GPIOA,5,10,0x40000);
+  /* Reset  */
+  rSCB->AIRCR = AIRCR_RESET_REQ;
+
+  /* should never get here  */
+  while (1) {
+      asm volatile("nop");
+  }
+
+#if 0
   systemReset();
   
   u32 jumpAddr = *(vu32*) (0x04);
@@ -211,4 +220,5 @@ void systemHardReset(void) {
 
   __MSR_MSP(*((vu32*) 0x00));  /* clear to bootloader stack ptr */
   reset();
+#endif
 }

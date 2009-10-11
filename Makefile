@@ -141,7 +141,7 @@ gccversion:
 program: $(TARGET).bin
 	@echo "Flash-programming with OpenOCD"
 	cp $(TARGET).bin flash/tmpflash.bin
-	cd flash && openocd -f flash.cfg
+	cd flash && openocd -f flash1.cfg
 debug: $(TARGET).bin
 	@echo "Flash-programming with OpenOCD - DEBUG"
 	cp $(TARGET).bin flash/tmpflash.bin

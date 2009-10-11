@@ -23,6 +23,8 @@ void dfuInit(void) {
   dfuAppStatus.bwPollTimeout2 = 0x00;  /* todo: unionize the 3 bytes */
   dfuAppStatus.bState = appIDLE;
   dfuAppStatus.iString = 0x00;          /* all strings must be 0x00 until we make them! */
+  userFirmwareLen = 0;
+  thisBlockLen = 0;;
 }
 
 bool dfuUpdateByRequest(void) {
