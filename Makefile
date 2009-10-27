@@ -18,7 +18,7 @@ ST_USB = usb_lib
 
 # Optimization level [0,1,2,3,s]
 OPT = 0
-DEBUG = -g
+DEBUG = #-g
 #DEBUG = dwarf-2
 
 INCDIRS = ./$(ST_LIB) ./$(ST_USB)
@@ -141,7 +141,7 @@ gccversion:
 program: $(TARGET).bin
 	@echo "Flash-programming with OpenOCD"
 	cp $(TARGET).bin flash/tmpflash.bin
-	cd flash && openocd -f flash1.cfg
+	cd flash && openocd -f flash.cfg
 debug: $(TARGET).bin
 	@echo "Flash-programming with OpenOCD - DEBUG"
 	cp $(TARGET).bin flash/tmpflash.bin

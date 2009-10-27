@@ -3,9 +3,9 @@
 
 #include "maple_usb.h"
 
-extern ONE_DESCRIPTOR usbDeviceDescriptor;
-extern ONE_DESCRIPTOR usbConfigDescriptor;
-extern ONE_DESCRIPTOR usbStringDescriptor;
-extern ONE_DESCRIPTOR usbFunctionalDescriptor;
+extern ONE_DESCRIPTOR  usbDeviceDescriptor;
+extern ONE_DESCRIPTOR  usbConfigDescriptor;
+extern ONE_DESCRIPTOR  usbStringDescriptor[2];
+extern ONE_DESCRIPTOR  usbFunctionalDescriptor;
 
 #endif

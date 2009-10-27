@@ -319,10 +319,8 @@ u8* usbGetStringDescriptor(u16 len) {
      the copyRoutine functions from dataSetup requests
   */
 
-  /* for now we actually have no string descriptors! */
   u8 strIndex = pInformation->USBwValue0;
-  return NULL;
-  //  return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
+  return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
 }
 
 u8* usbGetFunctionalDescriptor(u16 len) {

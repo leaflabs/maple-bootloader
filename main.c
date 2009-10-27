@@ -45,8 +45,7 @@ int main (void) {
     setupCLK();
     setupLED();
     setupUSB();
-
-    resetPin (GPIOC,12);
+    
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
 
     if (checkUserCode(USER_CODE_RAM)) {
