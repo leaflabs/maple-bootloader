@@ -16,9 +16,9 @@ u8 u8_usbDeviceDescriptor[18] =
     0x10,
     0x00,   /* bcdDevice*/
     0x02,
-    0x00,   /* iManufacturer : index of string Manufacturer  */
-    0x00,   /* iProduct      : index of string descriptor of product*/
-    0x00,   /* iSerialNumber : index of string serial number*/
+    0x01,   /* iManufacturer : index of string Manufacturer  */
+    0x02,   /* iProduct      : index of string descriptor of product*/
+    0x03,   /* iSerialNumber : index of string serial number*/
     0x01    /*bNumConfigurations */
   };
 
@@ -93,7 +93,13 @@ ONE_DESCRIPTOR usbConfigDescriptor =
     0x1B
   };
 
-u8 u8_usbStringLandId    = NULL;
+u8 u8_usbStringLangId[0x04] =
+  {
+    0x04,
+    0x03,
+    0x09,
+    0x04    /* LangID = 0x0409: U.S. English */
+  };
 
 u8 u8_usbStringVendor[0x12] = 
   {
@@ -101,6 +107,7 @@ u8 u8_usbStringVendor[0x12] =
     0x03,
     'L',0,'e',0,'a',0,'f',0,'L',0,'a',0,'b',0,'s',0
   };
+
 u8 u8_usbStringProduct[0x14] = 
   {
     0x14,
@@ -108,11 +115,19 @@ u8 u8_usbStringProduct[0x14] =
     'M',0,'a',0,'p',0,'l',0,'e',0,' ',0,'0',0,'0',0,'1',0
   };
 
-u8 u8_usbStringSerial    = NULL;
+u8 u8_usbStringSerial[0x10] = 
+  {
+    0x10,
+    0x03,
+    'L',0,'L',0,'M',0,' ',0,'0',0,'0',0,'1',0
+  };
+
 u8 u8_usbStringInterface = NULL;
 
-ONE_DESCRIPTOR usbStringDescriptor[2] =
+ONE_DESCRIPTOR usbStringDescriptor[4] =
   {
+    { (u8*)u8_usbStringLangId,  0x04 },
     { (u8*)u8_usbStringVendor,  0x12 },
-    { (u8*)u8_usbStringProduct, 0x20 }
+    { (u8*)u8_usbStringProduct, 0x20 },
+    { (u8*)u8_usbStringSerial,  0x10 }
   };

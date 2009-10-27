@@ -300,9 +300,18 @@ u8* dfuCopyUPLOAD(u16 length) {
 
 void dfuCopyBufferToExec() {
   int i;
-  u32* userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
-  for (i=0;i<thisBlockLen;i++) {
-    *userSpace++ = *(u32*)(recvBuffer +4*i);
+  u32* userSpace;
+
+  if (pInformation->Current_AlternateSetting != 1) {
+    userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
+    for (i=0;i<thisBlockLen;i++) {
+      *userSpace++ = *(u32*)(recvBuffer +4*i);
+    }
+  } else {
+    userSpace = (u32*)(USER_CODE_FLASH+userFirmwareLen);
+    /* engage a flash write */
+    /* how many pages do we need to clear? */
+    /* peform the write */
   }
   userFirmwareLen += thisBlockLen;
 

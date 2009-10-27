@@ -14,7 +14,8 @@
 
 /* any global setting macros */
 #define F_SUSPEND_ENABLED 1
-#define USER_CODE_RAM ((u32)0x20000C00)
+#define USER_CODE_RAM     ((u32)0x20000C00)
+#define USER_CODE_FLASH   ((u32)0x08005000)
 
 /* exposed library structs */
 typedef struct {
@@ -65,16 +66,14 @@ void systemReset   (void);
 void setupCLK      (void);
 void setupUSB      (void);
 void setupLED      (void);
+void setupFLASH    (void);
 void setupTimer    (void);
 bool checkUserCode (u32 usrAddr);
 void jumpToUser    (u32 usrAddr);
 
-void flashErasePage (u16 pageNum);
-s8   flashWritePage (u8 pageNum, u8 *srcBuf);
-void flashEraseAll  (void);
-void flashUnlock    (void);
-void flashBlock     (void);  /* waits until flash is ready */
-s8   flashGetStatus (void);
+bool flashWriteWord (u32 addr, u32 word);
+bool flashErasePage (u32 addr);
+void flashLock      (void);
 
 void nvicInit(NVIC_InitTypeDef*);
 

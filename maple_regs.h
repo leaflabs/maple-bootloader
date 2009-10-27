@@ -14,8 +14,17 @@
 #define RCC_APB2ENR RCC + 0x18
 #define RCC_APB1ENR RCC + 0x16
 
-#define FLASH_KEYR FLASH + 0x04
-#define FLASH_ACR  FLASH + 0x00
+#define FLASH_ACR     FLASH + 0x00
+#define FLASH_KEYR    FLASH + 0x04
+#define FLASH_OPTKEYR FLASH + 0x08
+#define FLASH_SR      FLASH + 0x0C
+#define FLASH_CR      FLASH + 0x10
+#define FLASH_AR      FLASH + 0x14
+#define FLASH_OBR     FLASH + 0x1C
+#define FLASH_WRPR    FLASH + 0x20
+#define FLASH_KEY1    0x45670123
+#define FLASH_KEY2    0xCDEF89AB
+#define FLASH_RDPRT   0x00A5
 
 #define GPIO_CRL(port)  port
 #define GPIO_CRH(port)  port+0x04
@@ -76,6 +85,5 @@ typedef struct
   vu32 BDCR;
   vu32 CSR;
 } RCC_RegStruct;
-
 #define pRCC ((RCC_RegStruct *) RCC)
 #endif

@@ -59,10 +59,6 @@ void setupCLK (void) {
   /* enable flash prefetch buffer */
   SET_REG(FLASH_ACR, 0x00000012);
 
-  /* unlock the flash */
-  SET_REG(FLASH_KEYR,0x45670123);
-  SET_REG(FLASH_KEYR,0xCDEF89AB);
-
   /* Configure PLL */
   SET_REG(RCC_CFGR,GET_REG(RCC_CFGR) | 0x001D0400);  /* pll=72Mhz,APB1=36Mhz,AHB=72Mhz */
   SET_REG(RCC_CR,GET_REG(RCC_CR)     | 0x01000000);  /* enable the pll */
@@ -133,6 +129,22 @@ void setupUSB (void) {
 
 void setupTimer(void) {
   //  SET_REG(TIM1_PSC,
+}
+
+void setupFLASH() {
+  /* configure the HSI oscillator */
+  if (pRCC->CR & 0x01 == 0x00) {
+    u32 rwmVal = pRCC->CR;
+    rwmVal |= 0x01;
+    pRCC->CR = rwmVal;
+  }
+
+  /* wait for it to come on */
+  while (pRCC->CR & 0x02 == 0x00) {}
+
+  /* unlock the flash */
+  SET_REG(FLASH_KEYR,FLASH_KEY1);
+  SET_REG(FLASH_KEYR,FLASH_KEY2);
 }
 
 bool checkUserCode (u32 usrAddr) {
@@ -222,3 +234,58 @@ void systemHardReset(void) {
   reset();
 #endif
 }
+
+bool flashErasePage(u32 pageAddr) {
+  u32 rwmVal = GET_REG(FLASH_CR);
+  rwmVal |= 0x02;
+  SET_REG(FLASH_CR,rwmVal);
+
+  while (GET_REG(FLASH_SR) & 0x01) {}
+  SET_REG(FLASH_AR,pageAddr);
+  SET_REG(FLASH_CR,0x40);
+  while (GET_REG(FLASH_SR) & 0x01) {}
+
+  /* todo: verify the page was erased */
+
+  rwmVal &= 0xFFFFFFFD;
+  SET_REG(FLASH_CR,rwmVal);
+
+  return TRUE;
+}
+
+bool flashWriteWord(u32 addr, u32 word) {
+  vu16 *flashAddr = (vu16*)addr;
+  vu32 lhWord = (vu32)word & 0x0000FFFF;
+  vu32 hhWord = ((vu32)word & 0xFFFF0000)>>16;
+
+  u32 rwmVal = GET_REG(FLASH_CR);
+  rwmVal |= 0x01;
+  SET_REG(FLASH_CR,rwmVal);
+
+  /* apparently we need not write to FLASH_AR and can
+     simply do a native write of a half word */
+  while (GET_REG(FLASH_SR) & 0x01) {}
+  *(flashAddr) = (vu16)lhWord;
+  while (GET_REG(FLASH_SR) & 0x01) {}
+  *(flashAddr+0x02) = (vu16)hhWord;
+  while (GET_REG(FLASH_SR) & 0x01) {}
+
+  rwmVal &= 0xFFFFFFFE;
+  SET_REG(FLASH_CR,rwmVal);
+
+  /* verify the write */
+  if (*(vu32*)addr != word) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void flashLock() {
+  /* take down the HSI oscillator? it may be in use elsewhere */
+
+  /* ensure all FPEC functions disabled and lock the FPEC */
+  SET_REG(FLASH_CR,0x00000080);
+}
+
+

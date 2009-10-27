@@ -320,7 +320,11 @@ u8* usbGetStringDescriptor(u16 len) {
   */
 
   u8 strIndex = pInformation->USBwValue0;
-  return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
+  if (strIndex > 2) {
+    return NULL;
+  } else {
+    return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
+  }
 }
 
 u8* usbGetFunctionalDescriptor(u16 len) {
