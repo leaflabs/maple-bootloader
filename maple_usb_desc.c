@@ -49,7 +49,7 @@ ONE_DESCRIPTOR usbFunctionalDescriptor =
   };
 
 
-u8 u8_usbConfigDescriptor[27] = 
+u8 u8_usbConfigDescriptor[36] = 
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
@@ -71,7 +71,18 @@ u8 u8_usbConfigDescriptor[27] =
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
     0x01,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
-    0x00,   /* iInterface: */
+    0x04,   /* iInterface: */
+
+    /************ Descriptor of DFU interface 0 Alternate setting 1 *********/
+    0x09,   /* bLength: Interface Descriptor size */
+    0x04,   /* bDescriptorType: */
+    0x00,   /* bInterfaceNumber: Number of Interface */
+    0x01,   /* bAlternateSetting: Alternate setting */
+    0x00,   /* bNumEndpoints*/
+    0xFE,   /* bInterfaceClass: DFU */
+    0x01,   /* bInterfaceSubClass */
+    0x01,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+    0x05,   /* iInterface: */
 
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
@@ -122,12 +133,33 @@ u8 u8_usbStringSerial[0x10] =
     'L',0,'L',0,'M',0,' ',0,'0',0,'0',0,'1',0
   };
 
+u8 u8_usbStringAlt0[0x36] = 
+  {
+    0x10,
+    0x03,
+    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
+    'a',0,'m',0,' ',0,'R',0,'A',0,'M',0,' ',0,'0',0,'x',0,
+    '2',0,'0',0,'0',0,'0',0,'0',0,'C',0,'0',0,'0',0
+  };
+
+u8 u8_usbStringAlt1[0x3A] = 
+  {
+    0x3A,
+    0x03,
+    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
+    'a',0,'m',0,' ',0,'F',0,'L',0,'A',0,'S',0,'H',0,' ',0,
+    '0',0,'x',0,'0',0,'8',0,'0',0,'0',0,'5',0,'0',0,'0',0,
+    '0',0
+  };
+
 u8 u8_usbStringInterface = NULL;
 
-ONE_DESCRIPTOR usbStringDescriptor[4] =
+ONE_DESCRIPTOR usbStringDescriptor[6] =
   {
     { (u8*)u8_usbStringLangId,  0x04 },
     { (u8*)u8_usbStringVendor,  0x12 },
     { (u8*)u8_usbStringProduct, 0x20 },
-    { (u8*)u8_usbStringSerial,  0x10 }
+    { (u8*)u8_usbStringSerial,  0x10 },
+    { (u8*)u8_usbStringAlt0,    0x36 },
+    { (u8*)u8_usbStringAlt1,    0x3A }
   };

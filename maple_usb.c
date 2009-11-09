@@ -503,5 +503,5 @@ void usbISTR(void) {
     CTR_LP(); /* low priority ISR defined in the usb core lib */
   }
 #endif
-  
+
 }

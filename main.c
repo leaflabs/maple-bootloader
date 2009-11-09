@@ -53,7 +53,14 @@ int main (void) {
     }
 
     while (1) {
-        asm volatile("nop");
+      /* hack to perform the dfu write operation AFTER weve responded 
+	 to the host on the bus */
+      if (copyLock) {
+	dfuCopyBufferToExec();
+	copyLock = FALSE;
+	dfuAppStatus.bwPollTimeout0 = 0x00;
+	dfuAppStatus.bState = dfuDNLOAD_SYNC;
+      }
     }
 
 }

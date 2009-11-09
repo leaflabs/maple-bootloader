@@ -5,7 +5,7 @@
 
 extern ONE_DESCRIPTOR  usbDeviceDescriptor;
 extern ONE_DESCRIPTOR  usbConfigDescriptor;
-extern ONE_DESCRIPTOR  usbStringDescriptor[4];
+extern ONE_DESCRIPTOR  usbStringDescriptor[6];
 extern ONE_DESCRIPTOR  usbFunctionalDescriptor;
 
 #endif

@@ -1,9 +1,10 @@
 #include "maple_dfu.h"
 
 /* DFU globals */
-u32 userAppAddr = 0x20000600; /* default RAM user code location */
+u32 userAppAddr = 0x20000C00; /* default RAM user code location */
 DFUStatus dfuAppStatus;       /* includes state */
 bool copyLock = FALSE;
+bool userFlash = FALSE;
 
 u8 recvBuffer[wTransferSize];
 u32 userFirmwareLen = 0;
@@ -25,6 +26,10 @@ void dfuInit(void) {
   dfuAppStatus.iString = 0x00;          /* all strings must be 0x00 until we make them! */
   userFirmwareLen = 0;
   thisBlockLen = 0;;
+  userAppAddr = 0x20000C00; /* default RAM user code location */
+  copyLock = FALSE;
+  userFlash = FALSE;
+  
 }
 
 bool dfuUpdateByRequest(void) {
@@ -69,6 +74,14 @@ bool dfuUpdateByRequest(void) {
 	userFirmwareLen = 0;
 	dfuAppStatus.bState  = dfuDNLOAD_SYNC;
 	code_copy_lock = BEGINNING;
+
+	if (pInformation->Current_AlternateSetting == 1) {
+	  userAppAddr = USER_CODE_FLASH;
+	  userFlash = TRUE;
+	} else {
+	  userAppAddr = USER_CODE_RAM;
+	  userFlash = FALSE;
+	}
       } else {
 	dfuAppStatus.bState  = dfuERROR;
 	dfuAppStatus.bStatus = errNOTDONE;      
@@ -92,9 +105,14 @@ bool dfuUpdateByRequest(void) {
 
     if (pInformation->USBbRequest == DFU_GETSTATUS) {      
       /* todo, add routine to wait for last block write to finish */
-	dfuAppStatus.bState = dfuDNLOAD_IDLE;
-	dfuAppStatus.bwPollTimeout0 = 0x00;
-	dfuCopyBufferToExec();
+      if (userFlash) {
+	dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
+	dfuAppStatus.bState = dfuDNBUSY;
+      } else {
+	dfuAppStatus.bState = dfuDNLOAD_SYNC;
+      }
+      copyLock = TRUE;
+
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuDNLOAD_SYNC;
     } else {
@@ -104,8 +122,10 @@ bool dfuUpdateByRequest(void) {
 
   } else if (startState == dfuDNBUSY)              {
     /* if were actually done writing, goto sync, else stay busy */
-    dfuAppStatus.bState  = dfuDNLOAD_SYNC;
-
+    if (!copyLock) {
+      dfuAppStatus.bState  = dfuDNLOAD_SYNC;
+      dfuAppStatus.bwPollTimeout0 = 0x00; /* is this enough? */
+    }
   } else if (startState == dfuDNLOAD_IDLE)         {
     /* device is expecting dfu_dnload requests */
     if (pInformation->USBbRequest == DFU_DNLOAD) {
@@ -215,24 +235,29 @@ void dfuUpdateByReset(void) {
     dfuAppStatus.bStatus  = OK;
   } else if (startState == appDETACH) {
     dfuAppStatus.bState  = dfuIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x02;
+    usbConfigDescriptor.Descriptor[0x10] = 0x02;
+    usbConfigDescriptor.Descriptor[0x19] = 0x02;
   } else if (startState == dfuIDLE) {
     dfuAppStatus.bState  = dfuIDLE;
   } else if (startState == dfuDNLOAD_SYNC) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
   } else if (startState == dfuDNBUSY) {
     dfuAppStatus.bState  = dfuERROR;
     dfuAppStatus.bStatus = errSTALLEDPKT;      
   } else if (startState == dfuDNLOAD_IDLE) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
   } else if (startState == dfuMANIFEST_SYNC) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
   } else if (startState == dfuMANIFEST) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
   } else if (startState == dfuMANIFEST_WAIT_RESET) {
     
     /* hard reset the chip */
@@ -240,10 +265,12 @@ void dfuUpdateByReset(void) {
 
   } else if (startState == dfuUPLOAD_IDLE) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
   } else if (startState == dfuERROR) {
     dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[16] = 0x01;
+    usbConfigDescriptor.Descriptor[0x10] = 0x01;
+    usbConfigDescriptor.Descriptor[0x19] = 0x01;
     dfuAppStatus.bStatus  = OK;
   }
 }
@@ -302,7 +329,8 @@ void dfuCopyBufferToExec() {
   int i;
   u32* userSpace;
 
-  if (pInformation->Current_AlternateSetting != 1) {
+  //  if (pInformation->Current_AlternateSetting != 1) {
+  if (1) {
     userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
     for (i=0;i<thisBlockLen;i++) {
       *userSpace++ = *(u32*)(recvBuffer +4*i);

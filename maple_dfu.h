@@ -3,9 +3,6 @@
 
 #include "maple_lib.h"
 
-/* externed globals */
-extern u32 userAppAddr; /* points to the start of users vector table (user app 0x00) */
-
 /* exposed types */
 typedef u8*(*ClassReqCB)(u16);
 
@@ -18,6 +15,11 @@ typedef struct _DFUStatus {
   u8 bState;  /* state of device at the time the host receives the message! */
   u8 iString;
 } DFUStatus;
+
+/* externed globals */
+extern u32 userAppAddr; /* points to the start of users vector table (user app 0x00) */
+extern bool copyLock;
+extern DFUStatus dfuAppStatus;
 
 
 /* ideally we could wrap usb requests (that are dfu specific) into a dfu
