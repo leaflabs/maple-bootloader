@@ -112,11 +112,13 @@ bool dfuUpdateByRequest(void) {
 	if (code_copy_lock==WAIT) {
 	  code_copy_lock=BEGINNING;
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+ 	  dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
 	} else if (code_copy_lock==BEGINNING) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;	  
 	} else if (code_copy_lock==MIDDLE) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
 	} else if (code_copy_lock==END) {
+ 	  dfuAppStatus.bwPollTimeout0 = 0x00;
 	  code_copy_lock=WAIT;
 	  dfuAppStatus.bState=dfuDNLOAD_IDLE;
 	}
@@ -162,21 +164,24 @@ bool dfuUpdateByRequest(void) {
     
     if (pInformation->USBbRequest == DFU_GETSTATUS) {
       /* for now we have no manifestation, so jump straight to end! */
-      if (userFlash) {
-	if (checkUserCode(USER_CODE_FLASH)) {
-	  dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
-	} else {
-	  dfuAppStatus.bState  = dfuERROR;
-	  dfuAppStatus.bStatus = OK;
-	}
-      } else {
-	if (checkUserCode(USER_CODE_RAM)) {
-	  dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
-	} else {
-	  dfuAppStatus.bState  = dfuERROR;
-	  dfuAppStatus.bStatus = OK;
-	}
-      }
+/*       if (userFlash) { */
+/* 	if (checkUserCode(USER_CODE_FLASH)) { */
+/* 	  dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET; */
+/* 	} else { */
+/* 	  dfuAppStatus.bState  = dfuERROR; */
+/* 	  dfuAppStatus.bStatus = OK; */
+/* 	} */
+/*       } else { */
+/* 	if (checkUserCode(USER_CODE_RAM)) { */
+/* 	  dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET; */
+/* 	} else { */
+/* 	  dfuAppStatus.bState  = dfuERROR; */
+/* 	  dfuAppStatus.bStatus = OK; */
+/* 	} */
+/*       } */
+
+      dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
+      dfuAppStatus.bStatus = OK;
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuMANIFEST_SYNC;
     } else {
@@ -251,52 +256,79 @@ void dfuUpdateByReset(void) {
   u8 startState = dfuAppStatus.bState;
   userFirmwareLen = 0;
 
-  if (startState == appIDLE) {
-    dfuAppStatus.bStatus  = OK;
-  } else if (startState == appDETACH) {
-    dfuAppStatus.bState  = dfuIDLE;
+  if (startState == appDETACH) {
+    dfuAppStatus.bState = dfuIDLE;
+    dfuAppStatus.bStatus = OK;
     usbConfigDescriptor.Descriptor[0x10] = 0x02;
     usbConfigDescriptor.Descriptor[0x19] = 0x02;
-  } else if (startState == dfuIDLE) {
-    dfuAppStatus.bState  = dfuIDLE;
-  } else if (startState == dfuDNLOAD_SYNC) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-  } else if (startState == dfuDNBUSY) {
-    dfuAppStatus.bState  = dfuERROR;
-    dfuAppStatus.bStatus = errSTALLEDPKT;      
-  } else if (startState == dfuDNLOAD_IDLE) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-  } else if (startState == dfuMANIFEST_SYNC) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-  } else if (startState == dfuMANIFEST) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-  } else if (startState == dfuMANIFEST_WAIT_RESET) {
-    
-    dfuAppStatus.bState  = appIDLE;
+  } else if (startState == appIDLE || startState == dfuIDLE) {
+    /* do nothing...might be normal usb bus activity */
+  } else {
+    /* we reset from the dfu, reset everything and startover,
+       which is the correct operation if this is an erroneous 
+       event or properly following a MANIFEST */
+    dfuAppStatus.bState = appIDLE;
+    dfuAppStatus.bStatus = OK;
     usbConfigDescriptor.Descriptor[0x10] = 0x01;
     usbConfigDescriptor.Descriptor[0x19] = 0x01;
 
-    /* hard reset the chip */
     systemHardReset();
-
-  } else if (startState == dfuUPLOAD_IDLE) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-  } else if (startState == dfuERROR) {
-    dfuAppStatus.bState  = appIDLE;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
-    dfuAppStatus.bStatus  = OK;
   }
+
+/*   if (startState == appIDLE) { */
+/*     dfuAppStatus.bStatus  = OK; */
+/*   } else if (startState == appDETACH) { */
+/*     dfuAppStatus.bState  = dfuIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x02; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x02; */
+/*   } else if (startState == dfuIDLE) { */
+/*     dfuAppStatus.bState  = dfuIDLE; */
+/*   } else if (startState == dfuDNLOAD_SYNC) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+/*   } else if (startState == dfuDNBUSY) { */
+/*     dfuAppStatus.bState  = dfuERROR; */
+/*     dfuAppStatus.bStatus = errSTALLEDPKT;       */
+/*   } else if (startState == dfuDNLOAD_IDLE) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+/*   } else if (startState == dfuMANIFEST_SYNC) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+
+/*     /\* hard reset the chip *\/ */
+/*     systemHardReset(); */
+
+/*   } else if (startState == dfuMANIFEST) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+
+/*     /\* hard reset the chip *\/ */
+/*     systemHardReset(); */
+
+/*   } else if (startState == dfuMANIFEST_WAIT_RESET) { */
+    
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+
+/*     /\* hard reset the chip *\/ */
+/*     systemHardReset(); */
+
+/*   } else if (startState == dfuUPLOAD_IDLE) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+/*   } else if (startState == dfuERROR) { */
+/*     dfuAppStatus.bState  = appIDLE; */
+/*     usbConfigDescriptor.Descriptor[0x10] = 0x01; */
+/*     usbConfigDescriptor.Descriptor[0x19] = 0x01; */
+/*     dfuAppStatus.bStatus  = OK; */
+/*   } */
 }
 
 void dfuUpdateByTimeout(void) {

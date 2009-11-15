@@ -213,13 +213,13 @@ void systemHardReset(void) {
   SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
   typedef void (*funcPtr)(void);
 
-  setPin(GPIOC,12);
-  usbPowerOff();
+  //  setPin(GPIOC,12);
+  //  usbPowerOff();
   
   /* Reset  */
-  rSCB->AIRCR = AIRCR_RESET_REQ;
+  rSCB->AIRCR = (u32)AIRCR_RESET_REQ;
 
-  /* should never get here  */
+  should never get here
   while (1) {
       asm volatile("nop");
   }
