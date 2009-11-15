@@ -219,7 +219,7 @@ void systemHardReset(void) {
   /* Reset  */
   rSCB->AIRCR = (u32)AIRCR_RESET_REQ;
 
-  should never get here
+  /*  should never get here */
   while (1) {
       asm volatile("nop");
   }
