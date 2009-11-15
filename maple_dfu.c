@@ -3,19 +3,14 @@
 /* DFU globals */
 u32 userAppAddr = 0x20000C00; /* default RAM user code location */
 DFUStatus dfuAppStatus;       /* includes state */
-bool copyLock = FALSE;
 bool userFlash = FALSE;
-bool finishedWrite = FALSE;
 
 u8 recvBuffer[wTransferSize];
 u32 userFirmwareLen = 0;
-u16 thisBlockLen = 0;;
+u16 thisBlockLen = 0;
 
-enum PLOT {
-  BEGINNING,
-  MIDDLE,
-  END
-}code_copy_lock; 
+
+PLOT code_copy_lock;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
@@ -28,9 +23,8 @@ void dfuInit(void) {
   userFirmwareLen = 0;
   thisBlockLen = 0;;
   userAppAddr = 0x20000C00; /* default RAM user code location */
-  copyLock = FALSE;
   userFlash = FALSE;
-  
+  code_copy_lock = WAIT;
 }
 
 bool dfuUpdateByRequest(void) {
@@ -78,7 +72,6 @@ bool dfuUpdateByRequest(void) {
 	if (pInformation->Current_AlternateSetting == 1) {
 	  userAppAddr = USER_CODE_FLASH;
 	  userFlash = TRUE;
-	  code_copy_lock = BEGINNING;
 	} else {
 	  userAppAddr = USER_CODE_RAM;
 	  userFlash = FALSE;
@@ -116,7 +109,18 @@ bool dfuUpdateByRequest(void) {
 /* 	  dfuAppStatus.bState = dfuDNLOAD_IDLE; */
 /* 	  finishedWrite=FALSE; */
 /* 	} */
-	dfuCopyBufferToExec();
+	if (code_copy_lock==WAIT) {
+	  code_copy_lock=BEGINNING;
+	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+	} else if (code_copy_lock==BEGINNING) {
+	  dfuAppStatus.bState=dfuDNLOAD_SYNC;	  
+	} else if (code_copy_lock==MIDDLE) {
+	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+	} else if (code_copy_lock==END) {
+	  code_copy_lock=WAIT;
+	  dfuAppStatus.bState=dfuDNLOAD_IDLE;
+	}
+
       } else {
 	dfuAppStatus.bState = dfuDNLOAD_IDLE;
 	dfuCopyBufferToExec();
@@ -131,11 +135,8 @@ bool dfuUpdateByRequest(void) {
 
   } else if (startState == dfuDNBUSY)              {
     /* if were actually done writing, goto sync, else stay busy */
-    if (!copyLock) {
-      finishedWrite = TRUE;
-      dfuAppStatus.bState  = dfuDNLOAD_SYNC;
-      dfuAppStatus.bwPollTimeout0 = 0x00; /* is this enough? */
-    }
+    dfuAppStatus.bState= dfuDNLOAD_SYNC;
+
   } else if (startState == dfuDNLOAD_IDLE)         {
     /* device is expecting dfu_dnload requests */
     if (pInformation->USBbRequest == DFU_DNLOAD) {
@@ -352,8 +353,7 @@ void dfuCopyBufferToExec() {
   int i;
   u32* userSpace;
 
-  flashErasePage((u32)(USER_CODE_RAM+userFirmwareLen));
-
+  
   if (pInformation->Current_AlternateSetting != 1) {
   //  if (1) {
     userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
@@ -362,15 +362,23 @@ void dfuCopyBufferToExec() {
     }
   } else {
     userSpace = (u32*)(USER_CODE_FLASH+userFirmwareLen);
+
     /* engage a flash write */
     /* how many pages do we need to clear? */
     /* peform the write */
-    flashWriteWord ((u32) userSpace, 0x20005000);
+    if (userFirmwareLen == 0) {
+      flashErasePage((u32)(userSpace));
+    }
+    /* always nix the next 1KB page! */
+    flashErasePage(((u32)userSpace)+0x400);
+
+    for (i=0;i<thisBlockLen;i++) {
+      flashWriteWord(userSpace++,*(u32*)(recvBuffer +4*i));
+    }
   }
   userFirmwareLen += thisBlockLen;
 
   thisBlockLen = 0;
-  code_copy_lock = END;
 }
 
 bool checkTestFile(void) {

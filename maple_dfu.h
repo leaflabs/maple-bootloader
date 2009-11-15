@@ -18,9 +18,16 @@ typedef struct _DFUStatus {
 
 /* externed globals */
 extern u32 userAppAddr; /* points to the start of users vector table (user app 0x00) */
-extern bool copyLock;
 extern DFUStatus dfuAppStatus;
 
+typedef enum _PLOT {
+  BEGINNING,
+  MIDDLE,
+  END,
+  WAIT
+}PLOT;
+
+extern PLOT code_copy_lock; 
 
 /* ideally we could wrap usb requests (that are dfu specific) into a dfu
    event struct, but given that the global ptrs pInfo/property are forced

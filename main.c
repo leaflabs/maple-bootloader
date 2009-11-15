@@ -4,6 +4,11 @@
 void USB_LP_CAN1_RX0_IRQHandler(void) {
     usbISTR();  
 
+    if (code_copy_lock == BEGINNING) {
+      code_copy_lock = MIDDLE;
+      dfuCopyBufferToExec();
+      code_copy_lock = END;
+    }
 /*     if (doFlashWrite) { */
 /*       doFlashWrite = FALSE; */
 /*       dfuCopyBufferToExec(); */
@@ -61,8 +66,8 @@ int main (void) {
 
     /* consider adding a long pause to allow for escaping a potentially unescapable junmp */
     if (checkUserCode(USER_CODE_FLASH)) {
-      //      jumpToUser(USER_CODE_FLASH);
-      strobePin (GPIOA,5,50,0x50000); /* start indicator */
+      jumpToUser(USER_CODE_FLASH);
+      //      strobePin (GPIOA,5,50,0x50000); /* start indicator */
     }
 
     while (1) {
