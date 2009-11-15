@@ -3,6 +3,12 @@
 /* overflow the weak definition in c_only_startup.c */
 void USB_LP_CAN1_RX0_IRQHandler(void) {
     usbISTR();  
+
+/*     if (doFlashWrite) { */
+/*       doFlashWrite = FALSE; */
+/*       dfuCopyBufferToExec(); */
+/*       finishedWrite = TRUE; */
+/*     }  */
 }
 
 void NMI_Handler(void) {
@@ -45,22 +51,29 @@ int main (void) {
     setupCLK();
     setupLED();
     setupUSB();
-    
+    setupFLASH(); /* here for debug, move to dfu */
+
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
 
     if (checkUserCode(USER_CODE_RAM)) {
-        jumpToUser(USER_CODE_RAM);
+      jumpToUser(USER_CODE_RAM);
+    }
+
+    /* consider adding a long pause to allow for escaping a potentially unescapable junmp */
+    if (checkUserCode(USER_CODE_FLASH)) {
+      //      jumpToUser(USER_CODE_FLASH);
+      strobePin (GPIOA,5,50,0x50000); /* start indicator */
     }
 
     while (1) {
       /* hack to perform the dfu write operation AFTER weve responded 
 	 to the host on the bus */
-      if (copyLock) {
-	dfuCopyBufferToExec();
-	copyLock = FALSE;
-	dfuAppStatus.bwPollTimeout0 = 0x00;
-	dfuAppStatus.bState = dfuDNLOAD_SYNC;
-      }
+/*       if (copyLock) { */
+/* 	dfuCopyBufferToExec(); */
+/* 	copyLock = FALSE; */
+/* 	dfuAppStatus.bwPollTimeout0 = 0x00; */
+/* 	dfuAppStatus.bState = dfuDNLOAD_SYNC; */
+/*       } */
     }
 
 }

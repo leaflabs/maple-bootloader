@@ -265,9 +265,9 @@ bool flashWriteWord(u32 addr, u32 word) {
   /* apparently we need not write to FLASH_AR and can
      simply do a native write of a half word */
   while (GET_REG(FLASH_SR) & 0x01) {}
-  *(flashAddr) = (vu16)lhWord;
+  *(flashAddr+0x01) = (vu16)hhWord;
   while (GET_REG(FLASH_SR) & 0x01) {}
-  *(flashAddr+0x02) = (vu16)hhWord;
+  *(flashAddr) = (vu16)lhWord;
   while (GET_REG(FLASH_SR) & 0x01) {}
 
   rwmVal &= 0xFFFFFFFE;
