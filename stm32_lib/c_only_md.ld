@@ -54,7 +54,7 @@ SECTIONS
       KEEP (*(.flashtext))           /* Startup code */
 			. = ALIGN(4);
     } >FLASH
-    
+
  /* 
   * the program code is stored in the .text section, which goes to Flash 
   */
@@ -67,15 +67,15 @@ SECTIONS
       *(.rodata*)
       *(.glue_7)
       *(.glue_7t)
- 			. = ALIGN(4);
-   	 	_etext = .;
+			. = ALIGN(4);
+		_etext = .;
 	    _sidata = _etext; /* Uused by the startup in order to initialize the .data secion */
     } >FLASH
-    
+
 /* 
  * This is the initialized data section. It is stored in RAM but the initial values
  * are held in flash and copied to RAM by the startup code
- */   
+ */
   .data  : AT ( _sidata )  /* AT makes the LMA follow on in the binary image */
     {
 	    . = ALIGN(4);

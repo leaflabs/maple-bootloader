@@ -26,11 +26,11 @@ INCDIRS = ./$(ST_LIB) ./$(ST_USB)
 CFLAGS = $(DEBUG)
 CFLAGS += -O$(OPT)
 CFLAGS += -ffunction-sections -fdata-sections
-CFLAGS += -Wall -Wimplicit 
+CFLAGS += -Wall -Wimplicit
 CFLAGS += -Wcast-align
 CFLAGS += -Wpointer-arith -Wswitch
 CFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
-CFLAGS += -Wa,-adhlns=$(BUILDDIR)/$(subst $(suffix $<),.lst,$<) 
+CFLAGS += -Wa,-adhlns=$(BUILDDIR)/$(subst $(suffix $<),.lst,$<)
 CFLAGS += $(patsubst %,-I%,$(INCDIRS))
 
 # Aeembler Flags
@@ -61,7 +61,7 @@ MSG_ERRORS_NONE = Errors: none
 MSG_BEGIN = "-------- begin --------"
 MSG_ETAGS = Created TAGS File
 MSG_END = --------  end  --------
-MSG_SIZE_BEFORE = Size before: 
+MSG_SIZE_BEFORE = Size before:
 MSG_SIZE_AFTER = Size after:
 MSG_FLASH = Creating load file for Flash:
 MSG_EXTENDED_LISTING = Creating Extended Listing:
@@ -81,7 +81,7 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 # file management
 ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
-STM32SRCS = 
+STM32SRCS =
 _STM32USBSRCS = usb_regs.c \
 usb_int.c \
 usb_init.c \
@@ -149,10 +149,11 @@ debug: $(TARGET).bin
 	cd flash && openocd -f debug.cfg
 
 install: $(TARGET).bin
-	cp $(TARGET).bin flash/main.bin
-	openocd -f flash/flash.cfg
+	cp $(TARGET).bin build/main.bin
+	openocd -f flash/perry_flash.cfg
+
 run: $(TARGET).bin
-	openocd -f flash/stm32.cfg
+	openocd -f flash/run.cfg
 
 # Create final output file (.hex) from ELF output file.
 %.hex: %.elf

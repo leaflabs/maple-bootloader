@@ -171,7 +171,7 @@ RESULT usbPowerOn(void) {
   _SetISTR(0);
   wInterrupt_Mask = CNTR_RESETM | CNTR_SUSPM | CNTR_WKUPM; /* the bare minimum */
   _SetCNTR(wInterrupt_Mask);
-  
+
   return USB_SUCCESS;
 }
 
@@ -219,7 +219,7 @@ void usbReset(void) {
 
   _SetEPTxAddr(ENDP0, ENDP0_TXADDR);
   SetEPTxCount(ENDP0, pProperty->MaxPacketSize);
-  
+
   Clear_Status_Out(ENDP0);
   SetEPRxValid(ENDP0);
 
@@ -263,7 +263,6 @@ RESULT usbDataSetup(u8 request) {
 	break;
       }
     }
-       
   }
 
   if (CopyRoutine != NULL) {
@@ -384,7 +383,7 @@ void usbSetDeviceAddress(void) {
 void usbEnbISR(void) {
   NVIC_InitTypeDef NVIC_InitStructure;
 
-  
+
   NVIC_InitStructure.NVIC_IRQChannel = USB_LP_IRQ;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
