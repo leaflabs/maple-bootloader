@@ -72,6 +72,10 @@ bool dfuUpdateByRequest(void) {
 	if (pInformation->Current_AlternateSetting == 1) {
 	  userAppAddr = USER_CODE_FLASH;
 	  userFlash = TRUE;
+	  
+	  /* make sure the flash is setup properly, unlock it */
+	  setupFLASH();
+	  flashUnlock();
 	} else {
 	  userAppAddr = USER_CODE_RAM;
 	  userFlash = FALSE;
@@ -142,6 +146,9 @@ bool dfuUpdateByRequest(void) {
       } else {
 	/* todo, support "disagreement" if device expects more data than this */
 	dfuAppStatus.bState  = dfuMANIFEST_SYNC;
+	
+	/* relock the flash */
+	flashLock();
       }      
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;

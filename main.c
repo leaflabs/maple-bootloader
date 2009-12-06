@@ -4,10 +4,15 @@
 void USB_LP_CAN1_RX0_IRQHandler(void) {
     usbISTR();  
 
+    /* perry stub */
     if (code_copy_lock == BEGINNING) {
-      code_copy_lock = MIDDLE;
-      dfuCopyBufferToExec();
-      code_copy_lock = END;
+      /* dont return from this ISR to user code! jump to 
+	 the checkFlashLoop!
+	 - either access LR and PC and MSP directly or
+	 simply modify the return address that was pushed
+	 on the stack at exception entry and let the nvic
+	 do the right thing.
+      */
     }
 }
 
@@ -46,6 +51,18 @@ void UsageFault_Handler(void) {
     }
 }
 
+void checkFlashLoop() {
+  /* trap ourselves in a loop that checks the 
+     global flash operation flag */
+  while (1) {
+    if (code_copy_lock==BEGINNING) {
+      code_copy_lock = MIDDLE;
+      dfuCopyBufferToExec();
+      code_copy_lock = END;
+    }
+  }
+}
+
 int main (void) {
     systemReset();
     setupCLK();
@@ -65,15 +82,5 @@ int main (void) {
       jumpToUser(USER_CODE_FLASH);
     }
 
-    while (1) {
-      /* hack to perform the dfu write operation AFTER weve responded 
-	 to the host on the bus, has since been moved to the end of USB ISR*/
-/*       if (copyLock) { */
-/* 	dfuCopyBufferToExec(); */
-/* 	copyLock = FALSE; */
-/* 	dfuAppStatus.bwPollTimeout0 = 0x00; */
-/* 	dfuAppStatus.bState = dfuDNLOAD_SYNC; */
-/*       } */
-    }
-
+    checkFlashLoop();
 }

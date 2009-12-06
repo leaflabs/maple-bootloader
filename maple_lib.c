@@ -141,10 +141,6 @@ void setupFLASH() {
 
   /* wait for it to come on */
   while (pRCC->CR & 0x02 == 0x00) {}
-
-  /* unlock the flash */
-  SET_REG(FLASH_KEYR,FLASH_KEY1);
-  SET_REG(FLASH_KEYR,FLASH_KEY2);
 }
 
 bool checkUserCode (u32 usrAddr) {
@@ -287,5 +283,13 @@ void flashLock() {
   /* ensure all FPEC functions disabled and lock the FPEC */
   SET_REG(FLASH_CR,0x00000080);
 }
+
+void flashUnlock() {
+  /* unlock the flash */
+  SET_REG(FLASH_KEYR,FLASH_KEY1);
+  SET_REG(FLASH_KEYR,FLASH_KEY2);
+}
+
+
 
 
