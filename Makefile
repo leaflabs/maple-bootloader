@@ -138,7 +138,8 @@ sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
 gccversion: 
 	@$(CC) --version
-program: $(TARGET).bin
+
+program: 
 	@echo "Flash-programming with OpenOCD"
 	cp $(TARGET).bin flash/tmpflash.bin
 	cd flash && openocd -f flash.cfg

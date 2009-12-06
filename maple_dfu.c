@@ -100,23 +100,18 @@ bool dfuUpdateByRequest(void) {
     if (pInformation->USBbRequest == DFU_GETSTATUS) {      
       /* todo, add routine to wait for last block write to finish */
       if (userFlash) {
-/* 	if (!finishedWrite) { */
-/* 	  dfuAppStatus.bwPollTimeout0 = 0x20; /\* is this enough? *\/ */
-/* 	  dfuAppStatus.bState = dfuDNBUSY; */
-/* 	  copyLock = TRUE;  */
-/* 	} else { */
-/* 	  dfuAppStatus.bwPollTimeout0 = 0x00; /\* is this enough? *\/ */
-/* 	  dfuAppStatus.bState = dfuDNLOAD_IDLE; */
-/* 	  finishedWrite=FALSE; */
-/* 	} */
 	if (code_copy_lock==WAIT) {
 	  code_copy_lock=BEGINNING;
-	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
  	  dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
+	  // 	  dfuAppStatus.bwPollTimeout1 = 0x0F; /* is this enough? */
+	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+
 	} else if (code_copy_lock==BEGINNING) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;	  
+
 	} else if (code_copy_lock==MIDDLE) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+
 	} else if (code_copy_lock==END) {
  	  dfuAppStatus.bwPollTimeout0 = 0x00;
 	  code_copy_lock=WAIT;
@@ -387,7 +382,6 @@ void dfuCopyBufferToExec() {
 
   
   if (pInformation->Current_AlternateSetting != 1) {
-  //  if (1) {
     userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
     for (i=0;i<thisBlockLen;i++) {
       *userSpace++ = *(u32*)(recvBuffer +4*i);
