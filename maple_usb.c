@@ -74,6 +74,18 @@ struct
   volatile u8 bESOFcnt;
 } ResumeS;
 
+/* we make this here since the virtual com is just a shell
+   without its own sources yet */
+LINE_CODING linecoding = 
+  {
+    115200, /* baud */
+    0x00,   /* stop bits-1*/
+    0x00,   /* parity - none */
+    0x08    /* no. of bits 8 */
+  };
+u8  vcom_buffer_out[VCOM_BUF_SIZE];
+u32 vcom_count_out = 0;
+u32 vcom_count_in  = 0;
 
 /* dummy proc */
 void nothingProc(void) {
@@ -287,7 +299,12 @@ RESULT usbDataSetup(u8 request) {
 	/* leave copy routine null */
 	break;
       }
+    } else if (request == GET_LINE_CODING) {
+      CopyRoutine = vcomGetLineCoding;
+    } else if (request = SET_LINE_CODING) {
+      CopyRoutine = vcomSetLineCoding;
     }
+
   }
 
   if (CopyRoutine != NULL) {
@@ -301,12 +318,16 @@ RESULT usbDataSetup(u8 request) {
   return USB_UNSUPPORT;
 }
 
-RESULT usbNoDataSetup(u8 requestNo) {
+RESULT usbNoDataSetup(u8 request) {
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
   {
+    /* todo, keep track of the destination interface, often stored in wIndex */
     if (dfuUpdateByRequest()) {
       return USB_SUCCESS;
+    } else {
+      /* move comm routines to similar dfuUpdateByRequest state machine */
     }
+
   }
 
   return USB_UNSUPPORT;
@@ -435,6 +456,31 @@ void usbSetDeviceAddress(void) {
 }
 /***** end of USER STANDARD REQUESTS *****/
 
+void vcomEp1In(void) {
+  vcom_count_in = 0; /* no more bytes to send to host */
+}
+
+void vcomEp3Out(void) {
+  vcom_count_out = GetEPRxCount(ENDP3);
+  PMAToUserBufferCopy(vcom_buffer_out, ENDP3_RXADDR, vcom_count_out);
+  SetEPRxValid(ENDP3);
+}
+
+u8* vcomGetLineCoding(u16 length) {
+  if (length==0) {
+    pInformation->Ctrl_Info.Usb_wLength = sizeof(linecoding);
+    return NULL;
+  }
+  return (u8*)(&linecoding);
+}
+
+u8* vcomSetLineCoding(u16 length) {
+  if (length==0) {
+    pInformation->Ctrl_Info.Usb_wLength = sizeof(linecoding);
+    return NULL;
+  }
+  return (u8*)&linecoding;
+}
 
 void usbEnbISR(void) {
   NVIC_InitTypeDef NVIC_InitStructure;

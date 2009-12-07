@@ -11,7 +11,8 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
     unsigned int target;
     usbISTR();
 
-    /* perry stub */
+    /* only smash the stack when we absolutely needed to, but
+     could easily do this whenever the dfu state is not appIDLE */
     if (code_copy_lock == BEGINNING) {
         code_copy_lock = MIDDLE;
         target =  (unsigned int)checkFlashLoop | 0x1;
@@ -94,6 +95,12 @@ int main (void) {
     setupFLASH(); /* here for debug, move to dfu */
 
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
+
+#if COM_ENB
+    UserToPMABufferCopy("Maple Bootloader Started!\n",ENDP1_TXADDR,26);
+    SetEPTxCount(ENDP1,returnMsgLen);
+    SetEPTxValid(ENDP1);
+#endif
 
 #if 1
     if (checkUserCode(USER_CODE_RAM)) {
