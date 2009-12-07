@@ -10,10 +10,10 @@ u8 u8_usbDeviceDescriptorAPP[18] =
     0x00,   /* bDeviceSubClass : See interface*/
     0x00,   /* bDeviceProtocol : See interface */
     bMaxPacketSize, /* bMaxPacketSize0 0x40 = 64 */
-    0x10,   /* idVendor     (1001) */
-    0x01,
-    0x01,   /* idProduct (0x0110) */
-    0x10,
+    VEND_ID0,   /* idVendor     (0110) */
+    VEND_ID1,
+    PROD_ID0,   /* idProduct (0x1001) */
+    PROD_ID1,
     0x00,   /* bcdDevice*/
     0x02,
     0x01,   /* iManufacturer : index of string Manufacturer  */
@@ -24,7 +24,7 @@ u8 u8_usbDeviceDescriptorAPP[18] =
 
 ONE_DESCRIPTOR usbDeviceDescriptorAPP = 
   {
-    u8_usbDeviceDescriptor,
+    u8_usbDeviceDescriptorAPP,
     0x12
   };
 
@@ -38,10 +38,12 @@ u8 u8_usbDeviceDescriptorDFU[18] =
     0x00,   /* bDeviceSubClass : See interface*/
     0x00,   /* bDeviceProtocol : See interface */
     bMaxPacketSize, /* bMaxPacketSize0 0x40 = 64 */
-    0x10,   /* idVendor     (1001) */
-    0x01,
-    0x01,   /* idProduct (0x0110) */
-    0x10,
+    VEND_ID0,   /* idVendor     (0110) */
+    VEND_ID1,
+
+    PROD_ID0_DFU,   /* idProduct (0x1001 or 1002) */
+    PROD_ID1,
+
     0x00,   /* bcdDevice*/
     0x02,
     0x01,   /* iManufacturer : index of string Manufacturer  */
@@ -201,7 +203,7 @@ u8 u8_usbConfigDescriptorAPP[94] =
 
 ONE_DESCRIPTOR usbConfigDescriptorAPP = 
   {
-    u8_usbConfigDescriptor,
+    u8_usbConfigDescriptorAPP,
     0x5E
   };
 
@@ -227,7 +229,13 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x00,   /* bNumEndpoints*/
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
+
+#if COMM_ENB
+    0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+#else
     0x01,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+#endif
+
     0x04,   /* iInterface: */
 
     /************ Descriptor of DFU interface 0 Alternate setting 1 *********/
@@ -238,7 +246,13 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x00,   /* bNumEndpoints*/
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
+
+#if COMM_ENB
     0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+#else
+    0x01,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+#endif
+
     0x05,   /* iInterface: */
 
     /******************** DFU Functional Descriptor********************/

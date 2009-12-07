@@ -262,6 +262,13 @@ void dfuUpdateByReset(void) {
   if (startState == appDETACH) {
     dfuAppStatus.bState = dfuIDLE;
     dfuAppStatus.bStatus = OK;
+
+#if COMM_ENB
+#else
+    usbConfigDescriptorDFU.Descriptor[0x10] = 0x02;
+    usbConfigDescriptorDFU.Descriptor[0x19] = 0x02; 
+#endif
+
   } else if (startState == appIDLE || startState == dfuIDLE) {
     /* do nothing...might be normal usb bus activity */
   } else {
@@ -270,6 +277,12 @@ void dfuUpdateByReset(void) {
        event or properly following a MANIFEST */
     dfuAppStatus.bState = appIDLE;
     dfuAppStatus.bStatus = OK;
+
+#if COMM_ENB
+#else
+    usbConfigDescriptorDFU.Descriptor[0x10] = 0x01;
+    usbConfigDescriptorDFU.Descriptor[0x19] = 0x01; 
+#endif
 
     systemHardReset();
   }

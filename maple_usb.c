@@ -223,7 +223,7 @@ void usbReset(void) {
   Clear_Status_Out(ENDP0);
   SetEPRxValid(ENDP0);
 
-#if 0
+#if COMM_ENB
   if (dfuGetState() == appIDLE) {
     /* also initialize the non dfu interface enpoints */
     /* Initialize Endpoint 1 */
@@ -314,7 +314,7 @@ RESULT usbNoDataSetup(u8 requestNo) {
 
 RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
   /* we only support alt setting 0 for now */
-#if 0
+#if COMM_ENB
   if (dfuGetState() == appIDLE) {
     if (interface > 2) {
       return USB_UNSUPPORT;
@@ -343,7 +343,7 @@ u8* usbGetDeviceDescriptor(u16 len) {
   /* this function (from usb_core) is exactly the same format as
      the copyRoutine functions from dataSetup requests
   */
-#if 0
+#if COMM_ENB
   if (dfuGetState() == appIDLE) {
     return Standard_GetDescriptorData(len, &usbDeviceDescriptorAPP);
   } else {
@@ -358,7 +358,7 @@ u8* usbGetConfigDescriptor(u16 len) {
   /* this function (from usb_core) is exactly the same format as
      the copyRoutine functions from dataSetup requests
   */
-#if 0
+#if COMM_ENB
   if (dfuGetState() == appIDLE) {
     return Standard_GetDescriptorData(len, &usbConfigDescriptorAPP);
   } else {

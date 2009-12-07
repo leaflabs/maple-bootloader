@@ -12,6 +12,12 @@
 #define ENDP2_TXADDR    0x100
 #define ENDP3_RXADDR    0x110
 
+#define COMM_ENB 1 /* enable the usb->serial */
+#define VEND_ID0 0x10
+#define VEND_ID1 0x01
+#define PROD_ID0 0x01
+#define PROD_ID1 0x10
+#define PROD_ID0_DFU 0x01 /* in case we need to change the product ID after DFU enum */
 
 #define bMaxPacketSize  0x40    /* 64B,  maximum for usb FS devices */
 #define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
