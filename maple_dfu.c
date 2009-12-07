@@ -32,6 +32,7 @@ bool dfuUpdateByRequest(void) {
      see comment in maple_dfu.h around DFUEvent struct */
 
   u8 startState = dfuAppStatus.bState;
+  dfuAppStatus.bStatus = OK;      
   /* often leaner to nest if's then embed a switch/case */
   if (startState == appIDLE)                      {
     /* device running outside of DFU Mode */
@@ -261,8 +262,6 @@ void dfuUpdateByReset(void) {
   if (startState == appDETACH) {
     dfuAppStatus.bState = dfuIDLE;
     dfuAppStatus.bStatus = OK;
-    usbConfigDescriptor.Descriptor[0x10] = 0x02;
-    usbConfigDescriptor.Descriptor[0x19] = 0x02;
   } else if (startState == appIDLE || startState == dfuIDLE) {
     /* do nothing...might be normal usb bus activity */
   } else {
@@ -271,8 +270,6 @@ void dfuUpdateByReset(void) {
        event or properly following a MANIFEST */
     dfuAppStatus.bState = appIDLE;
     dfuAppStatus.bStatus = OK;
-    usbConfigDescriptor.Descriptor[0x10] = 0x01;
-    usbConfigDescriptor.Descriptor[0x19] = 0x01;
 
     systemHardReset();
   }

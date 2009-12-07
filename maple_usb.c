@@ -206,7 +206,7 @@ void usbReset(void) {
   dfuUpdateByReset();
 
   pInformation->Current_Configuration = 0;
-  pInformation->Current_Feature = usbConfigDescriptor.Descriptor[7];
+  pInformation->Current_Feature = 0x00; //usbConfigDescriptor.Descriptor[7];
 
   _SetBTABLE(BTABLE_ADDRESS);
 
@@ -222,6 +222,31 @@ void usbReset(void) {
 
   Clear_Status_Out(ENDP0);
   SetEPRxValid(ENDP0);
+
+#if 0
+  if (dfuGetState() == appIDLE) {
+    /* also initialize the non dfu interface enpoints */
+    /* Initialize Endpoint 1 */
+    SetEPType(ENDP1, EP_BULK);
+    SetEPTxAddr(ENDP1, ENDP1_TXADDR);
+    SetEPTxStatus(ENDP1, EP_TX_NAK);
+    SetEPRxStatus(ENDP1, EP_RX_DIS);
+
+    /* Initialize Endpoint 2 */
+    SetEPType(ENDP2, EP_INTERRUPT);
+    SetEPTxAddr(ENDP2, ENDP2_TXADDR);
+    SetEPRxStatus(ENDP2, EP_RX_DIS);
+    SetEPTxStatus(ENDP2, EP_TX_NAK);
+
+    /* Initialize Endpoint 3 */
+    SetEPType(ENDP3, EP_BULK);
+    SetEPRxAddr(ENDP3, ENDP3_RXADDR);
+    SetEPRxCount(ENDP3, 0x40); /* 64 byte packets */
+    SetEPRxStatus(ENDP3, EP_RX_VALID);
+    SetEPTxStatus(ENDP3, EP_TX_DIS);
+
+  }
+#endif
 
   bDeviceState = ATTACHED;
   SetDeviceAddress(0); /* different than usbSetDeviceAddr! comes from usb_core */
@@ -289,11 +314,28 @@ RESULT usbNoDataSetup(u8 requestNo) {
 
 RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
   /* we only support alt setting 0 for now */
-  //  if (altSetting < 1) {
-    return USB_SUCCESS;
-    //  }
-
-    //  return USB_UNSUPPORT;
+#if 0
+  if (dfuGetState() == appIDLE) {
+    if (interface > 2) {
+      return USB_UNSUPPORT;
+    } else if (interface < 2) {
+      if (altSetting > 0) {
+	return USB_UNSUPPORT;
+      }
+    } else {
+      if (altSetting > 1) {
+	return USB_UNSUPPORT;
+      }
+    }
+  } else {
+    if (interface > 0) {
+      return USB_UNSUPPORT;
+    } else if (altSetting > 1) {
+      return USB_UNSUPPORT;
+    }
+  }
+#endif
+  return USB_SUCCESS;
 }
 
 u8* usbGetDeviceDescriptor(u16 len) {
@@ -301,7 +343,14 @@ u8* usbGetDeviceDescriptor(u16 len) {
   /* this function (from usb_core) is exactly the same format as
      the copyRoutine functions from dataSetup requests
   */
-  return Standard_GetDescriptorData(len, &usbDeviceDescriptor);
+#if 0
+  if (dfuGetState() == appIDLE) {
+    return Standard_GetDescriptorData(len, &usbDeviceDescriptorAPP);
+  } else {
+    return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
+  }
+#endif
+  return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
 }
 
 u8* usbGetConfigDescriptor(u16 len) {
@@ -309,7 +358,14 @@ u8* usbGetConfigDescriptor(u16 len) {
   /* this function (from usb_core) is exactly the same format as
      the copyRoutine functions from dataSetup requests
   */
-  return Standard_GetDescriptorData(len, &usbConfigDescriptor);
+#if 0
+  if (dfuGetState() == appIDLE) {
+    return Standard_GetDescriptorData(len, &usbConfigDescriptorAPP);
+  } else {
+    return Standard_GetDescriptorData(len, &usbConfigDescriptorDFU);
+  }
+#endif
+  return Standard_GetDescriptorData(len, &usbConfigDescriptorDFU);
 }
 
 u8* usbGetStringDescriptor(u16 len) {

@@ -6,11 +6,16 @@
 
 /* USB configuration params */
 #define BTABLE_ADDRESS  0x00
-#define ENDP0_RXADDR    0x10
-#define ENDP0_TXADDR    0x50    /* gives 64 bytes i/o buflen */
+#define ENDP0_RXADDR    0x40
+#define ENDP0_TXADDR    0x80    /* gives 64 bytes i/o buflen */
+#define ENDP1_TXADDR    0xC0
+#define ENDP2_TXADDR    0x100
+#define ENDP3_RXADDR    0x110
+
+
 #define bMaxPacketSize  0x40    /* 64B,  maximum for usb FS devices */
 #define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
-#define NUM_ENDPTS      0x01
+#define NUM_ENDPTS      0x04
 
 /* defines which interrupts are handled */
 #define ISR_MSK (CNTR_CTRM   | \
@@ -22,8 +27,29 @@
                  CNTR_RESETM   \
 		 )
 
+/* command defines for virtual COM */
+/* todo:  move to a maple_com src pair
+   most of these commands arnt handled yet anyway
+... */
+#define SEND_ENCAPSULATED_COMMAND 0x00
+#define GET_ENCAPSULATED_RESPONSE 0x01
+#define SET_COMM_FEATURE          0x02
+#define GET_COMM_FEATURE          0x03
+#define CLEAR_COMM_FEATURE        0x04
+#define SET_LINE_CODING           0x20
+#define GET_LINE_CODING           0x21
+#define SET_CONTROL_LINE_STATE    0x22
+#define SEND_BREAK                0x23
 
 /* any structs or enums */
+typedef struct _LINE_CODING
+  {
+    u32 bitrate;
+    u8 format;
+    u8 paritytype;
+    u8 datatype;
+  } LINE_CODING;
+
 typedef enum _RESUME_STATE
   {
     RESUME_EXTERNAL,
