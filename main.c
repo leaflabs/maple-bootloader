@@ -81,7 +81,9 @@ void checkFlashLoop() {
      global flash operation flag */
   while (1) {
     if (code_copy_lock == MIDDLE) {
+      strobePin(GPIOA,5,2,0x1000);
       dfuCopyBufferToExec();
+      strobePin(GPIOA,5,2,0x500);
       code_copy_lock = END;
     }
   }
@@ -96,10 +98,34 @@ int main (void) {
 
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
 
+#if 0
+    flashUnlock();
+
+    int x;
+    u32 *userBase = 0x08005000;
+    for (x=20;x>0;x--) {
+      flashErasePage((u32)(userBase+0x100*(x-1)));
+    }	
+
+    int y;
+    for (x=0;x<20;x++) {
+      for (y=0;y<256;y++) {
+	flashWriteWord((u32)(userBase+0x100*x+y),y);
+      }
+    }
+
+    for (x=0;x<20;x++) {
+      flashErasePage((u32)(userBase+0x100*x));
+    }	
+
+    while (1) {
+    }
+#endif
+
 #if COM_ENB
-    UserToPMABufferCopy("Maple Bootloader Started!\n",ENDP1_TXADDR,26);
-    SetEPTxCount(ENDP1,returnMsgLen);
-    SetEPTxValid(ENDP1);
+    //    UserToPMABufferCopy("Maple Bootloader Started!\n",ENDP1_TXADDR,26);
+    //    SetEPTxCount(ENDP1,returnMsgLen);
+    //    SetEPTxValid(ENDP1);
 #endif
 
 #if 1

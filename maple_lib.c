@@ -233,17 +233,39 @@ void systemHardReset(void) {
 
 bool flashErasePage(u32 pageAddr) {
   u32 rwmVal = GET_REG(FLASH_CR);
-  rwmVal |= 0x02;
+  //  rwmVal &= 0x02;
+  rwmVal = FLASH_CR_PER;
   SET_REG(FLASH_CR,rwmVal);
 
-  while (GET_REG(FLASH_SR) & 0x01) {}
+  while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
   SET_REG(FLASH_AR,pageAddr);
-  SET_REG(FLASH_CR,0x40);
-  while (GET_REG(FLASH_SR) & 0x01) {}
+  SET_REG(FLASH_CR,FLASH_CR_START | FLASH_CR_PER);
+  while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
 
   /* todo: verify the page was erased */
 
-  rwmVal &= 0xFFFFFFFD;
+  //  rwmVal &= 0xFFFFFFFD;
+  rwmVal = 0x00;
+  SET_REG(FLASH_CR,rwmVal);
+
+  return TRUE;
+}
+bool flashErasePages(u32 pageAddr, u16 n) {
+  u32 rwmVal = GET_REG(FLASH_CR);
+  //  rwmVal &= 0x02;
+  rwmVal = FLASH_CR_PER;
+  SET_REG(FLASH_CR,rwmVal);
+
+  while (n-->0) {
+    while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
+    SET_REG(FLASH_AR,pageAddr+0x400);
+    SET_REG(FLASH_CR,FLASH_CR_START | FLASH_CR_PER);
+  }
+
+  /* todo: verify the page was erased */
+
+  //  rwmVal &= 0xFFFFFFFD;
+  rwmVal = 0x00;
   SET_REG(FLASH_CR,rwmVal);
 
   return TRUE;
@@ -255,16 +277,16 @@ bool flashWriteWord(u32 addr, u32 word) {
   vu32 hhWord = ((vu32)word & 0xFFFF0000)>>16;
 
   u32 rwmVal = GET_REG(FLASH_CR);
-  rwmVal |= 0x01;
-  SET_REG(FLASH_CR,rwmVal);
+  //  rwmVal |= 0x01;
+  SET_REG(FLASH_CR,FLASH_CR_PG);
 
   /* apparently we need not write to FLASH_AR and can
      simply do a native write of a half word */
-  while (GET_REG(FLASH_SR) & 0x01) {}
+  while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
   *(flashAddr+0x01) = (vu16)hhWord;
-  while (GET_REG(FLASH_SR) & 0x01) {}
+  while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
   *(flashAddr) = (vu16)lhWord;
-  while (GET_REG(FLASH_SR) & 0x01) {}
+  while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
 
   rwmVal &= 0xFFFFFFFE;
   SET_REG(FLASH_CR,rwmVal);

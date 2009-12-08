@@ -34,7 +34,7 @@
 .global	g_pfnVectors
 .global	SystemInit_ExtMemCtl_Dummy
 .global	Default_Handler
-
+	
 /* start address for the initialization values of the .data section. 
 defined in linker script */
 .word	_sidata
@@ -199,8 +199,8 @@ g_pfnVectors:
 	.word	DMA2_Channel5
 */
 	.word	BootRAM          /* @0x108. This is for boot in RAM mode for 
-                            STM32F10x Medium Density devices. */
-   
+				STM32F10x Medium Density devices. */
+	
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 
@@ -364,5 +364,4 @@ g_pfnVectors:
 
 	.weak	USBWakeUp_IRQHandler
 	.thumb_set USBWakeUp_IRQHandler,Default_Handler
-
 

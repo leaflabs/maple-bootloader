@@ -22,9 +22,14 @@
 #define FLASH_AR      FLASH + 0x14
 #define FLASH_OBR     FLASH + 0x1C
 #define FLASH_WRPR    FLASH + 0x20
-#define FLASH_KEY1    0x45670123
-#define FLASH_KEY2    0xCDEF89AB
-#define FLASH_RDPRT   0x00A5
+
+#define FLASH_KEY1     0x45670123
+#define FLASH_KEY2     0xCDEF89AB
+#define FLASH_RDPRT    0x00A5
+#define FLASH_SR_BSY   0x01
+#define FLASH_CR_PER   0x02
+#define FLASH_CR_PG    0x01
+#define FLASH_CR_START 0x40
 
 #define GPIO_CRL(port)  port
 #define GPIO_CRH(port)  port+0x04

@@ -73,6 +73,7 @@ void jumpToUser    (u32 usrAddr);
 
 bool flashWriteWord (u32 addr, u32 word);
 bool flashErasePage (u32 addr);
+bool flashErasePages (u32 addr, u16 n);
 void flashLock      (void);
 void flashUnlock    (void);
 void nvicInit(NVIC_InitTypeDef*);

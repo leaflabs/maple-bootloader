@@ -77,6 +77,8 @@ bool dfuUpdateByRequest(void) {
 	  /* make sure the flash is setup properly, unlock it */
 	  setupFLASH();
 	  flashUnlock();
+	  //	  flashErasePage((u32)USER_CODE_FLASH);
+
 	} else {
 	  userAppAddr = USER_CODE_RAM;
 	  userFlash = FALSE;
@@ -108,8 +110,8 @@ bool dfuUpdateByRequest(void) {
 	if (code_copy_lock==WAIT) {
 	  code_copy_lock=BEGINNING;
  	  dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
-	  // 	  dfuAppStatus.bwPollTimeout1 = 0x0F; /* is this enough? */
-	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
+ 	  dfuAppStatus.bwPollTimeout1 = 0x01; /* is this enough? */
+	  dfuAppStatus.bState=dfuDNBUSY;
 
 	} else if (code_copy_lock==BEGINNING) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;	  
@@ -137,7 +139,13 @@ bool dfuUpdateByRequest(void) {
 
   } else if (startState == dfuDNBUSY)              {
     /* if were actually done writing, goto sync, else stay busy */
-    dfuAppStatus.bState= dfuDNLOAD_SYNC;
+    if (code_copy_lock == END) {
+      dfuAppStatus.bwPollTimeout0 = 0x00;
+      code_copy_lock=WAIT;
+      dfuAppStatus.bState = dfuDNLOAD_IDLE;
+    } else {
+      dfuAppStatus.bState= dfuDNBUSY;
+    }
 
   } else if (startState == dfuDNLOAD_IDLE)         {
     /* device is expecting dfu_dnload requests */
@@ -262,6 +270,7 @@ void dfuUpdateByReset(void) {
   if (startState == appDETACH) {
     dfuAppStatus.bState = dfuIDLE;
     dfuAppStatus.bStatus = OK;
+
 
 #if COMM_ENB
 #else
@@ -398,26 +407,31 @@ void dfuCopyBufferToExec() {
   u32* userSpace;
 
   
-  if (pInformation->Current_AlternateSetting != 1) {
+  //  if (pInformation->Current_AlternateSetting != 1) {
+  if (!userFlash) {
     userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
-    for (i=0;i<thisBlockLen;i++) {
-      *userSpace++ = *(u32*)(recvBuffer +4*i);
+    /* we dont need to handle when thisBlock len is not divisible by 4,
+     since the linker will align everything to 4B anyway */
+    for (i=0;i<thisBlockLen;i=i+4) {
+      *userSpace++ = *(u32*)(recvBuffer+i);
     }
   } else {
     userSpace = (u32*)(USER_CODE_FLASH+userFirmwareLen);
 
+    /* moved this out to usb reset, so that we have more time */
     /* engage a flash write */
-    /* how many pages do we need to clear? */
-    /* peform the write */
     if (userFirmwareLen == 0) {
-      flashErasePage((u32)(userSpace));
+      //      flashErasePages((u32)(userSpace),2);
+    } else {
+      /* always nix the next 1KB page! */
+      //      flashErasePage((u32)(userSpace+0x100));
     }
-    /* always nix the next 1KB page! */
-    flashErasePage(((u32)userSpace)+0x400);
+    flashErasePage((u32)(userSpace));
 
-    for (i=0;i<thisBlockLen;i++) {
-      flashWriteWord(userSpace++,*(u32*)(recvBuffer +4*i));
+    for (i=0;i<thisBlockLen;i=i+4) {
+      flashWriteWord(userSpace++,*(u32*)(recvBuffer+i));
     }
+
   }
   userFirmwareLen += thisBlockLen;
 

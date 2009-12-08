@@ -76,6 +76,8 @@ SECTIONS
  * This is the initialized data section. It is stored in RAM but the initial values
  * are held in flash and copied to RAM by the startup code
  */
+/* we copy the ISR vector in RAM as well, so that users can fool with it */
+
   .data  : AT ( _sidata )  /* AT makes the LMA follow on in the binary image */
     {
 	    . = ALIGN(4);
