@@ -218,25 +218,25 @@ void usbReset(void) {
   dfuUpdateByReset();
 
   pInformation->Current_Configuration = 0;
-  pInformation->Current_Feature = 0x00; //usbConfigDescriptor.Descriptor[7];
+  pInformation->Current_Feature = usbConfigDescriptorAPP.Descriptor[7];
 
   _SetBTABLE(BTABLE_ADDRESS);
 
   /* setup the ctrl endpoint */
   _SetEPType(ENDP0, EP_CONTROL);
-  _SetEPTxStatus(ENDP0, EP_TX_NAK);
+  _SetEPTxStatus(ENDP0, EP_TX_STALL);
 
   _SetEPRxAddr(ENDP0, ENDP0_RXADDR);
-  SetEPRxCount(ENDP0, pProperty->MaxPacketSize);
-
   _SetEPTxAddr(ENDP0, ENDP0_TXADDR);
-  SetEPTxCount(ENDP0, pProperty->MaxPacketSize);
 
   Clear_Status_Out(ENDP0);
+
+  SetEPRxCount(ENDP0, pProperty->MaxPacketSize);
+  //  SetEPTxCount(ENDP0, pProperty->MaxPacketSize);
   SetEPRxValid(ENDP0);
 
 #if COMM_ENB
-  if (dfuGetState() == appIDLE) {
+  //  if (dfuGetState() == appIDLE) {
     /* also initialize the non dfu interface enpoints */
     /* Initialize Endpoint 1 */
     SetEPType(ENDP1, EP_BULK);
@@ -253,11 +253,11 @@ void usbReset(void) {
     /* Initialize Endpoint 3 */
     SetEPType(ENDP3, EP_BULK);
     SetEPRxAddr(ENDP3, ENDP3_RXADDR);
-    SetEPRxCount(ENDP3, 0x40); /* 64 byte packets */
+    SetEPRxCount(ENDP3, VCOM_BUF_SIZE); /* 64 byte packets */
     SetEPRxStatus(ENDP3, EP_RX_VALID);
     SetEPTxStatus(ENDP3, EP_TX_DIS);
 
-  }
+    //  }
 #endif
 
   bDeviceState = ATTACHED;
@@ -278,10 +278,14 @@ RESULT usbDataSetup(u8 request) {
   u8 *(*CopyRoutine)(u16);
   CopyRoutine = NULL;
 
+  /* todo, how to handle overlapping request cmds to DFU or ACM? */
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
   {
-
-    if (dfuUpdateByRequest()) {
+    if (request == GET_LINE_CODING) {
+      CopyRoutine = vcomGetLineCoding;
+    } else if (request == SET_LINE_CODING) {
+      CopyRoutine = vcomSetLineCoding;
+    } else if (dfuUpdateByRequest()) {
       /* successfull state transition, handle the request */
       switch (request) {
       case (DFU_GETSTATUS):
@@ -299,12 +303,7 @@ RESULT usbDataSetup(u8 request) {
 	/* leave copy routine null */
 	break;
       }
-    } else if (request == GET_LINE_CODING) {
-      CopyRoutine = vcomGetLineCoding;
-    } else if (request = SET_LINE_CODING) {
-      CopyRoutine = vcomSetLineCoding;
     }
-
   }
 
   if (CopyRoutine != NULL) {
@@ -326,8 +325,12 @@ RESULT usbNoDataSetup(u8 request) {
       return USB_SUCCESS;
     } else {
       /* move comm routines to similar dfuUpdateByRequest state machine */
+      if (request == SET_COMM_FEATURE) {
+	return USB_SUCCESS;
+      } else if (request == SET_CONTROL_LINE_STATE) {
+	return USB_SUCCESS;
+      }
     }
-
   }
 
   return USB_UNSUPPORT;
@@ -335,16 +338,12 @@ RESULT usbNoDataSetup(u8 request) {
 
 RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
   /* we only support alt setting 0 for now */
-#if COMM_ENB
+#if 0 //COMM_ENB
   if (dfuGetState() == appIDLE) {
     if (interface > 2) {
       return USB_UNSUPPORT;
     } else if (interface < 2) {
       if (altSetting > 0) {
-	return USB_UNSUPPORT;
-      }
-    } else {
-      if (altSetting > 1) {
 	return USB_UNSUPPORT;
       }
     }

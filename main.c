@@ -98,44 +98,32 @@ int main (void) {
 
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
 
-#if 0
-    flashUnlock();
-
-    int x;
-    u32 *userBase = 0x08005000;
-    for (x=20;x>0;x--) {
-      flashErasePage((u32)(userBase+0x100*(x-1)));
-    }	
-
-    int y;
-    for (x=0;x<20;x++) {
-      for (y=0;y<256;y++) {
-	flashWriteWord((u32)(userBase+0x100*x+y),y);
-      }
-    }
-
-    for (x=0;x<20;x++) {
-      flashErasePage((u32)(userBase+0x100*x));
-    }	
-
-    while (1) {
-    }
-#endif
 
 #if COM_ENB
-    //    UserToPMABufferCopy("Maple Bootloader Started!\n",ENDP1_TXADDR,26);
-    //    SetEPTxCount(ENDP1,returnMsgLen);
-    //    SetEPTxValid(ENDP1);
+    char* testMsg = "0123456789ABCDE\n";
+    UserToPMABufferCopy(testMsg,ENDP1_TXADDR,0xF);
+    SetEPTxCount(ENDP1,0xF);
+    SetEPTxValid(ENDP1);
 #endif
 
 #if 1
     if (checkUserCode(USER_CODE_RAM)) {
+      char* ramMsg = "Jumping to Ram!\n";
+      UserToPMABufferCopy(ramMsg,ENDP1_TXADDR,0x10);
+      SetEPTxCount(ENDP1,0x10);
+      SetEPTxValid(ENDP1);
       jumpToUser(USER_CODE_RAM);
     }
 
     /* consider adding a long pause to allow for escaping a potentially unescapable junmp */
     if (checkUserCode(USER_CODE_FLASH)) {
       strobePin (GPIOA,5,3,0x100000); /* start indicator */
+
+      char* flashMsg = "Jumping to Flash\n";
+      UserToPMABufferCopy(flashMsg,ENDP1_TXADDR,0x11);
+      SetEPTxCount(ENDP1,0x10);
+      SetEPTxValid(ENDP1);
+
       jumpToUser(USER_CODE_FLASH);
     }
 #endif
