@@ -11,33 +11,36 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
     unsigned int target;
     usbISTR();
 
-    /* only smash the stack when we absolutely needed to, but
-     could easily do this whenever the dfu state is not appIDLE */
-    if (code_copy_lock == BEGINNING) {
-        code_copy_lock = MIDDLE;
-        target =  (unsigned int)checkFlashLoop | 0x1;
-        asm volatile("mov r0, %[stack_top]      \n\t"             // Reset the stack
-                     "mov sp, r0                \n\t"
-                     "mov r0, #1                \n\t"
-                     "mov r1, %[target_addr]    \n\t"
-                     "mov r2, %[cpsr]           \n\t"
-                     "push {r2}                 \n\t"             // Fake xPSR
-                     "push {r1}                 \n\t"             // Target address for PC
-                     "push {r0}                 \n\t"             // Fake LR
-                     "push {r0}                 \n\t"             // Fake R12
-                     "push {r0}                 \n\t"             // Fake R3
-                     "push {r0}                 \n\t"             // Fake R2
-                     "push {r0}                 \n\t"             // Fake R1
-                     "push {r0}                 \n\t"             // Fake R0
-                     "mov lr, %[exc_return]     \n\t"
-                     "bx lr"
-                    :
-                    : [stack_top] "r" (STACK_TOP),
-                      [target_addr] "r" (target),
-                      [exc_return] "r" (EXC_RETURN),
-                      [cpsr] "r" (DEFAULT_CPSR)
-                    : "r0", "r1", "r2");
-        // Should never get here.
+    /* could smash the stack when we absolutely needed to, but
+     for now, do this whenever the dfu state is not appIDLE */
+    if (dfuGetState() == appDETACH) {
+      /* disable any interfering interrupts (not USB though!) */
+      nvicDisableInterrupts();
+      usbEnbISR();
+
+      target =  (unsigned int)checkFlashLoop | 0x1;
+      asm volatile("mov r0, %[stack_top]      \n\t"             // Reset the stack
+		   "mov sp, r0                \n\t"
+		   "mov r0, #1                \n\t"
+		   "mov r1, %[target_addr]    \n\t"
+		   "mov r2, %[cpsr]           \n\t"
+		   "push {r2}                 \n\t"             // Fake xPSR
+		   "push {r1}                 \n\t"             // Target address for PC
+		   "push {r0}                 \n\t"             // Fake LR
+		   "push {r0}                 \n\t"             // Fake R12
+		   "push {r0}                 \n\t"             // Fake R3
+		   "push {r0}                 \n\t"             // Fake R2
+		   "push {r0}                 \n\t"             // Fake R1
+		   "push {r0}                 \n\t"             // Fake R0
+		   "mov lr, %[exc_return]     \n\t"
+		   "bx lr"
+		   :
+		   : [stack_top] "r" (STACK_TOP),
+		     [target_addr] "r" (target),
+		     [exc_return] "r" (EXC_RETURN),
+		     [cpsr] "r" (DEFAULT_CPSR)
+		   : "r0", "r1", "r2");
+      // Should never get here.
     }
 }
 
@@ -80,7 +83,8 @@ void checkFlashLoop() {
   /* trap ourselves in a loop that checks the 
      global flash operation flag */
   while (1) {
-    if (code_copy_lock == MIDDLE) {
+    if (code_copy_lock == BEGINNING) {
+      code_copy_lock = MIDDLE;
       strobePin(GPIOA,5,2,0x1000);
       dfuCopyBufferToExec();
       strobePin(GPIOA,5,2,0x500);

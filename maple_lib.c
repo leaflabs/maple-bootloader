@@ -203,6 +203,14 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
   /* Enable the Selected IRQ Channels --------------------------------------*/
   rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
     (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
+
+  /* todo: allow this function to disable interrupts as well */
+}
+
+void nvicDisableInterrupts() {
+  NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC_BASE;
+  rNVIC->ICER[0] = 0xFFFFFFFF;
+  rNVIC->ICER[1] = 0xFFFFFFFF;
 }
 
 void systemHardReset(void) {

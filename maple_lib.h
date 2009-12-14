@@ -77,6 +77,7 @@ bool flashErasePages (u32 addr, u16 n);
 void flashLock      (void);
 void flashUnlock    (void);
 void nvicInit(NVIC_InitTypeDef*);
+void nvicDisableInterrupts();
 
 
 
