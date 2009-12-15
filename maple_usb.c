@@ -48,7 +48,7 @@ USER_STANDARD_REQUESTS User_Standard_Requests =
 
 void (*pEpInt_IN[7])(void) =
   { 
-    nothingProc,
+    vcomEp1In,
     nothingProc,
     nothingProc,
     nothingProc,
@@ -61,7 +61,7 @@ void (*pEpInt_OUT[7])(void) =
   {
     nothingProc,
     nothingProc,
-    nothingProc,
+    vcomEp3Out,
     nothingProc,
     nothingProc,
     nothingProc,

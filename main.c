@@ -14,8 +14,11 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
     /* could smash the stack when we absolutely needed to, but
      for now, do this whenever the dfu state is not appIDLE */
     if (dfuGetState() == appDETACH) {
-      /* disable any interfering interrupts (not USB though!) */
+      /* move the vector table back! */
+
       nvicDisableInterrupts();
+      SET_REG(SCB_VTOR,0x0);
+
       usbEnbISR();
 
       target =  (unsigned int)checkFlashLoop | 0x1;
@@ -84,7 +87,7 @@ void checkFlashLoop() {
      global flash operation flag */
   while (1) {
     if (code_copy_lock == BEGINNING) {
-      code_copy_lock = MIDDLE;
+      code_copy_lock=MIDDLE;
       strobePin(GPIOA,5,2,0x1000);
       dfuCopyBufferToExec();
       strobePin(GPIOA,5,2,0x500);
@@ -94,6 +97,14 @@ void checkFlashLoop() {
 }
 
 int main (void) {
+#if COM_ENB
+  char* waitMsg = "Waiting for Code...\n";
+  char* jumpRam = "Jumping to Ram\n";
+  char* jumpFlash = "Jumping to Flash\n";
+#endif
+
+  u32 count=0;
+
     systemReset();
     setupCLK();
     setupLED();
@@ -103,37 +114,37 @@ int main (void) {
     strobePin (GPIOA,5,5,0x50000); /* start indicator */
 
 
-#if COM_ENB
-    char* testMsg = "0123456789ABCDE\n";
-    UserToPMABufferCopy(testMsg,ENDP1_TXADDR,0xF);
-    SetEPTxCount(ENDP1,0xF);
-    SetEPTxValid(ENDP1);
-#endif
-
-#if 1
     if (checkUserCode(USER_CODE_RAM)) {
-      char* ramMsg = "Jumping to Ram!\n";
-      UserToPMABufferCopy(ramMsg,ENDP1_TXADDR,0x10);
-      SetEPTxCount(ENDP1,0x10);
+#if COMM_ENB      
+      UserToPMABufferCopy(jumpRam,ENDP1_TXADDR,0xF);
+      SetEPTxCount(ENDP1,0xF);
       SetEPTxValid(ENDP1);
+#endif
+      strobePin (GPIOA,5,3,0x100000); /* start indicator */
       jumpToUser(USER_CODE_RAM);
     }
 
     /* consider adding a long pause to allow for escaping a potentially unescapable junmp */
     if (checkUserCode(USER_CODE_FLASH)) {
-      strobePin (GPIOA,5,3,0x100000); /* start indicator */
-
-      char* flashMsg = "Jumping to Flash\n";
-      UserToPMABufferCopy(flashMsg,ENDP1_TXADDR,0x11);
-      SetEPTxCount(ENDP1,0x10);
+#if COMM_ENB
+      UserToPMABufferCopy(jumpFlash,ENDP1_TXADDR,0x11);
+      SetEPTxCount(ENDP1,0x11);
       SetEPTxValid(ENDP1);
-
-      jumpToUser(USER_CODE_FLASH);
-    }
 #endif
+      strobePin (GPIOA,5,5,0x100000); /* start indicator */
+      jumpToUser(USER_CODE_FLASH);
+
+    }
 
     while(1) {
-        asm volatile("nop");
+#if COMM_ENB
+      if (count++%10000000 == 0) {
+	UserToPMABufferCopy(waitMsg,ENDP1_TXADDR,0x14);
+	SetEPTxCount(ENDP1,0x14);
+	SetEPTxValid(ENDP1);
+      } 
+#endif      
+      asm volatile("nop");
     }
 //    checkFlashLoop();
 }

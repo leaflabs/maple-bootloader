@@ -271,6 +271,9 @@ void dfuUpdateByReset(void) {
     dfuAppStatus.bState = dfuIDLE;
     dfuAppStatus.bStatus = OK;
 
+    nvicDisableInterrupts();
+    usbEnbISR();
+
 
 #if COMM_ENB
 #else

@@ -41,9 +41,13 @@
 #define SCB_BASE   (SCS_BASE + 0x0D00)
 
 
-#define SCS   0xE000E000
-#define NVIC  SCS+0x100
-#define SCB   SCS+0xD00
+#define SCS      0xE000E000
+#define NVIC     (SCS+0x100)
+#define SCB      (SCS+0xD00)
+#define STK      (SCS+0x10)
+
+#define SCB_VTOR (SCB+0x08)
+#define STK_CTRL (STK+0x00)
 
 #define TIM1_APB2_ENB ((u32)0x00000800)
 #define TIM1          ((u32)0x40012C00)

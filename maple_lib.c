@@ -48,7 +48,7 @@ void systemReset(void) {
   SET_REG(RCC_CR, GET_REG(RCC_CR)     & 0xFFFBFFFF);
   SET_REG(RCC_CFGR, GET_REG(RCC_CFGR) & 0xFF80FFFF);
 
-  SET_REG(RCC_CIR, 0x00000000);  /* disable all interrupts */
+  SET_REG(RCC_CIR, 0x00000000);  /* disable all RCC interrupts */
 }
 
 void setupCLK (void) {
@@ -211,6 +211,10 @@ void nvicDisableInterrupts() {
   NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC_BASE;
   rNVIC->ICER[0] = 0xFFFFFFFF;
   rNVIC->ICER[1] = 0xFFFFFFFF;
+  rNVIC->ICPR[0] = 0xFFFFFFFF;
+  rNVIC->ICPR[1] = 0xFFFFFFFF;
+
+  SET_REG(STK_CTRL,0x04); /* disable the systick */
 }
 
 void systemHardReset(void) {
