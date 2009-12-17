@@ -97,7 +97,7 @@ void checkFlashLoop() {
 }
 
 int main (void) {
-#if COM_ENB
+#if COMM_ENB
   char* waitMsg = "Waiting for Code...\n";
   char* jumpRam = "Jumping to Ram\n";
   char* jumpFlash = "Jumping to Flash\n";
