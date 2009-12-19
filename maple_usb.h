@@ -54,15 +54,6 @@
 #define SET_CONTROL_LINE_STATE    0x22
 #define SEND_BREAK                0x23
 
-/* any structs or enums */
-typedef struct _LINE_CODING
-  {
-    u32 bitrate;
-    u8 format;
-    u8 paritytype;
-    u8 datatype;
-  } LINE_CODING;
-
 typedef enum _RESUME_STATE
   {
     RESUME_EXTERNAL,
@@ -85,11 +76,21 @@ typedef enum _DEVICE_STATE
     CONFIGURED
   } DEVICE_STATE;
 
+typedef struct _USB_DEVICE
+  {
+    DEVICE* device_table;
+    DEVICE_PROP* device_property;
+    USER_STANDARD_REQUESTS* user_standard_requests;
+    void* endp_in_cb_array;
+    void* endp_out_cb_array;
+  } USB_DEVICE;
+
 /* a few externs from the virtual COM, eventually move to dedicated sources */
 extern LINE_CODING linecoding;
 extern u8 vcom_buffer_out[VCOM_BUF_SIZE];
 extern u32 vcom_count_in;
 extern u32 vcom_count_out;
+extern USB_DEVICE usb_master_device;
 
 /* public exported funcs */
 void usbAppInit(void); /* singleton usb initializer */

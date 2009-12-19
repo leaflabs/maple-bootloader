@@ -4,6 +4,24 @@
 #define DEFAULT_CPSR 0x61000000
 #define STACK_TOP 0x20005000
 
+MAPLE_VectorTable mapleVectTable = 
+{
+  NULL, /* serial tx cb */
+  NULL, /* serial rx cb */
+  NULL, /* serial linecoding cb */
+  &vcom_count_in,
+  &vcom_count_out,
+  vcom_buffer_out,
+  &linecoding,
+  (u8) MAJOR_REV_NUMBER,
+  (u8) MINOR_REV_NUMBER,
+  (void*)(&usb_master_device),
+  NULL, /* reserved 0 */
+  NULL, /* reserved 1 */
+  NULL, /* reserved 2 */
+  NULL  /* reserved 3 */
+};
+
 void checkFlashLoop();
 
 /* overflow the weak definition in c_only_startup.c */
@@ -116,7 +134,7 @@ int main (void) {
 
     if (checkUserCode(USER_CODE_RAM)) {
 #if COMM_ENB      
-      UserToPMABufferCopy(jumpRam,ENDP1_TXADDR,0xF);
+      UserToPMABufferCopy((u8*)jumpRam,ENDP1_TXADDR,0xF);
       SetEPTxCount(ENDP1,0xF);
       SetEPTxValid(ENDP1);
 #endif
@@ -127,7 +145,7 @@ int main (void) {
     /* consider adding a long pause to allow for escaping a potentially unescapable junmp */
     if (checkUserCode(USER_CODE_FLASH)) {
 #if COMM_ENB
-      UserToPMABufferCopy(jumpFlash,ENDP1_TXADDR,0x11);
+      UserToPMABufferCopy((u8*)jumpFlash,ENDP1_TXADDR,0x11);
       SetEPTxCount(ENDP1,0x11);
       SetEPTxValid(ENDP1);
 #endif
@@ -136,14 +154,15 @@ int main (void) {
 
     }
 
-    while(1) {
 #if COMM_ENB
-      if (count++%10000000 == 0) {
-	UserToPMABufferCopy(waitMsg,ENDP1_TXADDR,0x14);
-	SetEPTxCount(ENDP1,0x14);
-	SetEPTxValid(ENDP1);
-      } 
-#endif      
+    if (count++%10000000 == 0) {
+      UserToPMABufferCopy((u8*)waitMsg,ENDP1_TXADDR,0x14);
+      SetEPTxCount(ENDP1,0x14);
+      SetEPTxValid(ENDP1);
+    } 
+#endif 
+     
+    while(1) {
       asm volatile("nop");
     }
 //    checkFlashLoop();

@@ -83,9 +83,20 @@ LINE_CODING linecoding =
     0x00,   /* parity - none */
     0x08    /* no. of bits 8 */
   };
+
+USB_DEVICE usb_master_device = 
+  {
+    &Device_Table,
+    &Device_Property,
+    &User_Standard_Requests,
+    pEpInt_IN,
+    pEpInt_OUT
+  };
+
 u8  vcom_buffer_out[VCOM_BUF_SIZE];
 u32 vcom_count_out = 0;
 u32 vcom_count_in  = 0;
+u8 last_request = 0;
 
 /* dummy proc */
 void nothingProc(void) {
@@ -268,6 +279,10 @@ void usbStatusIn(void) {
   /* nada here, cb for status in requests */
   /* in order for this to be called the host must have acked
      our transmission, so this doesnt do much (increment the dfu state machine?)*/
+  if (mapleVectTable.user_serial_linecoding_cb != NULL) {
+    mapleVectTable.user_serial_linecoding_cb();
+  }
+
 }
 
 void usbStatusOut(void) {
@@ -277,6 +292,10 @@ void usbStatusOut(void) {
 RESULT usbDataSetup(u8 request) {
   u8 *(*CopyRoutine)(u16);
   CopyRoutine = NULL;
+
+  if (request == SET_LINE_CODING) {
+    last_request = SET_LINE_CODING;
+  }
 
   /* todo, how to handle overlapping request cmds to DFU or ACM? */
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
@@ -457,12 +476,29 @@ void usbSetDeviceAddress(void) {
 
 void vcomEp1In(void) {
   vcom_count_in = 0; /* no more bytes to send to host */
+
+  /* call back to any user code */
+  if (mapleVectTable.user_serial_tx_cb != NULL) {
+    mapleVectTable.user_serial_tx_cb();
+  }
 }
 
 void vcomEp3Out(void) {
-  vcom_count_out = GetEPRxCount(ENDP3);
-  PMAToUserBufferCopy(vcom_buffer_out, ENDP3_RXADDR, vcom_count_out);
-  SetEPRxValid(ENDP3);
+  //  SetEPRxStatus(ENDP3, EP_RX_NAK);
+
+  //  vcom_count_out = GetEPRxCount(ENDP3);
+  //  PMAToUserBufferCopy(vcom_buffer_out, ENDP3_RXADDR, vcom_count_out);
+
+  //  SetEPRxStatus(ENDP3, EP_RX_VALID);
+  /* should we leave this in the hands of the user?
+     no, the user can always NAK in the callback, 
+     the PMA is clear! */
+
+  /* call back to any user code */
+  if (mapleVectTable.user_serial_rx_cb != NULL) {
+    mapleVectTable.user_serial_rx_cb();
+  }
+
 }
 
 u8* vcomGetLineCoding(u16 length) {

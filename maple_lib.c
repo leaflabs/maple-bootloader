@@ -15,9 +15,13 @@ void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
 
   u32 c;
   while (count-- >0) {
-    for (c=rate;c>0;c--);
+    for (c=rate;c>0;c--) {
+      asm volatile ("nop");
+    }
     setPin(bank,pin);
-    for (c=rate;c>0;c--);
+    for (c=rate;c>0;c--) {
+      asm volatile ("nop");
+    }
     resetPin(bank,pin);
   } 
 } 
@@ -133,14 +137,14 @@ void setupTimer(void) {
 
 void setupFLASH() {
   /* configure the HSI oscillator */
-  if (pRCC->CR & 0x01 == 0x00) {
+  if ((pRCC->CR & 0x01) == 0x00) {
     u32 rwmVal = pRCC->CR;
     rwmVal |= 0x01;
     pRCC->CR = rwmVal;
   }
 
   /* wait for it to come on */
-  while (pRCC->CR & 0x02 == 0x00) {}
+  while ((pRCC->CR & 0x02) == 0x00) {}
 }
 
 bool checkUserCode (u32 usrAddr) {

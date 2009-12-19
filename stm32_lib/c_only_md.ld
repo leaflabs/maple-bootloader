@@ -69,15 +69,15 @@ SECTIONS
       *(.glue_7t)
 			. = ALIGN(4);
 		_etext = .;
-	    _sidata = _etext; /* Uused by the startup in order to initialize the .data secion */
+		_sidata = _etext;
     } >FLASH
 
 /* 
  * This is the initialized data section. It is stored in RAM but the initial values
  * are held in flash and copied to RAM by the startup code
  */
-/* we copy the ISR vector in RAM as well, so that users can fool with it */
 
+/* we copy the important program globals vector in RAM as well, so that users can fool with it */
   .data  : AT ( _sidata )  /* AT makes the LMA follow on in the binary image */
     {
 	    . = ALIGN(4);
