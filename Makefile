@@ -233,5 +233,9 @@ clean_list :
 
 # Listing of phony targets.
 .PHONY : all begin finish tags end sizeafter gccversion \
-build elf hex bin lss sym clean clean_list program
+build elf hex bin lss sym clean clean_list program cscope
+
+cscope:
+	rm -rf *.cscope
+	find . -iname "*.[hcs]" | grep -v examples | xargs cscope -R -b
 
