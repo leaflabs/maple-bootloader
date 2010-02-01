@@ -6,9 +6,9 @@ u8 u8_usbDeviceDescriptorAPP[18] =
     0x01,   /* bDescriptorType */
     0x00,   /* bcdUSB, version 1.00 */
     0x01,
-    0x02,   /* bDeviceClass : See interface */
-    0x00,   /* bDeviceSubClass : See interface*/
-    0x00,   /* bDeviceProtocol : See interface */
+    0xEF,   /* bDeviceClass : EF for composite IAD device (experimental!) */
+    0x02,   /* bDeviceSubClass : See interface*/
+    0x01,   /* bDeviceProtocol : See interface */
     bMaxPacketSize, /* bMaxPacketSize0 0x40 = 64 */
     VEND_ID0,   /* idVendor     (0110) */
     VEND_ID1,
@@ -34,8 +34,8 @@ u8 u8_usbDeviceDescriptorDFU[18] =
     0x01,   /* bDescriptorType */
     0x00,   /* bcdUSB, version 1.00 */
     0x01,
-    0x00,   /* bDeviceClass : See interface */
-    0x00,   /* bDeviceSubClass : See interface*/
+    0xFE,   /* bDeviceClass : See interface */
+    0x01,   /* bDeviceSubClass : See interface*/
     0x00,   /* bDeviceProtocol : See interface */
     bMaxPacketSize, /* bMaxPacketSize0 0x40 = 64 */
     VEND_ID0,   /* idVendor     (0110) */
@@ -79,7 +79,7 @@ ONE_DESCRIPTOR usbFunctionalDescriptor =
   };
 
 
-u8 u8_usbConfigDescriptorAPP[94] = 
+u8 u8_usbConfigDescriptorAPP[102] = 
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
@@ -91,6 +91,16 @@ u8 u8_usbConfigDescriptorAPP[94] =
     0x80,   /* bmAttributes: */
     0x32,   /* MaxPower 100 mA */
     /* 09 */
+
+    /************ IAD Union descriptor, to combine the two cdc interfaces ******/
+    0x08,   /* blength */
+    0x0B,   /* bDescriptorType: 11, IAD */
+    0x00,   /* bFirstInterface: 0 */
+    0x02,   /* bInterfaceCount: Number of contiguous combined interfaces */
+    0x02,   /* bFunctionClass: same as for CDC ACM */
+    0x02,   /* bFunctionSubClass: same as for CDC ACM */
+    0x00,   /* bFucntionProtocol: same as for CDC ACM */
+    0x00,   /* iFunction: string index */
 
     /************ Descriptor of of Communication Interface Class *********/
     0x09,   /* bLength: Interface Descriptor size */
@@ -204,7 +214,7 @@ u8 u8_usbConfigDescriptorAPP[94] =
 ONE_DESCRIPTOR usbConfigDescriptorAPP = 
   {
     u8_usbConfigDescriptorAPP,
-    0x5E
+    0x66
   };
 
 

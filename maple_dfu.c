@@ -39,6 +39,7 @@ bool dfuUpdateByRequest(void) {
 
     if (pInformation->USBbRequest == DFU_DETACH) {
       dfuAppStatus.bState  = appDETACH;
+
       /* todo, start detach timer */
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
       dfuAppStatus.bState  = appIDLE;

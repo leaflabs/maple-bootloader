@@ -19,7 +19,7 @@
 #define USER_CODE_FLASH   ((u32)0x08005000)
 
 #define MAJOR_REV_NUMBER  0
-#define MINOR_REV_NUMBER  1
+#define MINOR_REV_NUMBER  2
 
 extern MAPLE_VectorTable mapleVectTable;
 
