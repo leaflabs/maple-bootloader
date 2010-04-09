@@ -1,8 +1,32 @@
-#ifndef __MAPLE_USB_H
-#define __MAPLE_USB_H
+/* *****************************************************************************
+ * The MIT License
+ *
+ * Copyright (c) 2010 LeafLabs LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ****************************************************************************/
+#ifndef __USB_H
+#define __USB_H
 
-#include "maple_lib.h"
-#include "maple_usb_desc.h"
+#include "common.h"
+#include "usb_lib.h"
+#include "usb_descriptor.h"
 
 /* USB configuration params */
 #define BTABLE_ADDRESS  0x00
@@ -12,47 +36,23 @@
 #define ENDP2_TXADDR    0x100
 #define ENDP3_RXADDR    0x110
 
-#define COMM_ENB 1 /* enable the usb->serial */
-#define VCOM_BUF_SIZE 0x40
-
-#define VEND_ID0 0x10
-#define VEND_ID1 0x01
-#define PROD_ID0 0x01
-#define PROD_ID1 0x10
-#define PROD_ID0_DFU 0x02 /* in case we need to change the product ID after DFU enum */
-
 #define bMaxPacketSize  0x40    /* 64B,  maximum for usb FS devices */
 #define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
 
-#if COMM_ENB
-#define NUM_ENDPTS      0x04
-#else
 #define NUM_ENDPTS      0x01
-#endif
+
+/* do we gracefully implement usb suspend? */
+#define F_SUSPEND_ENABLED 1
 
 /* defines which interrupts are handled */
-#define ISR_MSK (CNTR_CTRM   | \
-                 CNTR_WKUPM  | \
-                 CNTR_SUSPM  | \
-                 CNTR_ERRM   | \
-                 CNTR_SOFM   | \
-                 CNTR_ESOFM  | \
-                 CNTR_RESETM   \
+#define ISR_MSK (CNTR_CTRM   |			\
+                 CNTR_WKUPM  |			\
+                 CNTR_SUSPM  |			\
+                 CNTR_ERRM   |			\
+                 CNTR_SOFM   |			\
+                 CNTR_ESOFM  |			\
+                 CNTR_RESETM			\
 		 )
-
-/* command defines for virtual COM */
-/* todo:  move to a maple_com src pair
-   most of these commands arnt handled yet anyway
-... */
-#define SEND_ENCAPSULATED_COMMAND 0x00
-#define GET_ENCAPSULATED_RESPONSE 0x01
-#define SET_COMM_FEATURE          0x02
-#define GET_COMM_FEATURE          0x03
-#define CLEAR_COMM_FEATURE        0x04
-#define SET_LINE_CODING           0x20
-#define GET_LINE_CODING           0x21
-#define SET_CONTROL_LINE_STATE    0x22
-#define SEND_BREAK                0x23
 
 typedef enum _RESUME_STATE
   {
@@ -76,26 +76,9 @@ typedef enum _DEVICE_STATE
     CONFIGURED
   } DEVICE_STATE;
 
-typedef struct _USB_DEVICE
-  {
-    DEVICE* device_table;
-    DEVICE_PROP* device_property;
-    USER_STANDARD_REQUESTS* user_standard_requests;
-    void* endp_in_cb_array;
-    void* endp_out_cb_array;
-  } USB_DEVICE;
-
-/* a few externs from the virtual COM, eventually move to dedicated sources */
-extern LINE_CODING linecoding;
-extern u8 vcom_buffer_out[VCOM_BUF_SIZE];
-extern u32 vcom_count_in;
-extern u32 vcom_count_out;
-extern USB_DEVICE usb_master_device;
-
-/* public exported funcs */
+void setupUSB      (void);
 void usbAppInit(void); /* singleton usb initializer */
 
-/* internal usb HW layer power management */
 void usbSuspend(void);
 void usbResumeInit(void);
 void usbResume(RESUME_STATE state);
@@ -107,9 +90,11 @@ void usbInit(void);
 void usbReset(void);
 void usbStatusIn(void);
 void usbStatusOut(void);
+
 RESULT usbDataSetup(u8 request);
 RESULT usbNoDataSetup(u8 request);
 RESULT usbGetInterfaceSetting(u8,u8);
+
 u8* usbGetDeviceDescriptor(u16 length);
 u8* usbGetConfigDescriptor(u16 length);
 u8* usbGetStringDescriptor(u16 length);
@@ -139,15 +124,11 @@ void vcomEp3Out(void);
    from c_only_startup.s (see the top of main.c) */
 void usbDsbISR(void);
 void usbEnbISR(void);
-void usbISTR(void);
+
+/* override the weakly defined isr in linker */
+void USB_LP_CAN1_RX0_IRQHandler(void);
+
 
 void nothingProc(void);
-
-/*
-notes from manual:
-USB Base = 0x4005C00
-USB_CNTR = USB+0x40, resets to 0x03. bit 0 is rw FRES (force reset, used in DFU_DETACH)
-must manually set AND clear FRES
- */
 
 #endif

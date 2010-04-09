@@ -23,50 +23,35 @@
  * ****************************************************************************/
 
 /**
- *  @file main.c
+ *  @file config.h
  *
- *  @brief main loop and calling any hardware init stuff. timing hacks for EEPROM 
- *  writes not to block usb interrupts. logic to handle 2 second timeout then
- *  jump to user code. 
+ *  @brief bootloader settings and macro defines
+ *
  *
  */
 
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
 #include "common.h"
 
-int main() {
-  systemReset(); // peripherals but not PC
-  setupCLK();
-  setupLED();
-  setupUSB();
-  setupFLASH();
+#define LED_BANK GPIOA
+#define LED      5
+#define BLINK_FAST 0x50000
+#define BLINK_SLOW 0x100000
 
-  strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
+#define BUTTON_BANK GPIOC
+#define BUTTON      9
 
-  /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = TRUE;// !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM);
-  int delay_count = 0;
+#define STARTUP_BLINKS 3
+#define BOOTLOADER_WAIT 2
 
-  //  while (delay_count++ < BOOTLOADER_WAIT 
-  //	 || no_user_jump) {
-  while(1) {
-    strobePin(LED_BANK,LED,1,BLINK_SLOW);
-    no_user_jump = readPin(BUTTON_BANK,BUTTON);
+#define USER_CODE_RAM     ((u32)0x20000C00)
+#define USER_CODE_FLASH   ((u32)0x08005000)
 
-    if (dfuUploadStarted()) {
-      strobePin(LED_BANK,LED,5,BLINK_SLOW);
-      dfuFinishUpload(); // systemHardReset from DFU once done
-    }
-  }
-  
-  if (checkUserCode(USER_CODE_RAM)) {
-    strobePin(LED_BANK,LED,2,BLINK_SLOW);
-    jumpToUser(USER_CODE_RAM);
-  } else if (checkUserCode(USER_CODE_FLASH)) {
-    strobePin(LED_BANK,LED,3,BLINK_SLOW);
-    jumpToUser(USER_CODE_FLASH);
-  } else {
-    // some sort of fault occurred, hard reset
-    systemHardReset();
-  }
-  
-}
+#define VEND_ID0 0x10
+#define VEND_ID1 0x01
+#define PROD_ID0 0x01
+#define PROD_ID1 0x10
+
+#endif

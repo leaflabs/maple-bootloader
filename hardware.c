@@ -1,4 +1,36 @@
-#include "maple_lib.h"
+/* *****************************************************************************
+ * The MIT License
+ *
+ * Copyright (c) 2010 LeafLabs LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ****************************************************************************/
+
+/**
+ *  @file hardware.c
+ *
+ *  @brief init routines to setup clocks, interrupts, also destructor functions.
+ *  does not include USB stuff. EEPROM read/write functions.
+ *
+ */
+
+#include "hardware.h"
 
 void setPin(u32 bank, u8 pin) {
   u32 pinMask = 0x1 << (pin);
@@ -8,6 +40,11 @@ void setPin(u32 bank, u8 pin) {
 void resetPin(u32 bank, u8 pin) {
   u32 pinMask = 0x1 << (16+pin);
   SET_REG(GPIO_BSRR(bank),pinMask);
+}
+
+bool readPin(u32 bank, u8 pin) {
+  // todo, implement read
+  return FALSE;
 }
 
 void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
@@ -25,25 +62,6 @@ void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
     resetPin(bank,pin);
   } 
 } 
-
-void strobeCode (u32 bank, u8 pin, u8 val) {
-  u8 highNib = val >> 4;
-  u8 lowNib = val & 0xF;
-
-  strobePin(bank,pin,40,0x10000);
-  if (highNib != 0) {
-    strobePin(bank,pin,highNib,0x200000);
-  } else {
-    strobePin(bank,pin,6,0x50000);
-  }
-
-  strobePin(bank,pin,40,0x10000);
-  if (lowNib != 0) {
-    strobePin(bank,pin,lowNib,0x200000);
-  } else {
-    strobePin(bank,pin,6,0x50000);
-  }
-}
 
 void systemReset(void) {
   SET_REG(RCC_CR, GET_REG(RCC_CR)     | 0x00000001);
@@ -74,6 +92,7 @@ void setupCLK (void) {
 }
 
 void setupLED (void) {
+  // todo, swap out hardcoded pin/bank with macro
   u32 rwmVal; /* read-write-modify place holder var */
 
   /* Setup APB2 (GPIOA) */
@@ -90,49 +109,6 @@ void setupLED (void) {
   SET_REG(GPIO_CRL(GPIOA),rwmVal);
 
   setPin(GPIOA,5);
-}
-
-void setupUSB (void) {
-  u32 rwmVal; /* read-write-modify place holder var */
-
-  /* Setup the USB DISC Pin */
-  rwmVal  = GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
-  SET_REG(RCC_APB2ENR,rwmVal);
-  
-  /* Setup GPIOC Pin 12 as OD out */
-  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-  rwmVal &= 0xFFF0FFFF;
-  rwmVal |= 0x00050000;
-  setPin (GPIOC,12);
-  SET_REG(GPIO_CRH(GPIOC),rwmVal);
-
-  /* setup the USB prescaler */
-/*   rwmVal  = GET_REG(RCC_CFGR); */
-/*   rwmVal &= 0xFFBFFFFF; /\* clear the usbpre bit if it is set*\/ */
-/*   SET_REG(RCC_CFGR,rwmVal); */
-
-
-
-/********* todo Why doesnt this work? ******/
-
-  /* setup the apb1 usb periph clk */
-/*   rwmVal  = GET_REG(RCC_APB1ENR); */
-/*   rwmVal |= 0x00800000; */
-/*   SET_REG(RCC_APB1ENR,rwmVal); */
-
-/******** temporary fix *********/
-
-  pRCC->APB1ENR |= 0x00800000;
-
-  /* initialize the usb application */
-  resetPin (GPIOC,12);  /* present ourselves to the host */
-  usbAppInit();
-
-}
-
-void setupTimer(void) {
-  //  SET_REG(TIM1_PSC,
 }
 
 void setupFLASH() {
@@ -162,12 +138,6 @@ void jumpToUser (u32 usrAddr) {
 
   u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
   funcPtr usrMain = (funcPtr) jumpAddr;
-
-/*   SCB_TypeDef* rSCB = (SCB_TypeDef*) SCB_BASE; */
-/*   u32 rwm = rSCB->VTOR; */
-/*   rwm &= (u32)0xC00001FF; */
-/*   rwm |= ((u32)(USER_CODE_RAM) & 0xFFFFFE00); */
-/*   rSCB->VTOR = rwm; */
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
 
@@ -207,8 +177,6 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
   /* Enable the Selected IRQ Channels --------------------------------------*/
   rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
     (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
-
-  /* todo: allow this function to disable interrupts as well */
 }
 
 void nvicDisableInterrupts() {
@@ -218,38 +186,24 @@ void nvicDisableInterrupts() {
   rNVIC->ICPR[0] = 0xFFFFFFFF;
   rNVIC->ICPR[1] = 0xFFFFFFFF;
 
-  SET_REG(STK_CTRL,0x04); /* disable the systick */
+  SET_REG(STK_CTRL,0x04); /* disable the systick, which operates separately from nvic */
 }
 
 void systemHardReset(void) {
   SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
   typedef void (*funcPtr)(void);
-
-  //  setPin(GPIOC,12);
-  //  usbPowerOff();
   
   /* Reset  */
   rSCB->AIRCR = (u32)AIRCR_RESET_REQ;
 
   /*  should never get here */
   while (1) {
-      asm volatile("nop");
+    asm volatile("nop");
   }
-
-#if 0
-  systemReset();
-  
-  u32 jumpAddr = *(vu32*) (0x04);
-  funcPtr reset = (funcPtr) jumpAddr;
-
-  __MSR_MSP(*((vu32*) 0x00));  /* clear to bootloader stack ptr */
-  reset();
-#endif
 }
 
 bool flashErasePage(u32 pageAddr) {
   u32 rwmVal = GET_REG(FLASH_CR);
-  //  rwmVal &= 0x02;
   rwmVal = FLASH_CR_PER;
   SET_REG(FLASH_CR,rwmVal);
 
@@ -260,29 +214,17 @@ bool flashErasePage(u32 pageAddr) {
 
   /* todo: verify the page was erased */
 
-  //  rwmVal &= 0xFFFFFFFD;
   rwmVal = 0x00;
   SET_REG(FLASH_CR,rwmVal);
 
   return TRUE;
 }
 bool flashErasePages(u32 pageAddr, u16 n) {
-  u32 rwmVal = GET_REG(FLASH_CR);
-  //  rwmVal &= 0x02;
-  rwmVal = FLASH_CR_PER;
-  SET_REG(FLASH_CR,rwmVal);
-
   while (n-->0) {
-    while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
-    SET_REG(FLASH_AR,pageAddr+0x400);
-    SET_REG(FLASH_CR,FLASH_CR_START | FLASH_CR_PER);
+    if (!flashErasePage(pageAddr+0x400*n)) {
+      return FALSE;
+    }
   }
-
-  /* todo: verify the page was erased */
-
-  //  rwmVal &= 0xFFFFFFFD;
-  rwmVal = 0x00;
-  SET_REG(FLASH_CR,rwmVal);
 
   return TRUE;
 }
@@ -293,7 +235,6 @@ bool flashWriteWord(u32 addr, u32 word) {
   vu32 hhWord = ((vu32)word & 0xFFFF0000)>>16;
 
   u32 rwmVal = GET_REG(FLASH_CR);
-  //  rwmVal |= 0x01;
   SET_REG(FLASH_CR,FLASH_CR_PG);
 
   /* apparently we need not write to FLASH_AR and can

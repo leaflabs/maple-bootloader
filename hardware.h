@@ -1,5 +1,32 @@
-#ifndef __MAPLE_REGS_H
-#define __MAPLE_REGS_H
+/* *****************************************************************************
+ * The MIT License
+ *
+ * Copyright (c) 2010 LeafLabs LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ****************************************************************************/
+
+#ifndef __HARDWARE_H
+#define __HARDWARE_H
+
+#include "stm32f10x_type.h"
+#include "cortexm3_macro.h"
 
 /* macro'd register and peripheral definitions */
 #define RCC   ((u32)0x40021000)
@@ -95,4 +122,65 @@ typedef struct
   vu32 CSR;
 } RCC_RegStruct;
 #define pRCC ((RCC_RegStruct *) RCC)
+
+typedef struct {
+  vu32 ISER[2];
+  u32  RESERVED0[30];
+  vu32 ICER[2];
+  u32  RSERVED1[30];
+  vu32 ISPR[2];
+  u32  RESERVED2[30];
+  vu32 ICPR[2];
+  u32  RESERVED3[30];
+  vu32 IABR[2];
+  u32  RESERVED4[62];
+  vu32 IPR[15];
+} NVIC_TypeDef;
+
+typedef struct {
+  u8 NVIC_IRQChannel;
+  u8 NVIC_IRQChannelPreemptionPriority;
+  u8 NVIC_IRQChannelSubPriority;
+  bool NVIC_IRQChannelCmd; /* TRUE for enable */
+} NVIC_InitTypeDef;
+
+typedef struct {
+  vuc32 CPUID;
+  vu32 ICSR;
+  vu32 VTOR;
+  vu32 AIRCR;
+  vu32 SCR;
+  vu32 CCR;
+  vu32 SHPR[3];
+  vu32 SHCSR;
+  vu32 CFSR;
+  vu32 HFSR;
+  vu32 DFSR;
+  vu32 MMFAR;
+  vu32 BFAR;
+  vu32 AFSR;
+} SCB_TypeDef;
+
+
+void setPin    (u32 bank, u8 pin);
+void resetPin  (u32 bank, u8 pin);
+bool readPin   (u32 bank, u8 pin);
+void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
+
+void systemHardReset(void);
+void systemReset   (void);
+void setupCLK      (void);
+void setupLED      (void);
+void setupFLASH    (void);
+bool checkUserCode (u32 usrAddr);
+void jumpToUser    (u32 usrAddr);
+
+bool flashWriteWord  (u32 addr, u32 word);
+bool flashErasePage  (u32 addr);
+bool flashErasePages (u32 addr, u16 n);
+void flashLock       (void);
+void flashUnlock     (void);
+void nvicInit        (NVIC_InitTypeDef*);
+void nvicDisableInterrupts(void);
+
 #endif

@@ -1,7 +1,31 @@
-#ifndef __MAPLE_DFU_H
-#define __MAPLE_DFU_H
+/* *****************************************************************************
+ * The MIT License
+ *
+ * Copyright (c) 2010 LeafLabs LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ****************************************************************************/
 
-#include "maple_lib.h"
+#ifndef __DFU_H
+#define __DFU_H
+
+#include "common.h"
 
 /* exposed types */
 typedef u8*(*ClassReqCB)(u16);
@@ -16,10 +40,6 @@ typedef struct _DFUStatus {
   u8 iString;
 } DFUStatus;
 
-/* externed globals */
-extern u32 userAppAddr; /* points to the start of users vector table (user app 0x00) */
-extern DFUStatus dfuAppStatus;
-
 typedef enum _PLOT {
   BEGINNING,
   MIDDLE,
@@ -27,20 +47,9 @@ typedef enum _PLOT {
   WAIT
 }PLOT;
 
-extern PLOT code_copy_lock; 
-
-/* ideally we could wrap usb requests (that are dfu specific) into a dfu
-   event struct, but given that the global ptrs pInfo/property are forced
-   on us by usb_lib, we might as well use them. Todo: dont use them ;) */
-/* typedef struct _DFUEvent { */
-/* } DFUEvent; */
-
-
-
-/* to avoid a bunch of extra casting (to u8), dont enumerate status/states */
 
 /*** DFU bRequest Values ******/
-                            /* bmRequestType, wValue,    wIndex,    wLength, Data */
+/* bmRequestType, wValue,    wIndex,    wLength, Data */
 #define  DFU_DETACH    0x00 /* 0x21,          wTimeout,  Interface, Zero,    None */
 #define  DFU_DNLOAD    0x01 /* 0x21,          wBlockNum, Interface, Length,  Firmware */
 #define  DFU_UPLOAD    0x02 /* 0xA1,          Zero,      Interface, Length,  Firmware */
@@ -94,6 +103,7 @@ bool dfuUpdateByRequest(void);  /* returns if new status is OK */
 void dfuUpdateByReset(void); 
 void dfuUpdateByTimeout(void); 
 
+/* usb callbacks */
 u8* dfuCopyState(u16);
 u8* dfuCopyStatus(u16);
 u8* dfuCopyDNLOAD(u16);
@@ -104,7 +114,8 @@ bool checkTestFile(void);
 
 u8 dfuGetState(void); 
 void dfuSetState(u8);
-
+bool dfuUploadStarted();
+void dfuFinishUpload();
 
 
 #endif

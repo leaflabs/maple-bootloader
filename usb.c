@@ -1,9 +1,62 @@
-#include "maple_usb.h"
+/* *****************************************************************************
+ * The MIT License
+ *
+ * Copyright (c) 2010 LeafLabs LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ****************************************************************************/
 
-/* declare all those nasty globals. todo, wrap them up into
-   a singleton object struct which we can pass around or point
-   to as a single global
-*/
+/**
+ *  @file usb.c
+ *
+ *  @brief usb-specific hardware setup, NVIC, clocks, and usb activities
+ *  in the pre-attached state. includes some of the lower level callbacks 
+ *  needed by the usb library, like suspend,resume,init,etc
+ */
+
+#include "usb.h"
+#include "dfu.h"
+
+void setupUSB (void) {
+  u32 rwmVal; /* read-write-modify place holder var */
+
+  /* Setup the USB DISC Pin */
+  rwmVal  = GET_REG(RCC_APB2ENR);
+  rwmVal |= 0x00000010;
+  SET_REG(RCC_APB2ENR,rwmVal);
+
+  // todo, macroize usb_disc pin
+  /* Setup GPIOC Pin 12 as OD out */
+  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
+  rwmVal &= 0xFFF0FFFF;
+  rwmVal |= 0x00050000;
+  setPin (GPIOC,12);
+  SET_REG(GPIO_CRH(GPIOC),rwmVal);
+
+  pRCC->APB1ENR |= 0x00800000;
+
+  /* initialize the usb application */
+  resetPin (GPIOC,12);  /* present ourselves to the host */
+  usbAppInit();
+
+}
+
 vu32 bDeviceState = UNCONNECTED;
 
 /* tracks sequential behavior of the ISTR */
@@ -47,56 +100,32 @@ USER_STANDARD_REQUESTS User_Standard_Requests =
   };
 
 void (*pEpInt_IN[7])(void) =
-  { 
-    vcomEp1In,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-  };
+{ 
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+};
 
 void (*pEpInt_OUT[7])(void) =
-  {
-    nothingProc,
-    nothingProc,
-    vcomEp3Out,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-    nothingProc,
-  };
+{
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+  nothingProc,
+};
 
 struct
 {
   volatile RESUME_STATE eState;
   volatile u8 bESOFcnt;
 } ResumeS;
-
-/* we make this here since the virtual com is just a shell
-   without its own sources yet */
-LINE_CODING linecoding = 
-  {
-    115200, /* baud */
-    0x00,   /* stop bits-1*/
-    0x00,   /* parity - none */
-    0x08    /* no. of bits 8 */
-  };
-
-USB_DEVICE usb_master_device = 
-  {
-    &Device_Table,
-    &Device_Property,
-    &User_Standard_Requests,
-    pEpInt_IN,
-    pEpInt_OUT
-  };
-
-u8  vcom_buffer_out[VCOM_BUF_SIZE];
-u32 vcom_count_out = 0;
-u32 vcom_count_in  = 0;
-u8 last_request = 0;
 
 /* dummy proc */
 void nothingProc(void) {
@@ -229,7 +258,7 @@ void usbReset(void) {
   dfuUpdateByReset();
 
   pInformation->Current_Configuration = 0;
-  pInformation->Current_Feature = usbConfigDescriptorAPP.Descriptor[7];
+  pInformation->Current_Feature = usbConfigDescriptorDFU.Descriptor[7];
 
   _SetBTABLE(BTABLE_ADDRESS);
 
@@ -246,84 +275,43 @@ void usbReset(void) {
   //  SetEPTxCount(ENDP0, pProperty->MaxPacketSize);
   SetEPRxValid(ENDP0);
 
-#if COMM_ENB
-  //  if (dfuGetState() == appIDLE) {
-    /* also initialize the non dfu interface enpoints */
-    /* Initialize Endpoint 1 */
-    SetEPType(ENDP1, EP_BULK);
-    SetEPTxAddr(ENDP1, ENDP1_TXADDR);
-    SetEPTxStatus(ENDP1, EP_TX_NAK);
-    SetEPRxStatus(ENDP1, EP_RX_DIS);
-
-    /* Initialize Endpoint 2 */
-    SetEPType(ENDP2, EP_INTERRUPT);
-    SetEPTxAddr(ENDP2, ENDP2_TXADDR);
-    SetEPRxStatus(ENDP2, EP_RX_DIS);
-    SetEPTxStatus(ENDP2, EP_TX_NAK);
-
-    /* Initialize Endpoint 3 */
-    SetEPType(ENDP3, EP_BULK);
-    SetEPRxAddr(ENDP3, ENDP3_RXADDR);
-    SetEPRxCount(ENDP3, VCOM_BUF_SIZE); /* 64 byte packets */
-    SetEPRxStatus(ENDP3, EP_RX_VALID);
-    SetEPTxStatus(ENDP3, EP_TX_DIS);
-
-    //  }
-#endif
-
   bDeviceState = ATTACHED;
   SetDeviceAddress(0); /* different than usbSetDeviceAddr! comes from usb_core */
 }
 
 void usbStatusIn(void) {
-  /* nada here, cb for status in requests */
-  /* in order for this to be called the host must have acked
-     our transmission, so this doesnt do much (increment the dfu state machine?)*/
-  if (mapleVectTable.user_serial_linecoding_cb != NULL) {
-    mapleVectTable.user_serial_linecoding_cb();
-  }
-
 }
 
 void usbStatusOut(void) {
-  /* handle DFU status Out requests, otherwise ignore */
 }
 
 RESULT usbDataSetup(u8 request) {
   u8 *(*CopyRoutine)(u16);
   CopyRoutine = NULL;
 
-  if (request == SET_LINE_CODING) {
-    last_request = SET_LINE_CODING;
-  }
-
-  /* todo, how to handle overlapping request cmds to DFU or ACM? */
+  /* handle dfu class requests */
   if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-  {
-    if (request == GET_LINE_CODING) {
-      CopyRoutine = vcomGetLineCoding;
-    } else if (request == SET_LINE_CODING) {
-      CopyRoutine = vcomSetLineCoding;
-    } else if (dfuUpdateByRequest()) {
-      /* successfull state transition, handle the request */
-      switch (request) {
-      case (DFU_GETSTATUS):
-	CopyRoutine = dfuCopyStatus;
-	break;
-      case (DFU_GETSTATE):
-	CopyRoutine = dfuCopyState;
-	break;
-      case (DFU_DNLOAD):
-	CopyRoutine = dfuCopyDNLOAD;
-	break;
-      case (DFU_UPLOAD):
-	CopyRoutine = dfuCopyUPLOAD;
-      default:
-	/* leave copy routine null */
-	break;
+    {
+      if (dfuUpdateByRequest()) {
+	/* successfull state transition, handle the request */
+	switch (request) {
+	case (DFU_GETSTATUS):
+	  CopyRoutine = dfuCopyStatus;
+	  break;
+	case (DFU_GETSTATE):
+	  CopyRoutine = dfuCopyState;
+	  break;
+	case (DFU_DNLOAD):
+	  CopyRoutine = dfuCopyDNLOAD;
+	  break;
+	case (DFU_UPLOAD):
+	  CopyRoutine = dfuCopyUPLOAD;
+	default:
+	  /* leave copy routine null */
+	  break;
+	}
       }
     }
-  }
 
   if (CopyRoutine != NULL) {
     pInformation->Ctrl_Info.CopyData = CopyRoutine;
@@ -337,84 +325,35 @@ RESULT usbDataSetup(u8 request) {
 }
 
 RESULT usbNoDataSetup(u8 request) {
-  if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT))
-  {
+  if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT)) {
     /* todo, keep track of the destination interface, often stored in wIndex */
     if (dfuUpdateByRequest()) {
       return USB_SUCCESS;
-    } else {
-      /* move comm routines to similar dfuUpdateByRequest state machine */
-      if (request == SET_COMM_FEATURE) {
-	return USB_SUCCESS;
-      } else if (request == SET_CONTROL_LINE_STATE) {
-	return USB_SUCCESS;
-      }
     }
   }
-
   return USB_UNSUPPORT;
 }
 
 RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
-  /* we only support alt setting 0 for now */
-#if 0 //COMM_ENB
-  if (dfuGetState() == appIDLE) {
-    if (interface > 2) {
-      return USB_UNSUPPORT;
-    } else if (interface < 2) {
-      if (altSetting > 0) {
-	return USB_UNSUPPORT;
-      }
-    }
+  /* alt setting 0 -> program RAM, alt setting 1 -> FLASH */
+  if (interface > NUM_ALT_SETTINGS) {
+    return USB_UNSUPPORT;
   } else {
-    if (interface > 0) {
-      return USB_UNSUPPORT;
-    } else if (altSetting > 1) {
-      return USB_UNSUPPORT;
-    }
+    return USB_SUCCESS;
   }
-#endif
-  return USB_SUCCESS;
 }
 
 u8* usbGetDeviceDescriptor(u16 len) {
-  /* descriptor defined in maple_usb_desc */
-  /* this function (from usb_core) is exactly the same format as
-     the copyRoutine functions from dataSetup requests
-  */
-#if COMM_ENB
-  if (dfuGetState() == appIDLE) {
-    return Standard_GetDescriptorData(len, &usbDeviceDescriptorAPP);
-  } else {
-    return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
-  }
-#endif
   return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
 }
 
 u8* usbGetConfigDescriptor(u16 len) {
-  /* descriptor defined in maple_usb_desc */
-  /* this function (from usb_core) is exactly the same format as
-     the copyRoutine functions from dataSetup requests
-  */
-#if COMM_ENB
-  if (dfuGetState() == appIDLE) {
-    return Standard_GetDescriptorData(len, &usbConfigDescriptorAPP);
-  } else {
-    return Standard_GetDescriptorData(len, &usbConfigDescriptorDFU);
-  }
-#endif
   return Standard_GetDescriptorData(len, &usbConfigDescriptorDFU);
 }
 
 u8* usbGetStringDescriptor(u16 len) {
-  /* descriptor defined in maple_usb_desc */
-  /* this function (from usb_core) is exactly the same format as
-     the copyRoutine functions from dataSetup requests
-  */
-
   u8 strIndex = pInformation->USBwValue0;
-  if (strIndex > 2) {
+  if (strIndex > STR_DESC_LEN) {
     return NULL;
   } else {
     return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
@@ -440,9 +379,9 @@ void usbGetConfiguration(void) {
 
 void usbSetConfiguration(void) {
   if (pInformation->Current_Configuration != 0)
-  {
-    bDeviceState = CONFIGURED;
-  }
+    {
+      bDeviceState = CONFIGURED;
+    }
 }
 
 void usbGetInterface(void) {
@@ -474,48 +413,6 @@ void usbSetDeviceAddress(void) {
 }
 /***** end of USER STANDARD REQUESTS *****/
 
-void vcomEp1In(void) {
-  vcom_count_in = 0; /* no more bytes to send to host */
-
-  /* call back to any user code */
-  if (mapleVectTable.user_serial_tx_cb != NULL) {
-    mapleVectTable.user_serial_tx_cb();
-  }
-}
-
-void vcomEp3Out(void) {
-  //  SetEPRxStatus(ENDP3, EP_RX_NAK);
-
-  //  vcom_count_out = GetEPRxCount(ENDP3);
-  //  PMAToUserBufferCopy(vcom_buffer_out, ENDP3_RXADDR, vcom_count_out);
-
-  //  SetEPRxStatus(ENDP3, EP_RX_VALID);
-  /* should we leave this in the hands of the user?
-     no, the user can always NAK in the callback, 
-     the PMA is clear! */
-
-  /* call back to any user code */
-  if (mapleVectTable.user_serial_rx_cb != NULL) {
-    mapleVectTable.user_serial_rx_cb();
-  }
-
-}
-
-u8* vcomGetLineCoding(u16 length) {
-  if (length==0) {
-    pInformation->Ctrl_Info.Usb_wLength = sizeof(linecoding);
-    return NULL;
-  }
-  return (u8*)(&linecoding);
-}
-
-u8* vcomSetLineCoding(u16 length) {
-  if (length==0) {
-    pInformation->Ctrl_Info.Usb_wLength = sizeof(linecoding);
-    return NULL;
-  }
-  return (u8*)&linecoding;
-}
 
 void usbEnbISR(void) {
   NVIC_InitTypeDef NVIC_InitStructure;
@@ -526,10 +423,6 @@ void usbEnbISR(void) {
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = TRUE;
   nvicInit(&NVIC_InitStructure);
-
-  //  NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC;
-  //  rNVIC->ISER[(USB_LP_IRQ >> 0x05)] = (u32)0x01 << (USB_LP_IRQ & (u8)0x1F);
-
 }
 
 void usbDsbISR(void) {
@@ -541,103 +434,90 @@ void usbDsbISR(void) {
   nvicInit(&NVIC_InitStructure);
 }
 
-void usbISTR(void) {
+void USB_LP_CAN1_RX0_IRQHandler(void) {
   wIstr = _GetISTR();
 
   /* go nuts with the preproc switches since this is an ISTR and must be FAST */
 #if (ISR_MSK & ISTR_RESET)
   if (wIstr & ISTR_RESET & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_RESET);
-    Device_Property.Reset();
-
-/******* perry stub ******/
-/*
-    if dfuGetState() == MANIFEST   - we have received NEW user code
-       if checkUserCode()          - and its valid
-         do some stack magic to return from this ISR to the user code
-       else
-         do some magic to return from this isr to the bootloader
-
-       alternatively, always return to the bootloader, which will
-       handle the jumping to user code
- */
-/**************************/
-  }
+    {
+      _SetISTR((u16)CLR_RESET);
+      Device_Property.Reset();
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_DOVR)
   if (wIstr & ISTR_DOVR & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_DOVR);
-  }
+    {
+      _SetISTR((u16)CLR_DOVR);
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_ERR)
   if (wIstr & ISTR_ERR & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_ERR);
-  }
+    {
+      _SetISTR((u16)CLR_ERR);
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_WKUP)
   if (wIstr & ISTR_WKUP & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_WKUP);
-    usbResume(RESUME_EXTERNAL);
-  }
+    {
+      _SetISTR((u16)CLR_WKUP);
+      usbResume(RESUME_EXTERNAL);
+    }
 #endif
 
   /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 #if (ISR_MSK & ISTR_SUSP)
   if (wIstr & ISTR_SUSP & wInterrupt_Mask)
-  {
+    {
 
-    /* check if SUSPEND is possible */
-    if (F_SUSPEND_ENABLED)
-    {
-      usbSuspend();
+      /* check if SUSPEND is possible */
+      if (F_SUSPEND_ENABLED)
+	{
+	  usbSuspend();
+	}
+      else
+	{
+	  /* if not possible then resume after xx ms */
+	  usbResume(RESUME_LATER);
+	}
+      /* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
+      _SetISTR((u16)CLR_SUSP);
     }
-    else
-    {
-      /* if not possible then resume after xx ms */
-      usbResume(RESUME_LATER);
-    }
-    /* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
-    _SetISTR((u16)CLR_SUSP);
-  }
 #endif
 
 
 #if (ISR_MSK & ISTR_SOF)
   if (wIstr & ISTR_SOF & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_SOF);
-    bIntPackSOF++;
-  }
+    {
+      _SetISTR((u16)CLR_SOF);
+      bIntPackSOF++;
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_ESOF)
   if (wIstr & ISTR_ESOF & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_ESOF);
-    /* resume handling timing is made with ESOFs */
-    usbResume(RESUME_ESOF); /* request without change of the machine state */
-  }
+    {
+      _SetISTR((u16)CLR_ESOF);
+      /* resume handling timing is made with ESOFs */
+      usbResume(RESUME_ESOF); /* request without change of the machine state */
+    }
 #endif
 
   /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 #if (ISR_MSK & ISTR_CTR)
   if (wIstr & ISTR_CTR & wInterrupt_Mask)
-  {
-    /* servicing of the endpoint correct transfer interrupt */
-    /* clear of the CTR flag into the sub */
-    CTR_LP(); /* low priority ISR defined in the usb core lib */
-  }
+    {
+      /* servicing of the endpoint correct transfer interrupt */
+      /* clear of the CTR flag into the sub */
+      CTR_LP(); /* low priority ISR defined in the usb core lib */
+    }
 #endif
 
 }

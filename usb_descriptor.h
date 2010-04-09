@@ -22,51 +22,19 @@
  * THE SOFTWARE.
  * ****************************************************************************/
 
-/**
- *  @file main.c
- *
- *  @brief main loop and calling any hardware init stuff. timing hacks for EEPROM 
- *  writes not to block usb interrupts. logic to handle 2 second timeout then
- *  jump to user code. 
- *
- */
+#ifndef __MAPLE_USB_DESC_H
+#define __MAPLE_USB_DESC_H
 
 #include "common.h"
+#include "usb_lib.h"
+#include "usb.h"
 
-int main() {
-  systemReset(); // peripherals but not PC
-  setupCLK();
-  setupLED();
-  setupUSB();
-  setupFLASH();
+#define NUM_ALT_SETTINGS 2
+#define STR_DESC_LEN 6
 
-  strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
+extern ONE_DESCRIPTOR  usbDeviceDescriptorDFU;
+extern ONE_DESCRIPTOR  usbConfigDescriptorDFU;
+extern ONE_DESCRIPTOR  usbStringDescriptor[6];
+extern ONE_DESCRIPTOR  usbFunctionalDescriptor;
 
-  /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = TRUE;// !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM);
-  int delay_count = 0;
-
-  //  while (delay_count++ < BOOTLOADER_WAIT 
-  //	 || no_user_jump) {
-  while(1) {
-    strobePin(LED_BANK,LED,1,BLINK_SLOW);
-    no_user_jump = readPin(BUTTON_BANK,BUTTON);
-
-    if (dfuUploadStarted()) {
-      strobePin(LED_BANK,LED,5,BLINK_SLOW);
-      dfuFinishUpload(); // systemHardReset from DFU once done
-    }
-  }
-  
-  if (checkUserCode(USER_CODE_RAM)) {
-    strobePin(LED_BANK,LED,2,BLINK_SLOW);
-    jumpToUser(USER_CODE_RAM);
-  } else if (checkUserCode(USER_CODE_FLASH)) {
-    strobePin(LED_BANK,LED,3,BLINK_SLOW);
-    jumpToUser(USER_CODE_FLASH);
-  } else {
-    // some sort of fault occurred, hard reset
-    systemHardReset();
-  }
-  
-}
+#endif
