@@ -43,14 +43,12 @@ int main() {
   strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
 
   /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = TRUE;// !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM);
+  bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM);
   int delay_count = 0;
 
-  //  while (delay_count++ < BOOTLOADER_WAIT 
-  //	 || no_user_jump) {
-  while(1) {
+  while ((delay_count++ < BOOTLOADER_WAIT) 
+	 || no_user_jump) {
     strobePin(LED_BANK,LED,1,BLINK_SLOW);
-    no_user_jump = readPin(BUTTON_BANK,BUTTON);
 
     if (dfuUploadStarted()) {
       strobePin(LED_BANK,LED,5,BLINK_SLOW);
@@ -66,6 +64,7 @@ int main() {
     jumpToUser(USER_CODE_FLASH);
   } else {
     // some sort of fault occurred, hard reset
+    strobePin(LED_BANK,LED,5,BLINK_FAST);
     systemHardReset();
   }
   

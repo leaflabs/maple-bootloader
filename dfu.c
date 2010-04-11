@@ -70,40 +70,11 @@ bool dfuUpdateByRequest(void) {
   u8 startState = dfuAppStatus.bState;
   dfuAppStatus.bStatus = OK;      
   /* often leaner to nest if's then embed a switch/case */
-  if (startState == appIDLE)                      {
-    /* shouldnt happen, we boot into dfuIDLE */
-
-    /* device running outside of DFU Mode */
-    if (pInformation->USBbRequest == DFU_DETACH) {
-      dfuAppStatus.bState  = appDETACH;
-      /* todo, start detach timer */
-    } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
-      dfuAppStatus.bState  = appIDLE;
-    } else if (pInformation->USBbRequest == DFU_GETSTATE) {
-      dfuAppStatus.bState  = appIDLE;
-    } else {
-      dfuAppStatus.bState  = appIDLE;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
-    }
-
-  } else if (startState == appDETACH)              {
-    /* device has received DETACH, awaiting usb reset */
-    /* shouldnt happen, device boots into dfuIDLE */
-
-    /* todo, add check for timer timeout once supported */
-    if (pInformation->USBbRequest == DFU_GETSTATUS) {
-      dfuAppStatus.bState  = appDETACH;
-    } else if (pInformation->USBbRequest == DFU_GETSTATE) {
-      dfuAppStatus.bState  = appDETACH;
-    } else {
-      dfuAppStatus.bState  = appIDLE;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
-    }    
-
-  } else if (startState == dfuIDLE)                {
+  if (startState == dfuIDLE)  {
     /*  device running inside DFU mode */
 
     if (pInformation->USBbRequest == DFU_DNLOAD) {
+      dfuBusy = TRUE; // signals the main loop to defer to the dfu write-loop
 
       if (pInformation->USBwLengths.w > 0) {
 	userFirmwareLen = 0;

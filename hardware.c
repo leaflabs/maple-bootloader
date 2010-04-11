@@ -139,6 +139,16 @@ void jumpToUser (u32 usrAddr) {
   u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
   funcPtr usrMain = (funcPtr) jumpAddr;
 
+  /* tear down all the dfu related setup */
+  // disable usb interrupts, clear them, turn off usb, set the disc pin
+  // todo pick exactly what we want to do here, now its just a conservative 
+  flashLock();
+  usbDsbISR();
+  nvicDisableInterrupts();
+  setPin(GPIOC,12); // disconnect usb from host. todo, macroize pin
+  systemReset(); // resets clocks and periphs, not core regs
+  
+
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
 
   usrMain();                                /* go! */
