@@ -81,7 +81,8 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 # file management
 ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
-STM32SRCS =
+STM32SRCS = 
+
 _STM32USBSRCS = usb_regs.c \
 usb_int.c \
 usb_init.c \
@@ -122,6 +123,8 @@ dfu: $(TARGET).bin
 	sudo dfu-util -d 0110:1001 -a 0 -D $(TARGET).bin
 
 begin:
+	mkdir -p build/stm32_lib
+	mkdir -p build/usb_lib
 	@echo --
 	@echo $(MSG_BEGIN)
 	@echo $(COBJ)
