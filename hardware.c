@@ -201,7 +201,6 @@ void nvicDisableInterrupts() {
 
 void systemHardReset(void) {
   SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
-  typedef void (*funcPtr)(void);
   
   /* Reset  */
   rSCB->AIRCR = (u32)AIRCR_RESET_REQ;

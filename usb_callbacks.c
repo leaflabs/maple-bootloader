@@ -26,6 +26,6 @@
  *  @file usb_callbacks.c
  *
  *  @brief aka endpoints: handling data transfer when "Configured". calls out to 
- *  application specific callbacks (eg DFU or serial shit)
+ *  application specific callbacks (eg DFU)
  *
  */
