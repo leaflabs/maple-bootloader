@@ -49,9 +49,9 @@
 #define USER_CODE_RAM     ((u32)0x20000C00)
 #define USER_CODE_FLASH   ((u32)0x08005000)
 
-#define VEND_ID0 0x10
-#define VEND_ID1 0x01
-#define PROD_ID0 0x01
-#define PROD_ID1 0x10
+#define VEND_ID0 0xAF
+#define VEND_ID1 0x1E
+#define PROD_ID0 0x03
+#define PROD_ID1 0x00
 
 #endif
