@@ -27,6 +27,7 @@
 
 #include "stm32f10x_type.h"
 #include "cortexm3_macro.h"
+#include "common.h"
 
 /* macro'd register and peripheral definitions */
 #define RCC   ((u32)0x40021000)
@@ -60,6 +61,7 @@
 
 #define GPIO_CRL(port)  port
 #define GPIO_CRH(port)  port+0x04
+#define GPIO_IDR(port)  port+0x08
 #define GPIO_ODR(port)  port+0x0c
 #define GPIO_BSRR(port) port+0x10
 

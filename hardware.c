@@ -44,7 +44,11 @@ void resetPin(u32 bank, u8 pin) {
 
 bool readPin(u32 bank, u8 pin) {
   // todo, implement read
-  return FALSE;
+  if(GET_REG(GPIO_IDR(bank)) & (0x01 << pin)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
@@ -115,20 +119,17 @@ void setupBUTTON (void) {
   // todo, swap out hardcoded pin/bank with macro
   u32 rwmVal; /* read-write-modify place holder var */
 
-  /* Setup APB2 (GPIOA) */
+  /* Setup APB2 (GPIOC) */
   rwmVal =  GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000004;
+  rwmVal |= 0x00000010;
   SET_REG(RCC_APB2ENR,rwmVal);
 
-  /* Setup GPIOA Pin 5 as PP Out */
-  SET_REG(GPIO_CRL(GPIOA), 0x00100000);
+  /* Setup GPIOC Pin 9 as PP Out */
+  rwmVal =  GET_REG(GPIO_CRH(GPIOC));
+  rwmVal &= 0xFFFFFF0F;
+  rwmVal |= 0x00000040;
+  SET_REG(GPIO_CRH(GPIOC),rwmVal);
 
-  rwmVal =  GET_REG(GPIO_CRL(GPIOA));
-  rwmVal &= 0xFF0FFFFF;
-  rwmVal |= 0x00100000;
-  SET_REG(GPIO_CRL(GPIOA),rwmVal);
-
-  setPin(GPIOA,5);
 }
 
 void setupFLASH() {

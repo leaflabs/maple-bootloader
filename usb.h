@@ -76,7 +76,7 @@ typedef enum _DEVICE_STATE
     CONFIGURED
   } DEVICE_STATE;
 
-void setupUSB      (void);
+void setupUSB(void);
 void usbAppInit(void); /* singleton usb initializer */
 
 void usbSuspend(void);
