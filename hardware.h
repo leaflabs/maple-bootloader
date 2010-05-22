@@ -172,6 +172,7 @@ void systemReset   (void);
 void setupCLK      (void);
 void setupLED      (void);
 void setupFLASH    (void);
+void setupBUTTON   (void);
 bool checkUserCode (u32 usrAddr);
 void jumpToUser    (u32 usrAddr);
 

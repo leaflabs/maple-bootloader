@@ -72,9 +72,9 @@ bool dfuUpdateByRequest(void) {
   /* often leaner to nest if's then embed a switch/case */
   if (startState == dfuIDLE)  {
     /*  device running inside DFU mode */
+    dfuBusy = TRUE; // signals the main loop to defer to the dfu write-loop
 
     if (pInformation->USBbRequest == DFU_DNLOAD) {
-      dfuBusy = TRUE; // signals the main loop to defer to the dfu write-loop
 
       if (pInformation->USBwLengths.w > 0) {
 	userFirmwareLen = 0;

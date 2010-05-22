@@ -111,6 +111,26 @@ void setupLED (void) {
   setPin(GPIOA,5);
 }
 
+void setupBUTTON (void) {
+  // todo, swap out hardcoded pin/bank with macro
+  u32 rwmVal; /* read-write-modify place holder var */
+
+  /* Setup APB2 (GPIOA) */
+  rwmVal =  GET_REG(RCC_APB2ENR);
+  rwmVal |= 0x00000004;
+  SET_REG(RCC_APB2ENR,rwmVal);
+
+  /* Setup GPIOA Pin 5 as PP Out */
+  SET_REG(GPIO_CRL(GPIOA), 0x00100000);
+
+  rwmVal =  GET_REG(GPIO_CRL(GPIOA));
+  rwmVal &= 0xFF0FFFFF;
+  rwmVal |= 0x00100000;
+  SET_REG(GPIO_CRL(GPIOA),rwmVal);
+
+  setPin(GPIOA,5);
+}
+
 void setupFLASH() {
   /* configure the HSI oscillator */
   if ((pRCC->CR & 0x01) == 0x00) {
