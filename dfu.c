@@ -356,13 +356,16 @@ bool dfuUploadStarted() {
 
 void dfuFinishUpload() {
   while (1) {
-    if (code_copy_lock == BEGINNING) {
-      code_copy_lock=MIDDLE;
-      strobePin(LED_BANK,LED,2,0x1000);
-      dfuCopyBufferToExec();
-      strobePin(LED_BANK,LED,2,0x500);
-      code_copy_lock = END;
+    if (userFlash) {
+      if (code_copy_lock == BEGINNING) {
+	code_copy_lock=MIDDLE;
+	strobePin(LED_BANK,LED,2,0x1000);
+	dfuCopyBufferToExec();
+	strobePin(LED_BANK,LED,2,0x500);
+	code_copy_lock = END;
+      }
     }
+    /* otherwise do nothing, dfu state machine resets itself */
   }
 }
 
