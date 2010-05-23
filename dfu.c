@@ -66,6 +66,7 @@ void dfuInit(void) {
 bool dfuUpdateByRequest(void) {
   /* were using the global pInformation struct from usb_lib here,
      see comment in maple_dfu.h around DFUEvent struct */
+  dfuBusy = TRUE;
 
   u8 startState = dfuAppStatus.bState;
   dfuAppStatus.bStatus = OK;      

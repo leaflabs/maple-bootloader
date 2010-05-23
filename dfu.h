@@ -93,7 +93,7 @@ typedef enum _PLOT {
 
 
 
-
+extern bool dfuBusy;
 
 /* exposed functions */
 void dfuInit(void);  /* singleton dfu initializer */
