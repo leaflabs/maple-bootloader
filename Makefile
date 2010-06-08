@@ -146,6 +146,11 @@ program:
 	@echo "Flash-programming with OpenOCD"
 	cp $(TARGET).bin flash/tmpflash.bin
 	cd flash && openocd -f flash.cfg
+
+program_serial: 
+	@echo "Flash-programming with stm32loader.py"
+	./flash/stm32loader.py -p /dev/ttyUSB0 -evw build/maple_boot.bin
+
 debug: $(TARGET).bin
 	@echo "Flash-programming with OpenOCD - DEBUG"
 	cp $(TARGET).bin flash/tmpflash.bin
