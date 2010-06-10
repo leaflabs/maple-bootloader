@@ -58,10 +58,10 @@ int main() {
   }
   
   if (checkUserCode(USER_CODE_RAM)) {
-    strobePin(LED_BANK,LED,2,BLINK_SLOW);
+    //strobePin(LED_BANK,LED,2,BLINK_SLOW);
     jumpToUser(USER_CODE_RAM);
   } else if (checkUserCode(USER_CODE_FLASH)) {
-    strobePin(LED_BANK,LED,3,BLINK_SLOW);
+    //strobePin(LED_BANK,LED,3,BLINK_SLOW);
     jumpToUser(USER_CODE_FLASH);
   } else {
     // some sort of fault occurred, hard reset
