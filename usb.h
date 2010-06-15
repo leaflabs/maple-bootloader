@@ -28,6 +28,15 @@
 #include "usb_lib.h"
 #include "usb_descriptor.h"
 
+/* USB Disc Pin Setup */
+#define USB_DISC 8
+#define USB_DISC_BANK GPIOB
+
+#define RCC_BANKB_ENB   0x00000008
+#define PIN_8_MASK      0xFFFFFFF0
+#define PIN_8_OUTPUT_PP 0x00000005
+#define RCC_USB_ENB     0x00800000
+
 /* USB configuration params */
 #define BTABLE_ADDRESS  0x00
 #define ENDP0_RXADDR    0x40

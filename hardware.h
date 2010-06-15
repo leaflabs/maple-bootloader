@@ -33,6 +33,7 @@
 #define RCC   ((u32)0x40021000)
 #define FLASH ((u32)0x40022000)
 #define GPIOA ((u32)0x40010800)
+#define GPIOB ((u32)0x40010C00)
 #define GPIOC ((u32)0x40011000)
 
 #define RCC_CR      RCC
