@@ -132,8 +132,8 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0xFF,
     (wTransferSize & 0x00FF),
     (wTransferSize & 0xFF00) >> 8, /* TransferSize = 1024 Byte*/
-    0x1A,                          /* bcdDFUVersion*/
-    0x01
+    0x01,                          /* bcdDFUVersion*/
+    0x00
     /***********************************************************/
     /*36*/
   };
@@ -175,7 +175,7 @@ u8 u8_usbStringSerial[0x10] =
 
 u8 u8_usbStringAlt0[0x36] = 
   {
-    0x10,
+    0x36,
     0x03,
     'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
     'a',0,'m',0,' ',0,'R',0,'A',0,'M',0,' ',0,'0',0,'x',0,
