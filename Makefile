@@ -112,7 +112,7 @@ HEXSIZE = $(SIZE) --target=binary $(TARGET).hex
 ELFSIZE = $(SIZE) -A $(TARGET).elf
 
 # go!
-all: begin gccversion build sizeafter finished tags end
+all: begin gccversion build sizeafter finished end
 build: elf bin lss sym
 
 bin: $(TARGET).bin
