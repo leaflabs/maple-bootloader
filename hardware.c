@@ -96,40 +96,21 @@ void setupCLK (void) {
 }
 
 void setupLED (void) {
-  // todo, swap out hardcoded pin/bank with macro
-  u32 rwmVal; /* read-write-modify place holder var */
+  /* enable LED pin */
+  pRCC->APB2ENR |= RCC_APB2ENR_LED;
 
-  /* Setup APB2 (GPIOA) */
-  rwmVal =  GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000004;
-  SET_REG(RCC_APB2ENR,rwmVal);
-
-  /* Setup GPIOA Pin 5 as PP Out */
-  SET_REG(GPIO_CRL(GPIOA), 0x00100000);
-
-  rwmVal =  GET_REG(GPIO_CRL(GPIOA));
-  rwmVal &= 0xFF0FFFFF;
-  rwmVal |= 0x00100000;
-  SET_REG(GPIO_CRL(GPIOA),rwmVal);
-
-  setPin(GPIOA,5);
+  /* Setup LED pin as output open drain */
+  SET_REG(LED_BANK_CR,(GET_REG(LED_BANK_CR) & LED_CR_MASK) | LED_CR_OUTPUT_OD);
+  setPin(LED_BANK, LED);
 }
 
 void setupBUTTON (void) {
-  // todo, swap out hardcoded pin/bank with macro
-  u32 rwmVal; /* read-write-modify place holder var */
+  /* enable button pin */
+  pRCC->APB2ENR |= RCC_APB2ENR_BUT;
 
-  /* Setup APB2 (GPIOC) */
-  rwmVal =  GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
-  SET_REG(RCC_APB2ENR,rwmVal);
-
-  /* Setup GPIOC Pin 9 as PP Out */
-  rwmVal =  GET_REG(GPIO_CRH(GPIOC));
-  rwmVal &= 0xFFFFFF0F;
-  rwmVal |= 0x00000040;
-  SET_REG(GPIO_CRH(GPIOC),rwmVal);
-
+  /* Setup button pin as floating input */
+  SET_REG(BUT_BANK_CR,(GET_REG(BUT_BANK_CR) & BUT_CR_MASK) | BUT_CR_OUTPUT_IN);
+  setPin(BUTTON_BANK, BUTTON);
 }
 
 void setupFLASH() {

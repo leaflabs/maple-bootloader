@@ -28,14 +28,14 @@
 #include "usb_lib.h"
 #include "usb_descriptor.h"
 
-/* USB Disc Pin Setup */
-#define USB_DISC 8
-#define USB_DISC_BANK GPIOB
-
-#define RCC_BANKB_ENB   0x00000008
-#define PIN_8_MASK      0xFFFFFFF0
-#define PIN_8_OUTPUT_PP 0x00000005
-#define RCC_USB_ENB     0x00800000
+/* USB Disc Pin Setup.  On the Mini, USB DISC is PB9 */
+#define USB_DISC_BANK         GPIOB
+#define USB_DISC              9
+#define USB_DISC_CR           GPIO_CRH(USB_DISC_BANK)
+#define USB_DISC_CR_MASK      0xFFFFFF0F
+#define USB_DISC_CR_OUTPUT_OD 0x00000050
+#define RCC_APB2ENR_USB       0x00000008
+#define RCC_APB1ENR_USB_CLK   0x00800000
 
 /* USB configuration params */
 #define BTABLE_ADDRESS  0x00

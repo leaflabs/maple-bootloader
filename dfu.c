@@ -288,7 +288,7 @@ u8* dfuCopyState(u16 length) {
     pInformation->Ctrl_Info.Usb_wLength=1;
     return NULL;
   } else {
-    return (&(dfuAppStatus.bState));
+    return &dfuAppStatus.bState;
   }
 }
 
@@ -297,7 +297,12 @@ u8* dfuCopyStatus(u16 length) {
     pInformation->Ctrl_Info.Usb_wLength = 6;
     return NULL;
   } else {
-    return(&dfuAppStatus);
+    /* XXX: is this right? previous version was returning
+       &dfuAppStatus, which, interpreted as a u8*, is probably a
+       pointer to dfuAppStatus.bState (depending on compiler), so this
+       change makes explicit what was happening.  however, i'm
+       [mbolivar] not sure that's what was intended.  */
+    return &dfuAppStatus.bState;
   }
 }
 

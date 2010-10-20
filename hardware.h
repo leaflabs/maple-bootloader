@@ -103,15 +103,13 @@
 #define __PSC(__TIMCLK, __PERIOD)  (((__VAL(__TIMCLK, __PERIOD)+49999UL)/50000UL) - 1)
 #define __ARR(__TIMCLK, __PERIOD) ((__VAL(__TIMCLK, __PERIOD)/(__PSC(__TIMCLK, __PERIOD)+1)) - 1)
 
-/* todo, wrap in do whiles for the natural ; */
-#define SET_REG(addr,val) *(vu32*)(addr)=val
-#define GET_REG(addr)     *(vu32*)(addr)
-
+#define SET_REG(addr,val) do { *(vu32*)(addr)=(val); } while(0)
+#define GET_REG(addr)     (*(vu32*)(addr))
 
 /* todo: there must be some major misunderstanding in how we access regs. The direct access approach (GET_REG)
    causes the usb init to fail upon trying to activate RCC_APB1 |= 0x00800000. However, using the struct approach
    from ST, it works fine...temporarily switching to that approach */
-typedef struct 
+typedef struct
 {
   vu32 CR;
   vu32 CFGR;
@@ -163,7 +161,6 @@ typedef struct {
   vu32 BFAR;
   vu32 AFSR;
 } SCB_TypeDef;
-
 
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
