@@ -147,7 +147,8 @@ void jumpToUser (u32 usrAddr) {
   flashLock();
   usbDsbISR();
   nvicDisableInterrupts();
-  setPin(GPIOC,12); // disconnect usb from host. todo, macroize pin
+  usbDsbBus();
+
   systemReset(); // resets clocks and periphs, not core regs
   
 

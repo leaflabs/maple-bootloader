@@ -51,6 +51,10 @@ void setupUSB (void) {
 
 }
 
+void usbDsbBus(void) {
+  setPin(USB_DISC_BANK,USB_DISC);
+}
+
 vu32 bDeviceState = UNCONNECTED;
 
 /* tracks sequential behavior of the ISTR */
