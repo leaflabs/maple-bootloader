@@ -35,13 +35,25 @@
 
 #include "common.h"
 
-#define LED_BANK GPIOA
-#define LED      5
+/* On the Mini, LED is PB12 */
+#define LED_BANK         GPIOB
+#define LED              12
+#define LED_BANK_CR      GPIO_CRH(LED_BANK)
+#define LED_CR_MASK      0xFFF0FFFF
+#define LED_CR_OUTPUT_OD 0x00050000
+#define RCC_APB2ENR_LED  0x00000008 /* enable PB */
+
+/* Speed controls for strobing the LED pin */
 #define BLINK_FAST 0x50000
 #define BLINK_SLOW 0x100000
 
-#define BUTTON_BANK GPIOC
-#define BUTTON      9
+/* On the Mini, BUT is PB8 */
+#define BUTTON_BANK      GPIOB
+#define BUTTON           8
+#define BUT_BANK_CR      GPIO_CRH(BUTTON_BANK)
+#define BUT_CR_MASK      0xFFFFFFF0
+#define BUT_CR_OUTPUT_IN 0x00000004
+#define RCC_APB2ENR_BUT  0x00000008 /* enable PB */
 
 #define STARTUP_BLINKS 5
 #define BOOTLOADER_WAIT 6

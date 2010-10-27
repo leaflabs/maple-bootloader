@@ -34,25 +34,19 @@
 #include "dfu.h"
 
 void setupUSB (void) {
-  u32 rwmVal; /* read-write-modify place holder var */
+  /* enable USB DISC Pin */
+  pRCC->APB2ENR |= RCC_APB2ENR_USB;
 
-  /* Setup the USB DISC Pin */
-  rwmVal  = GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
-  SET_REG(RCC_APB2ENR,rwmVal);
+  /* Setup USB DISC pin as output open drain */
+  SET_REG(USB_DISC_CR,
+          (GET_REG(USB_DISC_CR) & USB_DISC_CR_MASK) | USB_DISC_CR_OUTPUT_OD);
+  setPin (USB_DISC_BANK,USB_DISC);
 
-  // todo, macroize usb_disc pin
-  /* Setup GPIOC Pin 12 as OD out */
-  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-  rwmVal &= 0xFFF0FFFF;
-  rwmVal |= 0x00050000;
-  setPin (GPIOC,12);
-  SET_REG(GPIO_CRH(GPIOC),rwmVal);
-
-  pRCC->APB1ENR |= 0x00800000;
+  /* turn on the USB clock */
+  pRCC->APB1ENR |= RCC_APB1ENR_USB_CLK;
 
   /* initialize the usb application */
-  resetPin (GPIOC,12);  /* present ourselves to the host */
+  resetPin (USB_DISC_BANK,USB_DISC);  /* present ourselves to the host */
   usbAppInit();
 
 }
