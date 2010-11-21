@@ -47,13 +47,21 @@ int main() {
   bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
   int delay_count = 0;
 
+  // debug message
+  char* msg = "TEST HELLO\r\n";
+
   while ((delay_count++ < BOOTLOADER_WAIT) 
 	 || no_user_jump) {
 
     strobePin(LED_BANK,LED,1,BLINK_SLOW);
 
-    if (dfuUploadStarted()) {
-      dfuFinishUpload(); // systemHardReset from DFU once done
+    //    if (dfuUploadStarted()) {
+    //      dfuFinishUpload(); // systemHardReset from DFU once done
+    //    }
+
+    // debug test of new usb serial stack
+    if ((delay_count % 2) == 0) {
+      usbSendBytes(msg,12);
     }
   }
   

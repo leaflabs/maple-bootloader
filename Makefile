@@ -14,14 +14,15 @@ BUILDDIR = build
 TARGET = $(BUILDDIR)/maple_boot
 
 ST_LIB = stm32_lib
-ST_USB = usb_lib
+USB_LIB    = usb_serial
+ST_USB_LIB = $(USB_LIB)/usb_lib
 
 # Optimization level [0,1,2,3,s]
 OPT = 0
 DEBUG = -g
 #DEBUG = dwarf-2
 
-INCDIRS = ./$(ST_LIB) ./$(ST_USB)
+INCDIRS = ./$(ST_LIB) ./$(USB_LIB) ./$(ST_USB_LIB)
 
 CFLAGS = $(DEBUG)
 CFLAGS += -O$(OPT)
@@ -89,12 +90,17 @@ usb_init.c \
 usb_core.c \
 usb_mem.c
 
-STM32USBSRCS = $(patsubst %, $(ST_USB)/%,$(_STM32USBSRCS))
+_USBSRCS = descriptors.c \
+usb.c \
+usb_callbacks.c
 
-SRCS = usb.c usb_callbacks.c usb_descriptor.c main.c hardware.c dfu.c
+STM32USBSRCS = $(patsubst %, $(ST_USB_LIB)/%,$(_STM32USBSRCS))
+USBSRCS = $(patsubst %, $(USB_LIB)/%,$(_USBSRCS))
+
+SRCS = main.c hardware.c protocol.c
 
 
-SRC = $(SRCS) $(STM32SRCS) $(STM32USBSRCS)
+SRC = $(SRCS) $(STM32SRCS) $(USBSRCS) $(STM32USBSRCS)
 
 # Define all object files.
 _COBJ =  $(SRC:.c=.o)
@@ -122,9 +128,12 @@ sym: $(TARGET).sym
 dfu: $(TARGET).bin
 	sudo dfu-util -d 0110:1001 -a 0 -D $(TARGET).bin
 
+# there is a way to do this iterating over the list of directories, todo - "that"
 begin:
 	mkdir -p build/stm32_lib
-	mkdir -p build/usb_lib
+	mkdir -p build/usb_serial
+	mkdir -p build/usb_serial/usb_lib
+
 	@echo --
 	@echo $(MSG_BEGIN)
 	@echo $(COBJ)

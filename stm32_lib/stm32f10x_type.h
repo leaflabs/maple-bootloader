@@ -40,6 +40,16 @@ typedef unsigned long  u32;
 typedef unsigned short u16;
 typedef unsigned char  u8;
 
+/* libmaple conventions */
+typedef unsigned long  uint32;
+typedef unsigned short uint16;
+typedef unsigned char  uint8;
+typedef signed   long  int32;
+typedef signed   short int16;
+typedef signed   char  int8;
+#define NULL 0
+
+
 typedef unsigned long  const uc32;  /* Read Only */
 typedef unsigned short const uc16;  /* Read Only */
 typedef unsigned char  const uc8;   /* Read Only */

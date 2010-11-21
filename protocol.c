@@ -23,9 +23,14 @@
  * ****************************************************************************/
 
 /**
- *  @file usb_callbacks.c
+ *  @file protocol.c
  *
- *  @brief aka endpoints: handling data transfer when "Configured". calls out to 
- *  application specific callbacks (eg DFU)
+ *  @brief The principle communications state machine as well as the data
+ *  transfer callbacks accessed by the usb library
+ *   
  *
  */
+
+#include "protocol.h"
+#include "usb.h"
+
