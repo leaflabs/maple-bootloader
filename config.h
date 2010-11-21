@@ -35,6 +35,10 @@
 
 #include "common.h"
 
+// todo, hook these into git versioning
+#define VERSION_MAJ 0x0006
+#define VERSION_MIN 0x0000
+
 #define LED_BANK GPIOA
 #define LED      5
 #define BLINK_FAST 0x50000
@@ -53,5 +57,15 @@
 #define VEND_ID1 0x1E
 #define PROD_ID0 0x03
 #define PROD_ID1 0x00
+
+/* serial protocol related constants, SP - Serial Protocol */
+// todo, ifdef some of these values based on chip being used
+#define SP_START       0x1B
+#define SP_TOKEN       0x7F
+#define SP_MSG_MAXLEN  0x400
+#define SP_ENDIANNESS  0
+#define SP_TOTAL_RAM   0x4400  // 17KB, todo - extern this value to the linker for dynamic compute
+#define SP_TOTAL_FLASH 0x19000 // 100KB, todo - extern this value to the linker
+#define SP_PAGE_SIZE   0x400   // 1KB
 
 #endif

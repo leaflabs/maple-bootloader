@@ -22,6 +22,11 @@ OPT = 0
 DEBUG = -g
 #DEBUG = dwarf-2
 
+# What C standard to use?
+# STD_C = -std=c90 
+STD_C = -std=c99
+
+
 INCDIRS = ./$(ST_LIB) ./$(USB_LIB) ./$(ST_USB_LIB)
 
 CFLAGS = $(DEBUG)
@@ -33,6 +38,8 @@ CFLAGS += -Wpointer-arith -Wswitch
 CFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
 CFLAGS += -Wa,-adhlns=$(BUILDDIR)/$(subst $(suffix $<),.lst,$<)
 CFLAGS += $(patsubst %,-I%,$(INCDIRS))
+CFLAGS += $(STD_C)
+
 
 # Aeembler Flags
 ASFLAGS = -Wa,-adhlns=$(BUILDDIR)/$(<:.s=.lst)#,--g$(DEBUG)
