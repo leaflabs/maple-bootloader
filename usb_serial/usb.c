@@ -352,6 +352,7 @@ if (wIstr & ISTR_CTR & wInterrupt_Mask) {
  * platform.
  *
  * */
+// todo mistake? should return uint8 since the TX_EP's are only 64 bytes...
 uint16 usbSendBytes(uint8* sendBuf, uint16 len) {
 
   uint16 loaded = 0;

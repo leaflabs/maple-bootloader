@@ -41,6 +41,53 @@ protocol.c
   - mostly the giant FSM case switch for the stk500 style protocol.
 
 
+DESIGN NOTES
+---------------------------------------------------------------------
+The bootloader is comprised of 3 main components. The low level setup
+and hardware controls (LED, flash control, reset, nvic, etc) lives in
+hardware.c. The usb stack, which implements CDC/ACM (usb serial or
+virtual COM) which is essentially the same stack currently used in
+libmaple to provide the foundation for SerialUSB. And the bootloader
+application which is main.c and protocol.c. While the final version of
+the serial bootloader will likely have the command interface be
+callback driven (asynchronous to data retrievals), the current version
+is simply a function called from main, sp_run(delay) which returns when the
+timeout has been reached. Other forms of exiting occur from within the
+command interface, such as jump to user and hard reset. If a timeout
+occurred but no user code is available to run, then the command
+interface will be restarted. It is worth noting that in the case of
+timeouts, RAM programs take precedence over FLASH programs.
+
+For now the bootloader runs for a fixed time period (extended when a
+valid client connection is established) and then jumps to user code or
+executes the commands specified over the serial interface. The client
+connections will timeout eventually, failed commands can be repeated
+without resetting the state machine, however.
+
+The bootloader disconnects the device from the usb bus before jumping
+to user code, ensuring that host operating system renumerates the
+device with user code. Incidentally, the bootloader shares the same
+device type (CDC/ACM) and vendor/product id's as libmaple, so this
+isnt strictly necessary. However, because currently libmaple sketches
+have their own usb stack (this may change), it is necessary to reset
+the usb hardware and state of the usb stack before jumping. However
+this may be changed in the future with either a single shared usb
+stack for both bootloader and user code or (more likely) a simple
+halting of the usb peripheral on jump and libmaple restarting the usb
+peripheral rather that completely initializing it from scratch.
+
+A single packet buffer is used a reused to receive and send
+commands. It is constructed in main and passed to the command
+interpreter via the sp_init() function. Because it lives in main, it
+lives on the stack is released whenever main exists.  However, it is
+worth distinguishing the packet buffer from the packet buffer object
+which includes metadata about the number of bytes sent or recieved
+(the index) and other overhead. The packet buffer is just a buffer of
+length SP_MAX_MSG_LEN + sizeof(SP_Packet) - 4. However a packet buffer
+object is a struct with a few more fields including a pointer to the
+packet buffer.
+
+
 TODO --------------------------------------------------------------------------
 
  * use sizeof() for usb application descriptor

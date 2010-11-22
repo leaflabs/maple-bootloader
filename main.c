@@ -47,24 +47,30 @@ int main() {
   bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
   int delay_count = 0;
 
-  // debug message
-  char* msg = "TEST HELLO\r\n";
+  int delay;
+  if (no_user_jump) {delay = 0;}
+  else              {delay = BOOTLOADER_WAIT;}
 
-  while ((delay_count++ < BOOTLOADER_WAIT) 
-	 || no_user_jump) {
+  // todo custom type, instead of SP_PacketStatus
+  SP_PacketStatus status = sp_run(delay); // will return on timeout or never if delay=0
 
-    strobePin(LED_BANK,LED,1,BLINK_SLOW);
-
-    //    if (dfuUploadStarted()) {
-    //      dfuFinishUpload(); // systemHardReset from DFU once done
-    //    }
-
-    // debug test of new usb serial stack
-    if ((delay_count % 2) == 0) {
-      usbSendBytes(msg,12);
+  // todo check usercode before exiting with a jump status
+  if (status == SP_SYS_RESET) {
+    /* wait a small delay for the host to clean up the com port and reset */
+    strobePin(LED_BANK,LED,RESET_BLINKS,BLINK_FAST);
+  } else if (status == SP_JUMP_RAM) {
+    if (checkUserCode(USER_CODE_RAM)) {
+      jumpToUser(USER_CODE_RAM);
     }
+
+  } else if (status == SP_JUMP_FLASH) {
+    if (checkUserCode(USER_CODE_FLASH)) {
+      jumpToUser(USER_CODE_FLASH);
+    }
+
   }
-  
+
+  // otherwise fallback on existing code
   if (checkUserCode(USER_CODE_RAM)) {
     jumpToUser(USER_CODE_RAM);
   } else if (checkUserCode(USER_CODE_FLASH)) {

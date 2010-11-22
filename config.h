@@ -52,6 +52,14 @@
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
 #define USER_CODE_FLASH   ((u32)0x08005000)
+#define TOTAL_RAM         ((u32)0x00005000)  // 20KB, todo - extern this value to the linker for dynamic compute
+#define TOTAL_FLASH       ((u32)0x0001E000)  // 120KB, todo - extern this value to the linker
+#define TOTAL_BOOT_RAM    ((u32)0x00000C00)  // todo, get the linker to set this
+#define TOTAL_BOOT_FLASH  ((u32)0x00005000)  // todo, get the linker to set this
+#define FLASH_START       ((u32)0x00000000)
+#define FLASH_START_ALT   ((u32)0x08000000)
+#define RAM_START         ((u32)0x20000000)
+
 
 #define VEND_ID0 0xAF
 #define VEND_ID1 0x1E
@@ -61,11 +69,19 @@
 /* serial protocol related constants, SP - Serial Protocol */
 // todo, ifdef some of these values based on chip being used
 #define SP_START       0x1B
-#define SP_TOKEN       0x7F
-#define SP_MSG_MAXLEN  0x400
 #define SP_ENDIANNESS  0
-#define SP_TOTAL_RAM   0x4400  // 17KB, todo - extern this value to the linker for dynamic compute
-#define SP_TOTAL_FLASH 0x19000 // 100KB, todo - extern this value to the linker
-#define SP_PAGE_SIZE   0x400   // 1KB
+#define SP_PAGE_SIZE     0x400       // 1KB
+#define SP_MAX_READ_LEN  0x400
+#define SP_MAX_WRITE_LEN 0x400
+#define SP_MAX_MSG_LEN   (0x400 + 0x05)      // max payload + write_bytes overhead
 
+#define SP_TOTAL_RAM   (TOTAL_RAM - TOTAL_BOOT_RAM)
+#define SP_TOTAL_FLASH (TOTAL_FLASH - TOTAL_BOOT_FLASH)
+
+// temp defines due to time constraints
+#define SP_SIZEOF_PHEADER 5
+#define SP_SIZEOF_PFOOTER 4 // just the 4 byte checksum
+#define SP_BYTE_TIMEOUT   1000000 // roughly, code branching makes this not a fixed "time". TODO make this dynamic or even specified as part of the comm. transaction. SINGE BYTE timeout
+#define SP_LEN_CHECKSUM   4  // its already fixed as uint32, but this ought to be a parameter
+#define SP_TOKEN       0x7F
 #endif
