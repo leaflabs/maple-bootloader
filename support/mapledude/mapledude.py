@@ -792,7 +792,7 @@ class FakeSerial(object):       # for debugging
         self.child.terminate()
         start = time.time()
         while time.time() - start < sigterm_timeout:
-            if self.child.returncode is None:
+            if self.child.returncode is not None:
                 break
         else:
             self.child.kill()
