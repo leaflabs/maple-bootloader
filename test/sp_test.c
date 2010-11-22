@@ -308,8 +308,13 @@ SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   sp_reverse_bytes((uint8*)(&query->addr),4);
 
   SP_ERASE_PAGE_R* response = (SP_ERASE_PAGE_R*)msg_body;
+  *msg_len = sizeof(SP_ERASE_PAGE_R);
 
-  // todo, check for valid address
+  // todo, better check for valid address
+  if ((query->addr) % 4 != 0) {
+    response->success = SP_FAIL;
+    return SP_OK;
+  }
 
   /* unlock the flash */
   flashUnlock();
@@ -319,13 +324,12 @@ SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   flashLock();
 
   /* todo, confirm erasure */
-  if (*((u32*)(query->addr)) != 0) {
+  if (*((uint8*)query->addr) != 0) {
     response->success = SP_FAIL;
   } else {
     response->success = SP_SUCCESS;
   }
 
-  *msg_len = sizeof(SP_ERASE_PAGE_R);
   return SP_OK;
     
 }
@@ -362,7 +366,7 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
     if (use_flash) {
       flashWriteWord((uint32)(write_addr++),this_word); // todo potential endianness bug, be advised - also handle boolean return from write
     } else {
-      *(write_addr++) = this_word;
+      // *(write_addr++) = this_word; do nothing for the test program
     }
   }
 
