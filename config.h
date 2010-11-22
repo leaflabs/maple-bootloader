@@ -47,7 +47,8 @@
 #define BUTTON_BANK GPIOC
 #define BUTTON      9
 
-#define STARTUP_BLINKS 5
+#define STARTUP_BLINKS  5
+#define RESET_BLINKS    3
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
@@ -84,4 +85,5 @@
 #define SP_BYTE_TIMEOUT   1000000 // roughly, code branching makes this not a fixed "time". TODO make this dynamic or even specified as part of the comm. transaction. SINGE BYTE timeout
 #define SP_LEN_CHECKSUM   4  // its already fixed as uint32, but this ought to be a parameter
 #define SP_TOKEN       0x7F
+
 #endif

@@ -44,12 +44,11 @@ int main() {
   strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
 
   /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
-  int delay_count = 0;
+  bool no_user_jump = (!checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM)) || readPin(BUTTON_BANK,BUTTON);
 
   int delay;
   if (no_user_jump) {delay = 0;}
-  else              {delay = BOOTLOADER_WAIT;}
+  else              {delay = SP_BYTE_TIMEOUT;}
 
   // todo custom type, instead of SP_PacketStatus
   SP_PacketStatus status = sp_run(delay); // will return on timeout or never if delay=0

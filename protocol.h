@@ -39,8 +39,8 @@
 /* config constants are in config.h */
 
 typedef enum {
-  INCOMING,
-  OUTGOING
+  SP_INCOMING,
+  SP_OUTGOING
 } SP_Direction;
 
 typedef enum {
@@ -197,12 +197,12 @@ typedef struct {
 SP_PacketStatus sp_run(int delay);
 
 SP_PacketBuf    sp_create_pbuf_in (uint8* pbuf, uint16 pbuf_len);
-void            sp_setup_pbuf_out (SP_Packet* p_packet, uint16 msg_len);
+void            sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len);
 
 SP_PacketStatus sp_handle_packet   (int delay, uint8* pbuf, uint16 pbuf_len);
 
 SP_PacketStatus sp_get_packet      (SP_PacketBuf* p_packet);
-SP_PacketStatus sp_dispatch_packet (SP_PacketBuf* p_packet);
+SP_PacketStatus sp_dispatch_packet (SP_PacketBuf* p_packet,uint16* msg_len);
 SP_PacketStatus sp_marshall_reply  (SP_PacketBuf* p_packet);
 SP_PacketStatus sp_check_sum       (SP_PacketBuf* p_packet); // return status instead of bool here only for consistency/neatness
 
@@ -217,6 +217,8 @@ SP_PacketStatus sp_cmd_soft_reset   (SP_PacketBuf* p_packet, uint16* msg_len);
 void   sp_reverse_bytes(uint8* buf_in, uint16 len); // reverse bytes in place
 uint32 sp_compute_checksum(uint8* buf_in, uint16 len); // todo consider not bothering with endianness here, since only consistency counts here - might as well go little endian
 bool   sp_addr_in_ram(uint32* addr);
+uint32 sp_maligned_cast_u32(uint8* start);
+void   sp_maligned_copy_u32(uint32 val, uint8* dest);
 
 // todo consider budling the various major and minor state vars into a monolithic struct, which might be useful
 

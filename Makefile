@@ -24,7 +24,7 @@ DEBUG = -g
 
 # What C standard to use?
 # STD_C = -std=c90 
-STD_C = -std=c99
+STD_C = -std=gnu99
 
 
 INCDIRS = ./$(ST_LIB) ./$(USB_LIB) ./$(ST_USB_LIB)

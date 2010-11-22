@@ -37,13 +37,13 @@
 #include "common.h"
 
 SP_PacketStatus sp_run(int delay) {
-  uint8* sp_buffer[SP_MSG_MAX_LEN+SP_SIZEOF_PHEADER+SP_SIZEOF_PFOOTER];
+  uint8 sp_buffer[SP_MAX_MSG_LEN+SP_SIZEOF_PHEADER+SP_SIZEOF_PFOOTER];
 
   SP_PacketStatus status;
   bool done = FALSE;
   while (!done) {
     // since packets are processed atomically, we need only one function
-    status = sp_handle_packet(delay, sp_buffer, sizeof(sp_buffer)); 
+    status = sp_handle_packet(delay, &sp_buffer[0], sizeof(sp_buffer)); 
 
     if (status == SP_ERR_TIMEOUT || 
         status == SP_EXIT        || 
@@ -82,14 +82,14 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
         return SP_ERR_START;
       }
 
-      SP_Packet_Buf this_packet = sp_create_pbuf_in(pbuf,pbuf_len);
+      SP_PacketBuf this_packet = sp_create_pbuf_in(pbuf,pbuf_len);
       
       /* stk500 doesnt check sequence nums on incoming packets so skip that */
 
 
       /* check the token  */
       if (this_packet.token != SP_TOKEN) {
-        return SP_ERR_TOKEN
+        return SP_ERR_TOKEN;
       }
       
       SP_PacketStatus status = sp_get_packet(&this_packet); // todo perhaps generate a unique status type for this level 
@@ -126,7 +126,7 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
     }
   }
 
-  return SP_TIMEOUT;
+  return SP_ERR_TIMEOUT;
   
 }
 
@@ -135,7 +135,7 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
   int timeout = SP_BYTE_TIMEOUT;
 
   while (p_packet->pindex != p_packet->total_len) {
-    uint8 bytes_in = usbReceiveBytes(&p_packet->buffer[pindex],p_packet->total_len-p_packet->pindex);
+    uint8 bytes_in = usbReceiveBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len-p_packet->pindex);
     if (!bytes_in) {
       if (timeout-- == 0) {
         // Ooops...
@@ -147,8 +147,8 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
   }
 
   // reverse the checksum from big endian
-  sp_reverse_bytes(&(p_packet->buffer[pindex-SP_LEN_CHECKSUM]),SP_LEN_CHECKSUM);
-  p_packet->checksum = (uint32) p_packet->buffer[pindex-SP_LEN_CHECKSUM];
+  sp_reverse_bytes(&(p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM]),SP_LEN_CHECKSUM);
+  p_packet->checksum = (uint32) p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM];
 
   return sp_check_sum(p_packet);
 }
@@ -157,7 +157,7 @@ SP_PacketStatus sp_marshall_reply(SP_PacketBuf* p_packet) {
   /* loops over trying to send the response, can timeout */
   int timeout = SP_BYTE_TIMEOUT;
   while (p_packet->pindex != p_packet->total_len) {
-    uint8 bytes_out = usbSendBytes(&p_packet->buffer[pindex],p_packet->total_len - p_packet->pindex);
+    uint8 bytes_out = usbSendBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len - p_packet->pindex);
     if (!bytes_out) {
       if (timeout-- == 0) {
         // side effects not undone, but things like user_jump or soft_reset will not execute now
@@ -214,7 +214,8 @@ SP_PacketBuf sp_create_pbuf_in(uint8* pbuf, uint16 pbuf_len) {
   // rever anything big endian
   sp_reverse_bytes(&pbuf[2],2); // reverses msg_len
 
-  uint16 msg_len      = *((uint16*)(&pbuf[2]));
+  //  uint16 msg_len      = *((uint16*)(&pbuf[2]));   perhpas alignment issues here, create manually
+  uint16 msg_len = pbuf[2]+(pbuf[3]<<8);
   uint8  sequence_num = pbuf[1];
   uint8  token        = pbuf[4];
 
@@ -251,7 +252,6 @@ SP_PacketStatus sp_cmd_get_info (SP_PacketBuf* p_packet, uint16* msg_len) {
   response->version         = VERSION_MIN + (VERSION_MAJ << 16);
 
   /* compute any endianness reversals needed */
-  sp_reverse_bytes((u8*)&header->msg_len,           2);
   sp_reverse_bytes((u8*)&response->total_ram,       4);
   sp_reverse_bytes((u8*)&response->total_flash,     4);
   sp_reverse_bytes((u8*)&response->page_size,       2);
@@ -264,7 +264,7 @@ SP_PacketStatus sp_cmd_get_info (SP_PacketBuf* p_packet, uint16* msg_len) {
   
 }
 
-SP_PacketStatus sp_cmd_erase_page   (SP_Packet* p_packet, uint16* msg_len) {
+SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   // todo, accept a query type argument and simply reference the union  as .info and skip the beginning of this function
 
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
@@ -296,7 +296,7 @@ SP_PacketStatus sp_cmd_erase_page   (SP_Packet* p_packet, uint16* msg_len) {
   }
 
   *msg_len = sizeof(SP_ERASE_PAGE_R);
-  return SP_OK
+  return SP_OK;
     
 }
 
@@ -328,10 +328,11 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
   uint8 malign = payload_len % 4;
   int i,j;
   for (i=0;i<payload_len-malign;i+=4) {
+    uint32 this_word = sp_maligned_cast_u32(payload+i);
     if (use_flash) {
-      flashWriteWord(write_addr++,*(u32*)(payload+i)); // todo potential endianness bug, be advised
+      flashWriteWord((uint32)(write_addr++),this_word); // todo potential endianness bug, be advised - also handle boolean return from write
     } else {
-      *(write_addr++) = *(u32*)(payload+i);
+      *(write_addr++) = this_word;
     }
   }
 
@@ -342,7 +343,7 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
     }
     
     if (use_flash) {
-      flashWriteWord(write_addr,final_word);
+      flashWriteWord((uint32)write_addr,final_word);
     } else {
       *(write_addr) = final_word;
     }
@@ -364,7 +365,8 @@ SP_PacketStatus sp_cmd_read_bytes   (SP_PacketBuf* p_packet, uint16* msg_len) {
 
   SP_Cmd cmd = (SP_Cmd) msg_body[0];
   if (cmd != SP_READ_BYTES) {
-    // shouldnt ever get here since we switched off this value in disptach
+    /* shouldnt ever get here since we switched off this value in
+       disptach */
     return SP_ERR_CMD;
   }
 
@@ -372,8 +374,8 @@ SP_PacketStatus sp_cmd_read_bytes   (SP_PacketBuf* p_packet, uint16* msg_len) {
   sp_reverse_bytes((uint8*)(&query->addr),4);
   sp_reverse_bytes((uint8*)(&query->len),2);
 
-  SP_READ_BYTES_R* response = (SP_READ_BYTES_R*)msg_body;
-
+  /* no need to create a response since weve manually stuffed the only
+     field (payload) */
   uint8*  read_addr = (uint8*)query->addr;
   uint16  read_len  = query->len;
   uint8*  payload   = &msg_body[7];
@@ -416,9 +418,9 @@ SP_PacketStatus sp_cmd_jump_to_user (SP_PacketBuf* p_packet, uint16* msg_len) {
 
   SP_JUMP_TO_USER_R* response = (SP_JUMP_TO_USER_R*)msg_body;
   if (ret_status != SP_ERR_CMD) {
-    response->success = SUCCESS;
+    response->success = SP_SUCCESS;
   } else {
-    reponse->success = FAIL;
+    response->success = SP_FAIL;
   }
 
   *msg_len = 1;
@@ -435,23 +437,23 @@ SP_PacketStatus sp_cmd_soft_reset   (SP_PacketBuf* p_packet, uint16* msg_len) {
   }
 
   SP_SOFT_RESET_R* response = (SP_SOFT_RESET_R*)msg_body;
-  response->success = SUCCESS;
+  response->success = SP_SUCCESS;
   *msg_len = 1;
 
   return SP_SYS_RESET;
 
 }
 
-void sp_setup_pbuf_out (SP_Packet* p_packet, uint16* msg_len) {
+void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
   // todo, checks on overflow, ensure msg_len doesnt overflow the pbuffer!
   /* leave cmd, start, token, sequence_num unchanged */
   p_packet->total_len = msg_len + SP_SIZEOF_PHEADER + SP_SIZEOF_PFOOTER;
-  p_packet->index     = 0;
+  p_packet->pindex     = 0;
   p_packet->direction = SP_OUTGOING;
  
   /* stuff the packet header in the buffer, only need to change msg_len! */
   SP_PHeader* header = (SP_PHeader*)p_packet->buffer;
-  header->msg_len = *msg_len;
+  header->msg_len = msg_len;
 
   /* reverse any fields that need it before checksum */
   sp_reverse_bytes((uint8*)&header->msg_len,2);
@@ -462,7 +464,9 @@ void sp_setup_pbuf_out (SP_Packet* p_packet, uint16* msg_len) {
 
   /* stuff the checksum */
   uint8* p_checksum = &p_packet->buffer[SP_SIZEOF_PHEADER + msg_len];
-  *(uint32*)p_checksum = checksum;
+  sp_maglined_copy_u32(checksum,p_checksum);
+  // *(uint32*)p_checksum = checksum; // this may be a dangrous cast because of alignment
+  
 
   /* and reverse it */
   sp_reverse_bytes(p_checksum,4);
@@ -471,7 +475,7 @@ void sp_setup_pbuf_out (SP_Packet* p_packet, uint16* msg_len) {
 
 // utility for dealing with endianness mismatch of certain fields
 void sp_reverse_bytes(uint8* buf_in, uint16 len) {
-  uint8* buf_tmp[len];
+  uint8 buf_tmp[len];
   int i;
   for (i=0;i<len;i++) {
     buf_tmp[i] = buf_in[len-1-i];
@@ -492,7 +496,7 @@ uint32 sp_compute_checksum(uint8* buf_in, uint16 len) {
   }
 
   sp_reverse_bytes(this_word,4); // convert from big endian
-  uint32 checksum = *((uint32*)(this_word));
+  uint32 checksum = sp_maligned_cast_u32(this_word);
   
   return checksum;
 }
@@ -505,3 +509,21 @@ bool sp_addr_in_ram(uint32* addr) {
   return FALSE;
 }
 
+uint32 sp_maligned_cast_u32(uint8* start) {
+  /* perhaps this function is unecessary, but we can be certain this
+     extra step will give us the proper little endian cast */
+  uint32 ret = 0;
+  int i;
+  for (i=0;i<4;i++) {
+    ret += *start << 8*i;
+    start++;
+  }
+  return ret;
+}
+
+void sp_maglined_copy_u32(uint32 val, uint8* dest) {
+  int i;
+  for (i=0;i<4;i++) {
+    *dest = ((val << (24-8*i)) >> 8*i);
+  }
+}
