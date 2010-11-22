@@ -17,6 +17,7 @@ import math
 import optparse
 import re
 import sys
+import subprocess
 import time
 from itertools import izip, cycle, chain
 
@@ -35,6 +36,7 @@ DSRDTR        = False
 BOOTLOADER_TIMEOUT = 2
 BOOTLOADER_DIE_TIMEOUT = BOOTLOADER_TIMEOUT  # seconds for comm to die
 BOOTLOADER_LIVE_TIMEOUT = BOOTLOADER_TIMEOUT # seconds for comm to be reborn
+USE_FAKE_SERIAL = True # debug with FakeSerial objects instead of Serial
 
 # Packet constants
 PACKET_START = 0x1B
@@ -115,7 +117,7 @@ def upload_bin(prog_bin, port, memory_location=LOCATION_FLASH):
         info = get_info(comm, seqnums.next()).fields
 
         printv('Uploading file', prog_bin,
-               '({0}KB)'.format(round(len(prog_bytes) / 1024.0)))
+              '({0}KB)'.format(round(len(prog_bytes) / 1024.0)))
         if memory_location == LOCATION_FLASH:
             upload_flash(comm, seqnums, info, prog_bytes)
         else:
@@ -234,6 +236,9 @@ def _reset_board(port):
     return _open_serial(port_abs)
 
 def _open_serial(port):
+    if USE_FAKE_SERIAL:
+        return FakeSerial()
+
     try:
         return serial.Serial(port, baudrate=BAUDRATE, bytesize=BYTESIZE,
                              parity=PARITY, stopbits=STOPBITS, timeout=TIMEOUT,
@@ -766,6 +771,31 @@ class SoftResetResponseParser(ResponseParser):
     def __init__(self, sequence_num):
         ResponseParser.__init__(self, SOFT_RESET, sequence_num,
                                 [('success', 1)])
+
+# -- FakeSerial --------------------------------------------------------------#
+
+class FakeSerial(object):       # for debugging
+
+    def __init__(self):
+        self.child = subprocess.Popen(['../../test/sp_test'],
+                                      stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE)
+
+    def write(self, data):
+        self.child.stdin.write(data)
+
+    def read(self, size=1):
+        return self.child.read(size)
+
+    def close(self):
+        sigterm_timeout = 3.0
+        self.child.terminate()
+        start = time.time()
+        while time.time() - start < sigterm_timeout:
+            if self.child.returncode is not None:
+                break
+        else:
+            self.child.kill()
 
 # -- Command-line interface --------------------------------------------------#
 
