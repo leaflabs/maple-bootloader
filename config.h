@@ -81,9 +81,9 @@
 
 // temp defines due to time constraints
 #define SP_SIZEOF_PHEADER 5
-#define SP_SIZEOF_PFOOTER 4 // just the 4 byte checksum
-#define SP_BYTE_TIMEOUT   1000000 // roughly, code branching makes this not a fixed "time". TODO make this dynamic or even specified as part of the comm. transaction. SINGE BYTE timeout
-#define SP_LEN_CHECKSUM   4  // its already fixed as uint32, but this ought to be a parameter
+#define SP_SIZEOF_PFOOTER 4        // just the 4 byte checksum
+#define SP_BYTE_TIMEOUT   10000000 // roughly, code branching makes this not a fixed "time". TODO make this dynamic or even specified as part of the comm. transaction. SINGE BYTE timeout
+#define SP_LEN_CHECKSUM   4        // its already fixed as uint32, but this ought to be a parameter
 #define SP_TOKEN       0x7F
 
 #endif

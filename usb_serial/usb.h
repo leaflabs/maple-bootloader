@@ -29,10 +29,6 @@
 
 #include "usb_lib.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     RESUME_EXTERNAL,
     RESUME_INTERNAL,
@@ -68,7 +64,7 @@ void usbDsbISR(void);
 void usbEnbISR(void);
 
 /* overloaded ISR routine, this is the main usb ISR */
-void usb_lpIRQHandler(void);
+void USB_LP_CAN1_RX0_IRQHandler(void);
 void usbWaitReset(void);
 
 /* blocking functions for send/receive */
@@ -82,9 +78,5 @@ uint8 usbIsConfigured(void);
 uint16 usbGetPending(void);
 
 void usbSendHello(void);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 #endif // _USB_H_

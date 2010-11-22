@@ -250,45 +250,45 @@ void usbDsbISR(void) {
 }
 
 /* overloaded ISR routine, this is the main usb ISR */
-void usb_lpIRQHandler(void) {
-wIstr = _GetISTR();
+void USB_LP_CAN1_RX0_IRQHandler(void) {
+  wIstr = _GetISTR();
 
 /* go nuts with the preproc switches since this is an ISTR and must be FAST */
 #if (ISR_MSK & ISTR_RESET)
-if (wIstr & ISTR_RESET & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_RESET);
-    Device_Property.Reset();
-  }
+  if (wIstr & ISTR_RESET & wInterrupt_Mask)
+    {
+      _SetISTR((u16)CLR_RESET);
+      Device_Property.Reset();
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_DOVR)
-if (wIstr & ISTR_DOVR & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_DOVR);
-  }
+  if (wIstr & ISTR_DOVR & wInterrupt_Mask)
+    {
+      _SetISTR((u16)CLR_DOVR);
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_ERR)
-if (wIstr & ISTR_ERR & wInterrupt_Mask)
-  {
-    _SetISTR((u16)CLR_ERR);
-  }
+  if (wIstr & ISTR_ERR & wInterrupt_Mask)
+    {
+      _SetISTR((u16)CLR_ERR);
+    }
 #endif
 
 
 #if (ISR_MSK & ISTR_WKUP)
-if (wIstr & ISTR_WKUP & wInterrupt_Mask) {
+  if (wIstr & ISTR_WKUP & wInterrupt_Mask) {
     _SetISTR((u16)CLR_WKUP);
     usbResume(RESUME_EXTERNAL);
-}
+  }
 #endif
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 #if (ISR_MSK & ISTR_SUSP)
-if (wIstr & ISTR_SUSP & wInterrupt_Mask) {
+  if (wIstr & ISTR_SUSP & wInterrupt_Mask) {
     /* check if SUSPEND is possible */
     if (F_SUSPEND_ENABLED) {
         usbSuspend();
@@ -298,33 +298,33 @@ if (wIstr & ISTR_SUSP & wInterrupt_Mask) {
     }
     /* clear of the ISTR bit must be done after setting of CNTR_FSUSP */
     _SetISTR((u16)CLR_SUSP);
-}
+  }
 #endif
 
 
 #if (ISR_MSK & ISTR_SOF)
-if (wIstr & ISTR_SOF & wInterrupt_Mask) {
+  if (wIstr & ISTR_SOF & wInterrupt_Mask) {
     _SetISTR((u16)CLR_SOF);
     bIntPackSOF++;
- }
+  }
 #endif
 
 
 #if (ISR_MSK & ISTR_ESOF)
-if (wIstr & ISTR_ESOF & wInterrupt_Mask) {
+  if (wIstr & ISTR_ESOF & wInterrupt_Mask) {
     _SetISTR((u16)CLR_ESOF);
     /* resume handling timing is made with ESOFs */
     usbResume(RESUME_ESOF); /* request without change of the machine state */
- }
+  }
 #endif
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 #if (ISR_MSK & ISTR_CTR)
-if (wIstr & ISTR_CTR & wInterrupt_Mask) {
+  if (wIstr & ISTR_CTR & wInterrupt_Mask) {
     /* servicing of the endpoint correct transfer interrupt */
     /* clear of the CTR flag into the sub */
     CTR_LP(); /* low priority ISR defined in the usb core lib */
- }
+  }
 #endif
 
 }

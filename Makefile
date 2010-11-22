@@ -263,3 +263,23 @@ cscope:
 	rm -rf *.cscope
 	find . -iname "*.[hcs]" | grep -v examples | xargs cscope -R -b
 
+
+# put down here since its only temporary and not a standardized build test
+TEST_LIB   = ./test
+_TEST_SRCS = sp_test.c 
+TEST_SRCS  = $(patsubst %, $(TEST_LIB)/%,$(_TEST_SRCS))
+TESTOBJ    = $(TEST_SRCS:.c=.o)
+TESTBIN    = sp_test
+
+test: $(TESTBIN)
+
+$(TESTBIN): $(TESTOBJ):
+	@echo
+	@echo Creating Test Bin $@
+	gcc $(TESTOBJ) --output $@
+
+$(TESTOBJ): %.o : %.c
+	@echo
+	@echo Compiling Test File: $<
+	gcc -c $< -o $@ 
+

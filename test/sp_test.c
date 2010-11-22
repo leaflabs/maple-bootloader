@@ -1,40 +1,57 @@
-/* *****************************************************************************
- * The MIT License
- *
- * Copyright (c) 2010 LeafLabs LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * ****************************************************************************/
+/*
+  Basic test utility to implement a modified version of the serial
+  bootloader command line protocol and verify it is working
 
-/**
- *  @file protocol.c
- *
- *  @brief The principle communications state machine as well as the data
- *  transfer callbacks accessed by the usb library
- *   
- *
- */
+  should not be run as a standalone program, instead it should be
+  spawned by mapledude.py
 
-// todo implement timeouts
+*/
 
-#include "protocol.h"
-#include "common.h"
+#include <stdio.h>
+#include "sp_test.h"
+
+#define LOG_LINE(x) fprintf(test_log,"%s\n",x)
+
+FILE *test_log;
+int main() 
+{ 
+  test_log = fopen("test_log.txt","a+");
+  LOG_LINE("---Maple Bootloader Test Utility, logfile ---\n");
+
+  LOG_LINE("Running sp_run(0)");
+  SP_PacketStatus status = sp_run(0); // will block until successfull JUMP_TO_USER,SOFT_RESET,or EXIT
+
+  char* status_str;
+  switch (status) {
+  case SP_ERR_TIMEOUT:
+    status_str = "TIMEOUT";
+    break;
+  case SP_ERR_START:
+    status_str = "ERR_START";
+    break;
+  case SP_EXIT:
+    status_str = "EXIT";
+    break;
+  case SP_JUMP_RAM:
+    status_str = "JUMP_RAM";
+    break;
+  case SP_JUMP_FLASH:
+    status_str = "JUMP_FLASH";
+    break;
+  case SP_SYS_RESET:
+    status_str = "SYS_RESET";
+    break;
+
+  default: 
+    status_str = "Unexpected return val";
+    break;
+  }
+  fprintf(test_log,"sp_run completed, termination condition:\n\t%s",status_str);
+
+  fclose(test_log); /*done!*/ 
+  return 0; 
+}
+
 
 SP_PacketStatus sp_run(int delay) {
   uint8 sp_buffer[SP_MAX_MSG_LEN+SP_SIZEOF_PHEADER+SP_SIZEOF_PFOOTER];
@@ -477,7 +494,7 @@ void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
 
   /* stuff the checksum */
   uint8* p_checksum = &p_packet->buffer[SP_SIZEOF_PHEADER + msg_len];
-  sp_maglined_copy_u32(checksum,p_checksum);
+  sp_maligned_copy_u32(checksum,p_checksum);
   // *(uint32*)p_checksum = checksum; // this may be a dangrous cast because of alignment
   
   /* and reverse it */
@@ -533,7 +550,7 @@ uint32 sp_maligned_cast_u32(uint8* start) {
   return ret;
 }
 
-void sp_maglined_copy_u32(uint32 val, uint8* dest) {
+void sp_maligned_copy_u32(uint32 val, uint8* dest) {
   int i;
   for (i=0;i<4;i++) {
     *dest = ((val << (24-8*i)) >> 8*i);
@@ -543,12 +560,58 @@ void sp_maglined_copy_u32(uint32 val, uint8* dest) {
 /* the necessary mechanics for debugging out of uart2 */
 //void sp_debug_
 void sp_debug_blink(int i) {
-  strobePin(LED_BANK,LED,3,BLINK_FAST);
-  strobePin(LED_BANK,LED,i,BLINK_SLOW);
+}
 
-  uint32 c;
-  for (c=0x300000;c>0;c--) {
-    asm volatile ("nop");
+
+/* functions that were provided by other portions of the bootloader */
+uint16 usbSendBytes(uint8* sendBuf,uint16 len) {
+  uint16 ret = write(stdout, (char*)sendBuf, len);
+  return ret;
+}
+
+uint8 usbBytesAvailable(void) {
+  return 255;
+}
+
+uint8 usbReceiveBytes(uint8* recvBuf, uint8 len) {
+  int i;
+  for (i=0;i<len;i++) {
+    recvBuf[i] = (uint8)getchar();
   }
 }
+
+
+void systemHardReset(void) {
+  LOG_LINE("System Hard Reset executed");
+}
+
+bool checkUserCode (u32 usrAddr) {
+  LOG_LINE("Checking User Code at addr:");
+  fprintf(test_log,"\t%x\n",usrAddr);
+}
+
+void jumpToUser    (u32 usrAddr) {
+  LOG_LINE("Jump to User executed at addr:");
+  fprintf(test_log,"\t%x\n",usrAddr);
+}
+
+bool flashWriteWord  (u32 addr, u32 word) {
+  fprintf(test_log, "Wrote: %x -> %x\n",addr,word);
+}
+
+bool flashErasePage  (u32 addr) {
+  fprintf(test_log, "Erased Page Containing %x\n",addr);
+}
+
+bool flashErasePages (u32 addr, u16 n){
+  fprintf(test_log, "Erased %i Pages Starting at %x\n",n,addr);
+}
+
+void flashLock       (void) {
+}
+
+void flashUnlock     (void) {
+}
+
+
 
