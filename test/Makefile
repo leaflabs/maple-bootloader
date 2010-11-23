@@ -5,6 +5,7 @@ TEST_SRCS  = $(patsubst %, $(TEST_LIB)/%,$(_TEST_SRCS))
 TESTOBJ    = $(TEST_SRCS:.c=.o)
 TESTBIN    = sp_test
 
+CFLAGS = #-Wall -Werror
 all: $(TESTBIN)
 
 $(TESTBIN): $(TESTOBJ)
@@ -15,7 +16,7 @@ $(TESTBIN): $(TESTOBJ)
 $(TESTOBJ): %.o : %.c
 	@echo
 	@echo Compiling Test File: $<
-	gcc -c $< -o $@ 
+	gcc -c $(CFLAGS) $< -o $@ 
 
 clean: 
 	rm -f *.o 

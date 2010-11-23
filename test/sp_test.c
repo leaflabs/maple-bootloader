@@ -8,18 +8,45 @@
 */
 
 #include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+
 #include "sp_test.h"
 
-#define LOG_LINE(x) fprintf(test_log,"%s\n",x)
+#define LOG_FILE "test_log.txt"
+#define ERR_DUMP test_log
+
+#define S_REPORT_F(s, fmt, args...) fprintf(s,"\n%04d:%-*s "fmt,__LINE__,25,__func__,args)
+#define S_REPORT(s, str)            fprintf(s,"\n%04d:%-*s %s", __LINE__,25,__func__,str)
+
+//#define REPORT_F(fmt, args...) S_REPORT_F(stderr, fmt, args); S_REPORT_F(test_log, fmt, args)
+//#define REPORT(fmt) S_REPORT(stderr, fmt); S_REPORT(test_log, fmt)
+
+#define REPORT_F(fmt, args...) S_REPORT_F(ERR_DUMP, fmt, args)
+#define REPORT(fmt) S_REPORT(ERR_DUMP, fmt)
 
 FILE *test_log;
+
+static void term_trap(int sig) {
+  REPORT_F("Trapped UNIX Signal 0x%X",sig);
+  fclose(test_log);
+}
+
+#define SIG(x) signal(x,&term_trap)
 int main() 
 { 
-  test_log = fopen("test_log.txt","a+");
-  LOG_LINE("---Maple Bootloader Test Utility, logfile ---\n");
+  test_log = fopen(LOG_FILE,"w");
+  SIG(SIGHUP);
+  SIG(SIGINT);
+  SIG(SIGQUIT);
+  SIG(SIGABRT);
+  SIG(SIGTERM);
 
-  LOG_LINE("Running sp_run(0)");
+  REPORT("Maple Bootloader Test Utility");
+  REPORT("Running sp_run(0)");
+
   SP_PacketStatus status = sp_run(0); // will block until successfull JUMP_TO_USER,SOFT_RESET,or EXIT
+  REPORT("CMD Interface Finished...");
 
   char* status_str;
   switch (status) {
@@ -46,9 +73,8 @@ int main()
     status_str = "Unexpected return val";
     break;
   }
-  fprintf(test_log,"sp_run completed, termination condition:\n\t%s",status_str);
-
-  fclose(test_log); /*done!*/ 
+  
+  REPORT_F("CMD Interface exit status:  %s",status_str);
   return 0; 
 }
 
@@ -59,9 +85,11 @@ SP_PacketStatus sp_run(int delay) {
   SP_PacketStatus status;
   bool done = FALSE;
   while (!done) {
+    REPORT("Cmd Idle");
+
     // since packets are processed atomically, we need only one function
     status = sp_handle_packet(delay, &sp_buffer[0], sizeof(sp_buffer)); 
-    DBG(1);
+
 
     if (status == SP_ERR_TIMEOUT || 
         status == SP_EXIT        || 
@@ -97,7 +125,7 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
       /* check the first byte before ANYTHING so we can jump out
          quickly if theres no bootloader traffic */
       if (pbuf[0] != SP_START) {
-        DBG(5);
+        REPORT_F("Incorrect START field: expected 0x%X, got 0x%X",SP_START,pbuf[0]);
         return SP_ERR_START;
       }
 
@@ -111,14 +139,14 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
 
       /* check the token  */
       if (this_packet.token != SP_TOKEN) {
-        DBG(9);
+        REPORT_F("Incorrect Token field: expected 0x%X, got 0x%X",SP_TOKEN,this_packet.token);
         return SP_ERR_TOKEN;
       }
       
       SP_PacketStatus status = sp_get_packet(&this_packet); // todo perhaps generate a unique status type for this level 
       if (status != SP_OK) {
         /* perhaps handle with cleanup or more care, this is really passing the buck. */
-        DBG(6);
+        REPORT_F("sp_get_packet not OK, return with status: 0x%X",status);
         return status;
       }
 
@@ -130,16 +158,16 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
           status != SP_JUMP_RAM &&
           status != SP_JUMP_FLASH) {
         return status; // err, timeout, or exit
-        DBG(10);
       }
       dispatch_status = status; // stash this result, its either OK or special case
 
       sp_setup_pbuf_out(&this_packet,msg_len);
 
       /* send it out */
-      DBG(4);
+      REPORT("Sending Reply Packet");
       status = sp_marshall_reply(&this_packet); // reset delay to give a fresh tx timeout
       if (status != SP_OK) {
+        REPORT_F("Error sending reply packet, status = 0x%X",status);
         return status;
       }
 
@@ -160,23 +188,44 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
   /* Marshall the rest of the data payload into the packet */
   int timeout = SP_BYTE_TIMEOUT;
 
-  while (p_packet->pindex != p_packet->total_len) {
-    
+  REPORT_F("Waiting to receive packet body, 0x%X bytes",(p_packet->total_len-p_packet->pindex));
+  while (p_packet->pindex != p_packet->total_len) {    
     uint8 bytes_in = usbReceiveBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len-p_packet->pindex);
     if (!bytes_in) {
       if (timeout-- == 0) {
         // Ooops...
+        REPORT_F("TIMED OUT while getting packet body, got 0x%X bytes total",(p_packet->pindex - SP_SIZEOF_PHEADER));
         return SP_ERR_TIMEOUT;
       }
     } else {
-      DBG(3);
       p_packet->pindex += bytes_in;
     }
   }
 
   // reverse the checksum from big endian
-  sp_reverse_bytes(&(p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM]),SP_LEN_CHECKSUM);
-  p_packet->checksum = (uint32) p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM];
+  uint8* p_checksum = p_packet->buffer+p_packet->pindex-SP_LEN_CHECKSUM;
+  uint32 checksum = sp_maligned_cast_u32(p_checksum);
+  sp_reverse_bytes((uint8*)&checksum,4);
+  p_packet->checksum = checksum;
+
+  /* finally, print the buffer */
+  REPORT("Packet Buffer Dump (post endian swap):");
+  REPORT_F("\t\tLen: %i",p_packet->total_len);
+  char buf_str[1024]; // lets set up our stupid little program for buffer overflow vulnerability!
+  int  offset = 0;
+  int  i;
+  buf_str[offset++] = '\t';
+  buf_str[offset++] = '\t';
+  buf_str[offset++] = '[';
+  for (i=0;i<p_packet->total_len;i++) {
+    offset += sprintf(buf_str+offset,"0x%X, ",p_packet->buffer[i]);
+  }
+  offset -= 2;
+  buf_str[offset++] = ']';
+  buf_str[offset++] = 0;
+  REPORT(buf_str);
+
+
 
   return sp_check_sum(p_packet);
 }
@@ -184,11 +233,11 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
 SP_PacketStatus sp_marshall_reply(SP_PacketBuf* p_packet) {
   /* loops over trying to send the response, can timeout */
   int timeout = SP_BYTE_TIMEOUT;
-  while (p_packet->pindex != p_packet->total_len) {
+  while (p_packet->pindex < p_packet->total_len) {
     uint8 bytes_out = usbSendBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len - p_packet->pindex);
     if (!bytes_out) {
       if (timeout-- == 0) {
-        DBG(11);
+        REPORT_F("TIMED OUT while sending response packet, sent 0x%X bytes out of 0x%X",p_packet->pindex,p_packet->total_len);
         // side effects not undone, but things like user_jump or soft_reset will not execute now
         return SP_ERR_TIMEOUT;
       }
@@ -196,6 +245,22 @@ SP_PacketStatus sp_marshall_reply(SP_PacketBuf* p_packet) {
       p_packet->pindex += bytes_out;
     }
   }
+
+  REPORT("Packet Buffer Dump (outgoing):");
+  REPORT_F("\t\tLen: %i",p_packet->total_len);
+  char buf_str[1024]; // lets set up our stupid little program for buffer overflow vulnerability!
+  int  offset = 0;
+  int  i;
+  buf_str[offset++] = '\t';
+  buf_str[offset++] = '\t';
+  buf_str[offset++] = '[';
+  for (i=0;i<p_packet->total_len;i++) {
+    offset += sprintf(buf_str+offset,"0x%X, ",p_packet->buffer[i]);
+  }
+  offset -= 2;
+  buf_str[offset++] = ']';
+  buf_str[offset++] = 0;
+  REPORT(buf_str);
 
   return SP_OK;
   
@@ -206,11 +271,12 @@ SP_PacketStatus sp_check_sum(SP_PacketBuf* p_packet) {
   /* checksum is the XOR of all 4 byte words. Interpret these words in
      network order (big endian). Pad if necessary. Although, since everything is big endian, 
      padding will have no effect on the resultant word value, so you can really do nothing */
+
   uint16 total_len = p_packet->total_len - SP_SIZEOF_PFOOTER;
   uint32 checksum = sp_compute_checksum(p_packet->buffer,total_len);
 
   if (checksum != p_packet->checksum) {
-    DBG(8);
+    REPORT_F("Checksum FAIL! got 0x%X, but expected 0x%X, len bytes %i",checksum,p_packet->checksum,total_len);
     return SP_ERR_CHKSUM;
   }
 
@@ -241,11 +307,7 @@ SP_PacketStatus sp_dispatch_packet(SP_PacketBuf* p_packet,uint16* msg_len) {
 
 
 SP_PacketBuf sp_create_pbuf_in(uint8* pbuf, uint16 pbuf_len) {
-  // rever anything big endian
-  sp_reverse_bytes(&pbuf[2],2); // reverses msg_len
-
-  //  uint16 msg_len      = *((uint16*)(&pbuf[2]));   perhpas alignment issues here, create manually
-  uint16 msg_len = pbuf[2]+(pbuf[3]<<8);
+  uint16 msg_len = (pbuf[2] << 8) + pbuf[3];
   uint8  sequence_num = pbuf[1];
   uint8  token        = pbuf[4];
 
@@ -257,6 +319,12 @@ SP_PacketBuf sp_create_pbuf_in(uint8* pbuf, uint16 pbuf_len) {
   ret_packet.token        = token;
   ret_packet.buffer       = pbuf;
   
+  REPORT("Created new SP_PacketBuf:");
+  REPORT_F("\t\ttotal_len:    0x%X",ret_packet.total_len);
+  REPORT_F("\t\tpindex:       0x%X",ret_packet.pindex);
+  REPORT_F("\t\tdirection:    0x%X",ret_packet.direction);
+  REPORT_F("\t\tsequence_num: 0x%X",ret_packet.sequence_num);
+  REPORT_F("\t\ttoken:        0x%X",ret_packet.token);
   return ret_packet;
 }
 
@@ -522,15 +590,23 @@ void sp_reverse_bytes(uint8* buf_in, uint16 len) {
 uint32 sp_compute_checksum(uint8* buf_in, uint16 len) {
   /* take the xor of all 32 bit words in the buffer, in big endian
      order. But return the result in little endian */
+  uint32 checksum=0;
+  uint32 this_word=0;
   int i;
-  uint8 this_word[4] = {0,0,0,0}; 
+  int shift = 24;
   for (i=0;i<len;i++) {
-    this_word[i%4] ^= buf_in[i]; /* xor is bitwise, so we neednt actually decode the 4 byte words */
+    shift = 24-8*(i%4);
+    this_word |= (buf_in[i]  << shift);
+
+    if (shift == 0) {
+      checksum ^= this_word;
+      this_word = 0;
+    }
   }
 
-  sp_reverse_bytes(this_word,4); // convert from big endian
-  uint32 checksum = sp_maligned_cast_u32(this_word);
-  
+  if ((len%4) != 0) {
+    checksum ^= this_word;
+  }
   return checksum;
 }
 
@@ -586,29 +662,29 @@ uint8 usbReceiveBytes(uint8* recvBuf, uint8 len) {
 
 
 void systemHardReset(void) {
-  LOG_LINE("System Hard Reset executed");
+  REPORT("System Hard Reset executed");
 }
 
 bool checkUserCode (u32 usrAddr) {
-  LOG_LINE("Checking User Code at addr:");
-  fprintf(test_log,"\t%x\n",usrAddr);
+  REPORT("Checking User Code at addr:");
+  fprintf(test_log,"\t\t0x%X\n",usrAddr);
 }
 
 void jumpToUser    (u32 usrAddr) {
-  LOG_LINE("Jump to User executed at addr:");
-  fprintf(test_log,"\t%x\n",usrAddr);
+  REPORT("Jump to User executed at addr:");
+  REPORT_F("\t\t0x%X\n",usrAddr);
 }
 
 bool flashWriteWord  (u32 addr, u32 word) {
-  fprintf(test_log, "Wrote: %x -> %x\n",addr,word);
+  REPORT_F("\t\tWrote: 0x%X -> 0x%X\n",addr,word);
 }
 
 bool flashErasePage  (u32 addr) {
-  fprintf(test_log, "Erased Page Containing %x\n",addr);
+  REPORT_F("Erased Page Containing 0x%X\n",addr);
 }
 
 bool flashErasePages (u32 addr, u16 n){
-  fprintf(test_log, "Erased %i Pages Starting at %x\n",n,addr);
+  REPORT_F("Erased %i Pages Starting at 0x%X\n",n,addr);
 }
 
 void flashLock       (void) {
