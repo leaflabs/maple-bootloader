@@ -122,7 +122,7 @@ typedef enum {
   SP_READ_BYTES,
   SP_JUMP_TO_USER,
   SP_SOFT_RESET
-} SP_Cmd; // should force this enum to be 1 byte
+} __attribute__((__packed__)) SP_Cmd; // should force this enum to be 1 byte
 
 typedef enum {
   SP_OK,
@@ -160,7 +160,7 @@ typedef struct {
 } __attribute__((__packed__))  SP_GET_INFO_Q;
 
 typedef struct {
-  uint8   cmd;
+  SP_Cmd   cmd;
   uint8   endianness;
   uint32  total_ram;
   uint32  total_flash;
@@ -173,7 +173,7 @@ typedef struct {
 
 
 typedef struct {
-  uint8   cmd;
+  SP_Cmd   cmd;
   uint32  addr;
 } __attribute__((__packed__))  SP_ERASE_PAGE_Q;
 
@@ -185,7 +185,7 @@ typedef struct {
 
 
 typedef struct {
-  uint8   cmd;
+  SP_Cmd   cmd;
   uint32* addr;
   //  uint8*  payload; // uses the c99 feature to extend structs via tail pointers
 } __attribute__((__packed__))  SP_WRITE_BYTES_Q;
@@ -198,20 +198,20 @@ typedef struct {
 
 
 typedef struct {
-  uint8   cmd;
+  SP_Cmd   cmd;
   uint32* addr;
   uint16  len;
 } __attribute__((__packed__))  SP_READ_BYTES_Q;
 
 typedef struct {
-  uint8  cmd;
+  SP_Cmd  cmd;
   //  uint8* payload; // uses c99 feature of extending struct by tail pointer
 } __attribute__((__packed__))  SP_READ_BYTES_R;
 
 
 
 typedef struct {
-  uint8   cmd;
+  SP_Cmd   cmd;
   uint8   user_region; // 0 for flash, 1 for ram
 } __attribute__((__packed__))  SP_JUMP_TO_USER_Q;
 
@@ -296,9 +296,9 @@ void   sp_maligned_copy_u32(uint32 val, uint8* dest);
 void sp_debug_blink(int i);
 
 // reimplemented for the test
-uint16 usbSendBytes(uint8* sendBuf,uint16 len);
+int   usbSendBytes(uint8* sendBuf,uint16 len);
 uint8 usbBytesAvailable(void);
-uint8 usbReceiveBytes(uint8* recvBuf, uint8 len);
+int   usbReceiveBytes(uint8* recvBuf, uint16 len); // do we really want uin16?
 
 void systemHardReset(void);
 bool checkUserCode (u32 usrAddr);

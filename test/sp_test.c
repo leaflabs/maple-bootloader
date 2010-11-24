@@ -30,8 +30,8 @@
 //#define REPORT_F(fmt, args...) S_REPORT_F(stderr, fmt, args); S_REPORT_F(test_log, fmt, args)
 //#define REPORT(fmt) S_REPORT(stderr, fmt); S_REPORT(test_log, fmt)
 
-#define REPORT_F(fmt, args...) S_REPORT_F(ERR_DUMP, fmt, args)
-#define REPORT(fmt) S_REPORT(ERR_DUMP, fmt)
+#define REPORT_F(fmt, args...) S_REPORT_F(ERR_DUMP, fmt, args); S_REPORT_F(stderr, fmt, args)
+#define REPORT(fmt) S_REPORT(ERR_DUMP, fmt); S_REPORT(stderr, fmt)
 
 FILE *test_log;
 
@@ -46,9 +46,9 @@ unsigned int clntLen;            /* Length of client address data structure */
 
 static void term_trap(int sig) {
   //  REPORT_F("Trapped UNIX Signal 0x%X",sig);
-  if (test_log) {
-    fclose(test_log);
-  }
+  close(clntSock);
+  close(servSock);
+  exit(1);
 }
 
 #define SIG(x) signal(x,&term_trap)
@@ -104,6 +104,7 @@ int main()
     close(clntSock);    /* Close client socket */
   }
 
+  fclose(test_log);
   return 0; 
 }
 
@@ -227,13 +228,15 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
 
   REPORT_F("Waiting to receive packet body, 0x%X bytes",(p_packet->total_len-p_packet->pindex));
   while (p_packet->pindex != p_packet->total_len) {    
-    uint8 bytes_in = usbReceiveBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len-p_packet->pindex);
-    if (!bytes_in) {
+    int bytes_in = usbReceiveBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len-p_packet->pindex);
+    if (bytes_in==0) {
       if (timeout-- == 0) {
         // Ooops...
         REPORT_F("TIMED OUT while getting packet body, got 0x%X bytes total",(p_packet->pindex - SP_SIZEOF_PHEADER));
         return SP_ERR_TIMEOUT;
       }
+    } else if (bytes_in < 0) {
+      return SP_EXIT;
     } else {
       p_packet->pindex += bytes_in;
     }
@@ -248,20 +251,6 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
   /* finally, print the buffer */
   REPORT("Packet Buffer Dump (post endian swap):");
   REPORT_F("\t\tLen: %i",p_packet->total_len);
-  char buf_str[1024]; // lets set up our stupid little program for buffer overflow vulnerability!
-  int  offset = 0;
-  int  i;
-  buf_str[offset++] = '\t';
-  buf_str[offset++] = '\t';
-  buf_str[offset++] = '[';
-  for (i=0;i<p_packet->total_len;i++) {
-    offset += sprintf(buf_str+offset,"0x%X, ",p_packet->buffer[i]);
-  }
-  offset -= 2;
-  buf_str[offset++] = ']';
-  buf_str[offset++] = 0;
-  REPORT(buf_str);
-
 
 
   return sp_check_sum(p_packet);
@@ -271,13 +260,15 @@ SP_PacketStatus sp_marshall_reply(SP_PacketBuf* p_packet) {
   /* loops over trying to send the response, can timeout */
   int timeout = SP_BYTE_TIMEOUT;
   while (p_packet->pindex < p_packet->total_len) {
-    uint8 bytes_out = usbSendBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len - p_packet->pindex);
-    if (!bytes_out) {
+    int bytes_out = usbSendBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len - p_packet->pindex);
+    if (bytes_out == 0) {
       if (timeout-- == 0) {
         REPORT_F("TIMED OUT while sending response packet, sent 0x%X bytes out of 0x%X",p_packet->pindex,p_packet->total_len);
         // side effects not undone, but things like user_jump or soft_reset will not execute now
         return SP_ERR_TIMEOUT;
       }
+    } else if (bytes_out < 0) {
+      return SP_EXIT;
     } else {
       p_packet->pindex += bytes_out;
     }
@@ -330,14 +321,15 @@ SP_PacketStatus sp_dispatch_packet(SP_PacketBuf* p_packet,uint16* msg_len) {
   // todo, make use of the SP_Query type and the c99 tail-ptr trick and make these cmd functions eat a query type instead of a packet type
   SP_Cmd cmd = (SP_Cmd) p_packet->buffer[SP_SIZEOF_PHEADER];
 
-  if (cmd == SP_GET_INFO)          {return sp_cmd_get_info     (p_packet, msg_len);}
-  else if (cmd == SP_ERASE_PAGE)   {return sp_cmd_erase_page   (p_packet, msg_len);} 
-  else if (cmd == SP_WRITE_BYTES)  {return sp_cmd_write_bytes  (p_packet, msg_len);} 
-  else if (cmd == SP_READ_BYTES)   {return sp_cmd_read_bytes   (p_packet, msg_len);}
-  else if (cmd == SP_JUMP_TO_USER) {return sp_cmd_jump_to_user (p_packet, msg_len);} 
-  else if (cmd == SP_SOFT_RESET)   {return sp_cmd_soft_reset   (p_packet, msg_len);}
+  if (cmd == SP_GET_INFO)            {return sp_cmd_get_info     (p_packet, msg_len);}
+  else if (cmd == SP_ERASE_PAGE)     {return sp_cmd_erase_page   (p_packet, msg_len);}
+    else if (cmd == SP_WRITE_BYTES)  {return sp_cmd_write_bytes  (p_packet, msg_len);}
+    else if (cmd == SP_READ_BYTES)   {return sp_cmd_read_bytes   (p_packet, msg_len);}
+    else if (cmd == SP_JUMP_TO_USER) {return sp_cmd_jump_to_user (p_packet, msg_len);}
+    else if (cmd == SP_SOFT_RESET)   {return sp_cmd_soft_reset   (p_packet, msg_len);} 
   else {
     // doing this implicitly says non recognized commands are simply ignored
+    REPORT_F("Unknown Command: 0x%X",cmd);
     return SP_ERR_CMD;
   }
 }
@@ -367,7 +359,7 @@ SP_PacketBuf sp_create_pbuf_in(uint8* pbuf, uint16 pbuf_len) {
 
 SP_PacketStatus sp_cmd_get_info (SP_PacketBuf* p_packet, uint16* msg_len) {
   // todo, accept a query type argument and simply reference the union  as .info and skip the beginning of this function
-
+  REPORT("Dispatching Request: GET_INFO");
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
 
   SP_Cmd cmd = (SP_Cmd) msg_body[0];
@@ -401,6 +393,7 @@ SP_PacketStatus sp_cmd_get_info (SP_PacketBuf* p_packet, uint16* msg_len) {
 
 SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   // todo, accept a query type argument and simply reference the union  as .info and skip the beginning of this function
+  REPORT("Dispatching Request: ERASE_PAGE");
 
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
 
@@ -429,17 +422,24 @@ SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   flashLock();
 
   /* todo, confirm erasure */
+#ifdef DEBUG
+  // cant dereference hard pointers in the test program!
+  response->success = SP_SUCCESS;
+#else
   if (*((uint8*)query->addr) != 0) {
     response->success = SP_FAIL;
   } else {
     response->success = SP_SUCCESS;
   }
+#endif
 
   return SP_OK;
     
 }
 
 SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
+  REPORT("Dispatching Request: WRITE_BYTES");
+
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
 
   SP_Cmd cmd = (SP_Cmd) msg_body[0];
@@ -457,10 +457,13 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
   // todo check that the total size requested is in bounds
 
   uint8* payload     = &msg_body[5];
-  uint16 payload_len = p_packet->total_len - SP_SIZEOF_PHEADER - SP_SIZEOF_PFOOTER;
+  uint16 payload_len = p_packet->total_len - SP_SIZEOF_PHEADER - SP_SIZEOF_PFOOTER - 5;
 
   uint32* write_addr = (u32*)query->addr;
   bool    use_flash  = !sp_addr_in_ram(write_addr);
+
+  REPORT_F("Writing %i bytes to address 0x%X",payload_len,write_addr);
+  sp_debug_dump_packet(p_packet);
 
   if (use_flash) {flashUnlock();}
   
@@ -491,7 +494,6 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
   // todo readback to verify success
   if (use_flash) {flashLock();}
 
-
   response->success = SP_SUCCESS;
   *msg_len = sizeof(SP_WRITE_BYTES_R);
   return SP_OK;
@@ -499,6 +501,8 @@ SP_PacketStatus sp_cmd_write_bytes  (SP_PacketBuf* p_packet, uint16* msg_len) {
 }
 
 SP_PacketStatus sp_cmd_read_bytes   (SP_PacketBuf* p_packet, uint16* msg_len) {
+  REPORT("Dispatching Request: READ_BYTES");
+
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
   // or perhaps   = &p_packet->buffer[SP_SIZEOF_PHEADER];
 
@@ -536,6 +540,8 @@ SP_PacketStatus sp_cmd_read_bytes   (SP_PacketBuf* p_packet, uint16* msg_len) {
 }
 
 SP_PacketStatus sp_cmd_jump_to_user (SP_PacketBuf* p_packet, uint16* msg_len) {
+  REPORT("Dispatching Request: JUMP_TO_USER");
+
   SP_PacketStatus ret_status = SP_ERR_CMD;
 
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
@@ -567,6 +573,8 @@ SP_PacketStatus sp_cmd_jump_to_user (SP_PacketBuf* p_packet, uint16* msg_len) {
 }
 
 SP_PacketStatus sp_cmd_soft_reset   (SP_PacketBuf* p_packet, uint16* msg_len) {
+  REPORT("Dispatching Request: SOFT_RESET");
+
   uint8* msg_body = p_packet->buffer + SP_SIZEOF_PHEADER;
 
   SP_Cmd cmd = (SP_Cmd) msg_body[0];
@@ -603,6 +611,13 @@ void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
   uint8* p_checksum = &p_packet->buffer[SP_SIZEOF_PHEADER + msg_len];
   sp_maligned_copy_u32(checksum,p_checksum);
   sp_reverse_bytes(p_checksum,4);
+
+  REPORT("Created new SP_PacketBuf:");
+  REPORT_F("\t\ttotal_len:    0x%X",p_packet->total_len);
+  REPORT_F("\t\tpindex:       0x%X",p_packet->pindex);
+  REPORT_F("\t\tdirection:    0x%X",p_packet->direction);
+  REPORT_F("\t\tsequence_num: 0x%X",p_packet->sequence_num);
+  REPORT_F("\t\ttoken:        0x%X",p_packet->token);
 
 }
 
@@ -678,13 +693,13 @@ void sp_debug_blink(int i) {
 }
 
 void sp_debug_dump_packet(SP_PacketBuf* p_packet) {
-  uint8 buflen = (p_packet->total_len)*8;
+  uint8 buflen = (p_packet->pindex)*8; // only pindex of the buffer is valid
   uint8 print_buf[buflen];
 
   int i;
   uint8 offset=0;
   print_buf[offset++] = '[';
-  for (i=0;i<p_packet->total_len;i++) {
+  for (i=0;i<p_packet->pindex;i++) {
     if (offset > buflen-5) {
       break; // stop overflow
     }
@@ -693,14 +708,15 @@ void sp_debug_dump_packet(SP_PacketBuf* p_packet) {
   offset -= 2;
   print_buf[offset++] = ']';
 
-  REPORT_F("Packet Dump:\n\t\tGot %i bytes\n\t\t%s",p_packet->total_len,&print_buf[0]);
+  REPORT_F("Packet Dump:\n\t\tGot %i bytes\n\t\t%s",p_packet->pindex,&print_buf[0]);
 }
 
 /* functions that were provided by other portions of the bootloader */
-uint16 usbSendBytes(uint8* sendBuf,uint16 len) {
-  if (send(clntSock, sendBuf, len, 0) != len)
-    DieWithError("send() failed");
-    
+int usbSendBytes(uint8* sendBuf,uint16 len) {
+  if (send(clntSock, sendBuf, len, 0) != len) {
+    DieWithError("send() failed"); // only kills the current connection!
+    return -1;
+  }
   return len;
 }
 
@@ -708,13 +724,18 @@ uint8 usbBytesAvailable(void) {
   return 255;
 }
 
-uint8 usbReceiveBytes(uint8* recvBuf, uint8 len) {
+int usbReceiveBytes(uint8* recvBuf, uint16 len) {
   int bytesIn = 0;                    /* Size of received message */
 
   /* Receive message from client */
   while (bytesIn < len) {
-    if ((bytesIn += recv(clntSock, &recvBuf[bytesIn], len-bytesIn, 0)) <= 0)
-      DieWithError("recv() failed, connection lost");
+    int newBytes = recv(clntSock, &recvBuf[bytesIn], len-bytesIn, 0);
+    if (newBytes < 0) { 
+      DieWithError("recv() failed, connection lost"); // only kills current client
+      return -1;
+    } else {
+      bytesIn += newBytes;
+    }
   }
 
   return bytesIn;
@@ -736,7 +757,6 @@ void jumpToUser    (u32 usrAddr) {
 }
 
 bool flashWriteWord  (u32 addr, u32 word) {
-  REPORT_F("\t\tWrote: 0x%X -> 0x%X\n",addr,word);
 }
 
 bool flashErasePage  (u32 addr) {
@@ -792,6 +812,7 @@ void tcp_get_client() {
 void DieWithError(char *errorMessage)
 {
   REPORT(errorMessage);
-  perror(errorMessage);
-  exit(1);
+  
+  /* kill the client */
+  close(clntSock);
 }
