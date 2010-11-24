@@ -143,7 +143,7 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
   /* Marshall the rest of the data payload into the packet */
   int timeout = SP_BYTE_TIMEOUT;
 
-  while (p_packet->pindex != p_packet->total_len) {
+  while (p_packet->pindex != p_packet->total_len) {    
     
     uint8 bytes_in = usbReceiveBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len-p_packet->pindex);
     if (!bytes_in) {
@@ -157,8 +157,12 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
     }
   }
 
-  // reverse the checksum from big endian
-  sp_reverse_bytes(&(p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM]),SP_LEN_CHECKSUM);
+
+  uint8* p_checksum = p_packet->buffer+p_packet->pindex-SP_LEN_CHECKSUM;
+  uint32 checksum = sp_maligned_cast_u32(p_checksum);
+  sp_reverse_bytes((uint8*)&checksum,4);
+  p_packet->checksum = checksum;
+
   p_packet->checksum = (uint32) p_packet->buffer[p_packet->pindex-SP_LEN_CHECKSUM];
 
   return sp_check_sum(p_packet);
@@ -167,7 +171,7 @@ SP_PacketStatus sp_get_packet(SP_PacketBuf* p_packet) {
 SP_PacketStatus sp_marshall_reply(SP_PacketBuf* p_packet) {
   /* loops over trying to send the response, can timeout */
   int timeout = SP_BYTE_TIMEOUT;
-  while (p_packet->pindex != p_packet->total_len) {
+  while (p_packet->pindex < p_packet->total_len) {
     uint8 bytes_out = usbSendBytes(&p_packet->buffer[p_packet->pindex],p_packet->total_len - p_packet->pindex);
     if (!bytes_out) {
       if (timeout-- == 0) {
@@ -224,11 +228,7 @@ SP_PacketStatus sp_dispatch_packet(SP_PacketBuf* p_packet,uint16* msg_len) {
 
 
 SP_PacketBuf sp_create_pbuf_in(uint8* pbuf, uint16 pbuf_len) {
-  // rever anything big endian
-  sp_reverse_bytes(&pbuf[2],2); // reverses msg_len
-
-  //  uint16 msg_len      = *((uint16*)(&pbuf[2]));   perhpas alignment issues here, create manually
-  uint16 msg_len = pbuf[2]+(pbuf[3]<<8);
+  uint16 msg_len = (pbuf[2] << 8) + pbuf[3];
   uint8  sequence_num = pbuf[1];
   uint8  token        = pbuf[4];
 
@@ -291,8 +291,13 @@ SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   sp_reverse_bytes((uint8*)(&query->addr),4);
 
   SP_ERASE_PAGE_R* response = (SP_ERASE_PAGE_R*)msg_body;
+  *msg_len = sizeof(SP_ERASE_PAGE_R);
 
-  // todo, check for valid address
+  // todo, better check for valid address
+  if ((query->addr) % 4 != 0) {
+    response->success = SP_FAIL;
+    return SP_OK;
+  }
 
   /* unlock the flash */
   flashUnlock();
@@ -302,7 +307,7 @@ SP_PacketStatus sp_cmd_erase_page   (SP_PacketBuf* p_packet, uint16* msg_len) {
   flashLock();
 
   /* todo, confirm erasure */
-  if (*((u32*)(query->addr)) != 0) {
+  if (*((uint8*)(query->addr)) != 0) { // cast as uint8 to avoid alignment issues
     response->success = SP_FAIL;
   } else {
     response->success = SP_SUCCESS;
@@ -477,7 +482,7 @@ void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
 
   /* stuff the checksum */
   uint8* p_checksum = &p_packet->buffer[SP_SIZEOF_PHEADER + msg_len];
-  sp_maglined_copy_u32(checksum,p_checksum);
+  sp_maligned_copy_u32(checksum,p_checksum);
   // *(uint32*)p_checksum = checksum; // this may be a dangrous cast because of alignment
   
   /* and reverse it */
@@ -501,15 +506,23 @@ void sp_reverse_bytes(uint8* buf_in, uint16 len) {
 uint32 sp_compute_checksum(uint8* buf_in, uint16 len) {
   /* take the xor of all 32 bit words in the buffer, in big endian
      order. But return the result in little endian */
+  uint32 checksum=0;
+  uint32 this_word=0;
   int i;
-  uint8 this_word[4] = {0,0,0,0}; 
+  int shift = 24;
   for (i=0;i<len;i++) {
-    this_word[i%4] ^= buf_in[i]; /* xor is bitwise, so we neednt actually decode the 4 byte words */
+    shift = 24-8*(i%4);
+    this_word |= (buf_in[i]  << shift);
+
+    if (shift == 0) {
+      checksum ^= this_word;
+      this_word = 0;
+    }
   }
 
-  sp_reverse_bytes(this_word,4); // convert from big endian
-  uint32 checksum = sp_maligned_cast_u32(this_word);
-  
+  if ((len%4) != 0) {
+    checksum ^= this_word;
+  }
   return checksum;
 }
 
@@ -533,7 +546,7 @@ uint32 sp_maligned_cast_u32(uint8* start) {
   return ret;
 }
 
-void sp_maglined_copy_u32(uint32 val, uint8* dest) {
+void sp_maligned_copy_u32(uint32 val, uint8* dest) {
   int i;
   for (i=0;i<4;i++) {
     *dest = ((val << (24-8*i)) >> 8*i);
