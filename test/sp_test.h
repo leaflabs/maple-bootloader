@@ -32,6 +32,7 @@ typedef int8     s8;
 typedef enum {FALSE = 0, TRUE = !FALSE} bool;
 
 #define DEBUG 1
+#define WAIT_UNTIL_START 1
 
 /* todos on design - really ought to segment the protocol layering
    explicitly. That is, a single function for creating packets,
@@ -308,5 +309,9 @@ bool flashErasePage  (u32 addr);
 bool flashErasePages (u32 addr, u16 n);
 void flashLock       (void);
 void flashUnlock     (void);
+
+// temporary debug for the test
+void sp_debug_dump_packet(SP_PacketBuf* p_packet);
+ 
 
 #endif

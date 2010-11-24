@@ -10,14 +10,16 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
-
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
 #include "sp_test.h"
 
 #define LOG_FILE "test_log.txt"
 #define ERR_DUMP test_log
 
-#define S_REPORT_F(s, fmt, args...) fprintf(s,"\n%04d:%-*s "fmt,__LINE__,25,__func__,args)
-#define S_REPORT(s, str)            fprintf(s,"\n%04d:%-*s %s", __LINE__,25,__func__,str)
+#define S_REPORT_F(s, fmt, args...) fprintf(s,"%04d:%-*s "fmt"\n",__LINE__,25,__func__,args)
+#define S_REPORT(s, str)            fprintf(s,"%04d:%-*s %s\n", __LINE__,25,__func__,str)
 
 //#define REPORT_F(fmt, args...) S_REPORT_F(stderr, fmt, args); S_REPORT_F(test_log, fmt, args)
 //#define REPORT(fmt) S_REPORT(stderr, fmt); S_REPORT(test_log, fmt)
@@ -28,8 +30,10 @@
 FILE *test_log;
 
 static void term_trap(int sig) {
-  REPORT_F("Trapped UNIX Signal 0x%X",sig);
-  fclose(test_log);
+  //  REPORT_F("Trapped UNIX Signal 0x%X",sig);
+  if (test_log) {
+    fclose(test_log);
+  }
 }
 
 #define SIG(x) signal(x,&term_trap)
@@ -89,11 +93,11 @@ SP_PacketStatus sp_run(int delay) {
 
     // since packets are processed atomically, we need only one function
     status = sp_handle_packet(delay, &sp_buffer[0], sizeof(sp_buffer)); 
-
+    REPORT("Dispatch Finished");
 
     if (status == SP_ERR_TIMEOUT || 
         status == SP_EXIT        || 
-        status == SP_ERR_START   ||
+        //        status == SP_ERR_START   ||
         status == SP_SYS_RESET   ||
         status == SP_JUMP_RAM    ||
         status == SP_JUMP_FLASH) {
@@ -125,11 +129,18 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
       /* check the first byte before ANYTHING so we can jump out
          quickly if theres no bootloader traffic */
       if (pbuf[0] != SP_START) {
-        REPORT_F("Incorrect START field: expected 0x%X, got 0x%X",SP_START,pbuf[0]);
-        return SP_ERR_START;
+        if (WAIT_UNTIL_START) {
+          if (!permanent) {
+            delay--;
+          }
+          continue;
+        } else {
+          REPORT_F("Incorrect START field: expected 0x%X, got 0x%X",SP_START,pbuf[0]);
+          return SP_ERR_START;
+        }
       }
 
-
+      REPORT("Receiving remaining header bytes");
       /* get the rest of the header */
       usbReceiveBytes(pbuf+1,SP_SIZEOF_PHEADER-1);
       SP_PacketBuf this_packet = sp_create_pbuf_in(pbuf,pbuf_len);
@@ -147,6 +158,7 @@ SP_PacketStatus sp_handle_packet(int delay, uint8* pbuf, uint16 pbuf_len) {
       if (status != SP_OK) {
         /* perhaps handle with cleanup or more care, this is really passing the buck. */
         REPORT_F("sp_get_packet not OK, return with status: 0x%X",status);
+        sp_debug_dump_packet(&this_packet);
         return status;
       }
 
@@ -642,11 +654,41 @@ void sp_maligned_copy_u32(uint32 val, uint8* dest) {
 void sp_debug_blink(int i) {
 }
 
+void sp_debug_dump_packet(SP_PacketBuf* p_packet) {
+  uint8 buflen = (p_packet->total_len)*8;
+  uint8 print_buf[buflen];
+
+  int i;
+  uint8 offset=0;
+  print_buf[offset++] = '[';
+  for (i=0;i<p_packet->total_len;i++) {
+    if (offset > buflen-5) {
+      break; // stop overflow
+    }
+    offset += sprintf(&print_buf[offset],"0x%X, ", p_packet->buffer[i]);
+  }
+  offset -= 2;
+  print_buf[offset++] = ']';
+
+  REPORT_F("Packet Dump:\n\t\tGot %i bytes\n\t\t%s",p_packet->total_len,&print_buf[0]);
+}
 
 /* functions that were provided by other portions of the bootloader */
 uint16 usbSendBytes(uint8* sendBuf,uint16 len) {
-  uint16 ret = write(stdout, (char*)sendBuf, len);
-  return ret;
+  int nwrote = -1;
+  while (nwrote < 0) {
+    errno = 0;
+    nwrote = write(STDOUT_FILENO, (char*)sendBuf,len);
+    if (nwrote < 1) {
+      if (errno == 11) {
+        sleep(2);
+      } else {
+        REPORT_F("Hard file io error, errno: %i",errno);
+      }
+      nwrote = 0;
+    }
+  }
+  return len;
 }
 
 uint8 usbBytesAvailable(void) {
@@ -655,9 +697,29 @@ uint8 usbBytesAvailable(void) {
 
 uint8 usbReceiveBytes(uint8* recvBuf, uint8 len) {
   int i;
-  for (i=0;i<len;i++) {
-    recvBuf[i] = (uint8)getchar();
+  int nread = 0;
+  int total_read = 0;
+
+  // must block in the test program since we have a fake bytes_availble func
+  while (total_read != len) {
+    errno = 0;
+    nread = read(STDIN_FILENO, (char*)recvBuf,len);
+    if (nread < 1) {
+      if (errno == 11) {
+        sleep(2);
+      } else {
+        REPORT_F("Hard file i/o error. errno: %i",errno);
+        return total_read;
+      }
+      nread = 0;
+    }
+
+    total_read += nread;
+    len -= nread;
+    recvBuf += nread;
   }
+
+  return total_read;
 }
 
 
@@ -692,6 +754,3 @@ void flashLock       (void) {
 
 void flashUnlock     (void) {
 }
-
-
-
