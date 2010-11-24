@@ -568,7 +568,7 @@ SP_PacketStatus sp_cmd_jump_to_user (SP_PacketBuf* p_packet, uint16* msg_len) {
     response->success = SP_FAIL;
   }
 
-  *msg_len = 1;
+  *msg_len = 2;
   return ret_status;
 }
 
