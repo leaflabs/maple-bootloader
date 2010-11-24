@@ -16,8 +16,9 @@ import contextlib
 import math
 import optparse
 import re
-import sys
+import socket
 import subprocess
+import sys
 import time
 from itertools import izip, cycle, chain
 
@@ -38,7 +39,7 @@ BOOTLOADER_DIE_TIMEOUT = BOOTLOADER_TIMEOUT  # seconds for comm to die
 BOOTLOADER_LIVE_TIMEOUT = BOOTLOADER_TIMEOUT # seconds for comm to be reborn
 
 USE_FAKE_SERIAL = True # debug with FakeSerial objects instead of Serial
-RUN_LOCAL = True
+SPAWN_LOCAL = False
 HOSTNAME = 'localhost'
 TCP_PORT = 5323
 
@@ -113,7 +114,7 @@ def upload_bin(prog_bin, port, memory_location=LOCATION_FLASH):
         raise ValueError('memory location must be LOCATION_FLASH or ' +
                          'LOCATION_RAM')
 
-    printv('Opening port {0}'.format(port))
+    if not USE_FAKE_SERIAL: printv('Opening port {0}'.format(port))
     with contextlib.closing(_open_serial(port)) as comm:
         seqnums = cycle(range(256))
 
@@ -131,8 +132,10 @@ def upload_bin(prog_bin, port, memory_location=LOCATION_FLASH):
         # Once we tell the bootloader to jump to user code, it will
         # intentionally delay a little bit before doing so, in order
         # to allow the comm port to close
-        if not jump_to_user(comm, seqnums.next(), location).success:
+        response = jump_to_user(comm, seqnums.next(), memory_location)
+        if not response.fields.success:
             raise IOError('failed jumping to user code')
+    printv('Upload process complete')
 
 def upload_flash(comm, seqnums, info, prog_bytes):
     nbytes = len(prog_bytes)
@@ -151,19 +154,28 @@ def upload_flash(comm, seqnums, info, prog_bytes):
     printv('Uploading program')
     addr = info.start_addr_flash
     for chunk in packet_chunks(prog_bytes):
-        if not write_bytes(comm, seqnums.next(), addr, chunk).success:
+        if not write_bytes(comm, seqnums.next(), addr, chunk).fields.success:
             e = 'failed writing program to flash. wrote {0}/{1} bytes.'
             raise IOError(e.format(addr - info.start_addr_flash, nbytes))
         addr += len(chunk)
 
-    printv('Done uploading.')
+def clear_ram_program(comm, seqnums, info):
+    """Clears some bytes in RAM so that the bootloader won't think a
+    program is resident there."""
+    # the starting address in RAM is the value to use as the stack
+    # pointer.  set this to zero so the bootloader doesn't think
+    # there's a program in RAM (say, after a reset).
+    response = write_bytes(comm, seqnums.next(),
+                           info.start_addr_ram, bytearray(4))
+    if not response.fields.success:
+        raise IOError('failed clearing SP')
 
 def clear_pages(comm, seqnums, board_info, nbytes):
     start = board_info.start_addr_flash
     page_size = board_info.flash_page_size
     npages = int(math.ceil(float(nbytes) / page_size))
     for addr in range(start, start + npages * page_size, page_size):
-        if not erase_page(comm, seqnums.next(), addr).success:
+        if not erase_page(comm, seqnums.next(), addr).fields.success:
             e = "failed erasing page containing address 0x{0:X}"
             raise IOError(e.format(addr))
 
@@ -176,22 +188,10 @@ def upload_ram(comm, seqnums, prog_bytes, info):
     printv('Uploading using RAM target')
     addr = info.start_addr_ram
     for chunk in packet_chunks(prog_bytes):
-        if not write_bytes(comm, seqnums.next(), addr, chunk).success:
+        if not write_bytes(comm, seqnums.next(), addr, chunk).fields.success:
             e = 'failed writing program to flash. wrote {0}/{1} bytes.'
             raise IOError(e.format(addr - info.start_addr_flash, nbytes))
         addr += len(chunk)
-
-    printv('Done uploading.')
-
-def clear_ram_program(comm, seqnums, info):
-    """Clears some bytes in RAM so that the bootloader won't think a
-    program is resident there."""
-    # the starting address in RAM is the value to use as the stack
-    # pointer.  set this to zero so the bootloader doesn't think
-    # there's a program in RAM (say, after a reset).
-    if not write_bytes(comm, seqnums.next(),
-                       info.start_addr_ram, bytearray(4)).success:
-        raise IOError('failed clearing SP')
 
 def _reset_board(port):
     if True:
@@ -371,12 +371,14 @@ class Query(object):
         # we could just say serial.write(self.bytes), but calculating
         # the timeout gets trickier etc, so just do it byte-by-byte
         if verbose(NOISY):
-            noisy_head = '---------- Sending command ----------'
-            print(noisy_head, self.hex_bytes_str(), sep='\n')
+            noisy_head = '---------- Sending {0} query ----------'.format(
+                command_string(self.command))
+            print(noisy_head, repr(self.bytes), sep='\n')
         for b in self:
             n = serial.write(chr(b))
             if n != 1: raise IOError("couldn't write byte")
-        printv('-' * len(noisy_head), level=NOISY)
+        if verbose(NOISY):
+            printv('-' * len(noisy_head), level=NOISY)
 
     def hex_bytes_str(self):
         return ''.join('{0:02X}'.format(b) for b in self)
@@ -414,7 +416,7 @@ class Response(object):
 
     def pprint(self):
         print('{0} Response fields:'.format(self.command))
-        for k, v in fields.iteritems():
+        for k, v in self.fields.iteritems():
             print('\t{0}={1:X}'.format(k, v))
 
 class ResponseError(RuntimeError):
@@ -422,6 +424,14 @@ class ResponseError(RuntimeError):
 
 class ChecksumError(ResponseError):
     pass
+
+class Fields(dict):
+    # HACK no time to read how to do this properly
+    def add_field(self, field, value):
+        self[field] = value
+
+    def __getattr__(self, field):
+        return self[field]
 
 class ResponseParser(object):
     """Used to parse raw bootloader response bytes into a useful form.
@@ -511,7 +521,6 @@ class ResponseParser(object):
             flex_size = msg_size - self.fixed_size
 
         barr += self._get_byte(filelike, PACKET_TOKEN, 'TOKEN')
-        printv('Done parsing packet header', level=NOISY)
 
         # MESSAGE_BODY
         printv('Parsing message body', level=NOISY)
@@ -532,7 +541,6 @@ class ResponseParser(object):
                 buf[i] = b[0]
             payload[field] = buf
             barr.extend(buf)
-        printv('Done parsing message body', level=NOISY)
 
         # CHECKSUM
         printv('Parsing checksum and comparing with expected', level=NOISY)
@@ -544,15 +552,15 @@ class ResponseParser(object):
             e = 'got checksum {0:X}, expected {1:X}. packet data:\n[{2}]'
             raise ChecksumError(e.format(bytearray_to_int(csum),
                                          bytearray_to_int(expected_checksum),
-                                         ', '.join(['0x{0:02X}'.format(b) 
+                                         ', '.join(['0x{0:02X}'.format(b)
                                                     for b in barr])))
         barr += csum
-        printv('Done checksumming, things look good', level=NOISY)
 
         # everything looks good
-        fields = object()
+        printv('OK, everything looks good', level=NOISY)
+        fields = Fields()
         for f, b in payload.iteritems():
-            setattr(fields, f, bytearray_to_int(b))
+            fields.add_field(f, bytearray_to_int(b))
         response = Response(self.command, barr, payload, fields)
 
         if verbose(NOISY):
@@ -568,7 +576,6 @@ class ResponseParser(object):
         case and there's a mismatch; `name' is a name for the byte
         (for debugging)."""
         string = filelike.read(size=1)
-        if string: printv('read: {0:02X}'.format(ord(string)), level=NOISY)
         barr = bytearray(string)
         if len(barr) != 1:
             self._err(name, received='nothing')
@@ -635,7 +642,7 @@ class GetInfoResponseParser(ResponseParser):
 # -- ERASE_PAGE --------------------------------------------------------------#
 
 def erase_page(comm, sequence_num, address):
-    printv('erase_page(sequence_num={0}, address={1})'.format(
+    printv('erase_page(sequence_num={0}, address={1:X})'.format(
             sequence_num, address), level=NOISY)
     return call_and_response(ErasePageQuery(sequence_num, address),
                              ErasePageResponseParser(sequence_num),
@@ -654,7 +661,7 @@ class ErasePageQuery(Query):
         '1B5000057F011251A8F3CCA21254'
         >>> bytearray.fromhex(unicode(q.hex_bytes_str())) == q.bytes
         True"""
-        addr = bytearray(address)
+        addr = int_to_bytearray(address, 4)
         check_bytearray(addr, 4, name='address')
         Query.__init__(self, ERASE_PAGE, sequence_num, 5,
                        chain((ERASE_PAGE,), addr))
@@ -673,7 +680,7 @@ class ErasePageResponseParser(ResponseParser):
 # -- WRITE_BYTES -------------------------------------------------------------#
 
 def write_bytes(comm, sequence_num, address, data):
-    printv('write_bytes(sequence_num={0}, address={1}, data={2})'.format(
+    printv('write_bytes(sequence_num={0}, address=0x{1:X}, data={2})'.format(
             sequence_num, address, repr(data)), level=NOISY)
     return call_and_response(WriteBytesQuery(sequence_num, address, data),
                              WriteBytesResponseParser(sequence_num),
@@ -682,7 +689,10 @@ def write_bytes(comm, sequence_num, address, data):
 class WriteBytesQuery(Query):
 
     def __init__(self, sequence_num, starting_address, data):
-        addr = bytearray(starting_address)
+        if not (0 <= starting_address <= 2**32 - 1):
+            raise ValueError('starting address 0x{0:X} out of range'.format(
+                    starting_address))
+        addr = int_to_bytearray(starting_address, 4)
         check_bytearray(addr, 4, name='address')
         data = bytearray(data)
         Query.__init__(self, WRITE_BYTES, sequence_num,
@@ -704,7 +714,7 @@ class WriteBytesResponseParser(ResponseParser):
 # -- READ_BYTES --------------------------------------------------------------#
 
 def read_bytes(comm, sequence_num, address, length):
-    printv('read_bytes(sequence_num={0}, address={1}, length={2})'.format(
+    printv('read_bytes(sequence_num={0}, address=0x{1:X}, length={2})'.format(
             sequence_num, address, length), level=NOISY)
     return call_and_response(ReadBytesQuery(sequence_num, address, length),
                              ReadBytesResponseParser(sequence_num),
@@ -713,8 +723,9 @@ def read_bytes(comm, sequence_num, address, length):
 class ReadBytesQuery(Query):
 
     def __init__(self, sequence_num, address, length):
-        addr = bytearray(address)
-        check_bytearray(addr, 4, name='address', word_aligned_as_int=True)
+        if not (0 <= address <= 2**32 -1):
+            raise ValueError('address 0x{0:X} out of range'.format(address))
+        addr = int_to_bytearray(address, 4)
 
         length = bytearray(length)
         check_bytearray(length, 2, name='length', word_aligned_as_int=True)
@@ -745,9 +756,9 @@ def jump_to_user(comm, sequence_num, location):
 class JumpToUserQuery(Query):
 
     def __init__(self, sequence_num, location):
-        location = bytearray(location)
+        location = bytearray([location])
         check_bytearray(location, 1, name='location')
-        location_int = bytearray_to_int(location, 1)
+        location_int = bytearray_to_int(location)
         if not (location_int == 0 or location_int == 1):
             e = 'location {0} as integer is {1}, must be either ' + \
                 'LOCATION_FLASH=0 or LOCATION_RAM=1'
@@ -783,52 +794,42 @@ class SoftResetResponseParser(ResponseParser):
 
 # -- FakeSerial --------------------------------------------------------------#
 
-import socket
 class FakeSerial(object):       # for debugging
 
     def __init__(self):
-        global RUN_LOCAL
-        global HOSTNAME
-        global TCP_PORT
+        if HOSTNAME == 'localhost':
+            # spin up the server if necessary
+            self.child = subprocess.Popen(['../../test/sp_test'])
 
-        if (RUN_LOCAL):
-            if (HOSTNAME != 'localhost'):
-                print("Will not spawn local server since the host is remote")
-                RUN_LOCAL = False
-            else:
-                self.child = subprocess.Popen(['../../test/sp_test'],
-                                              stdin=subprocess.PIPE,
-                                              stdout=subprocess.PIPE)
-        # woefully under error handled socket interface
-        self.sock = socket.socket(
-            socket.AF_INET, socket.SOCK_STREAM)
-        
-        print("hostname,port %s %i" % (HOSTNAME,TCP_PORT))
+        # woefully under-error-handled socket interface
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        printv("hostname:port={0}:{1}".format(HOSTNAME,TCP_PORT))
         self.sock.connect((HOSTNAME,TCP_PORT))
 
     def write(self, data):
         bytesOut = 0;
         while bytesOut < len(data):
-            newBytes = self.sock.send(data[bytesOut:])
-            if (newBytes == 0):
-                raise Exception("Connection to host lost unexpectedly during write")
-            bytesOut = bytesOut + newBytes
+            new_bytes = self.sock.send(data[bytesOut:])
+            if (new_bytes == 0):
+                raise IOError("Connection to host unexpectedly lost")
+            bytesOut = bytesOut + new_bytes
 
         return bytesOut
 
     def read(self, size=1):
         data = ''
         while len(data) < size:
-            newBytes = self.sock.recv(size-len(data))
-            if newBytes == '':
-                raise Exception("Connection to host lost unexpectedly during read")
-            data += newBytes
+            new_bytes = self.sock.recv(size-len(data))
+            if new_bytes == '':
+                raise IOError("Connection to host unexpectedly lost")
+            data += new_bytes
         return data
 
     def close(self):
         self.sock.close()
 
-        if (RUN_LOCAL):
+        if SPAWN_LOCAL:
             sigterm_timeout = 3.0
             self.child.terminate()
             start = time.time()
@@ -855,11 +856,16 @@ def main():
     parser.add_option('-v', '--verbose', action='count',
                       help='Enable verbose output; -v -v for more.')
     parser.add_option('-H', '--hostname', default='localhost',
-                      help='Specify the IP or hostname of the remote client. If equal to localhost, then the server will be auto-spawned')
+                      help=('Specify the IP or hostname of the remote client. '
+                            'If equal to localhost, then the server will be '
+                            'auto-spawned'))
     parser.add_option('-p', '--tcp-port', default=5323,
                       help='Specify the port of the remote client')
-    parser.add_option('-S', '--run-local-server', default=True,
-                      help='The program will spawn its own test server. Must have hostname set to localhost')
+    parser.add_option('-S', '--spawn-local', default=False,
+                      action='store_true',
+                      help=('The program will spawn its own test server. '
+                            'Sets hostname to localhost, overriding any '
+                            'other settings.'))
 
     # TODO lose this ugliness
     global opts
@@ -879,17 +885,19 @@ def main():
         import doctest
         doctest.testmod(verbose=verbose(level=VERBOSE))
 
-    printv('Noisy output enabled', level=NOISY)
-
-    global RUN_LOCAL
+    global SPAWN_LOCAL
     global HOSTNAME
-    global TCP_PORT
-    if opts.run_local_server:
-        RUN_LOCAL = opts.run_local_server
-    if opts.hostname:
+
+    if opts.spawn_local:
+        SPAWN_LOCAL = True
+        HOSTNAME = 'localhost'
+    else:
         HOSTNAME = opts.hostname
-    if opts.tcp_port:
-        TCP_PORT = opts.tcp_port
+
+    global TCP_PORT
+    TCP_PORT = opts.tcp_port
+
+    printv('Noisy output enabled', level=NOISY)
 
     if opts.upload:
         match = re.match('(?P<memtype>flash|ram):(?P<rwv>r|w|v):(?P<file>.*)',
@@ -897,7 +905,7 @@ def main():
         if not match:
             usage('malformed -U value.')
 
-        if opts.port is None:
+        if opts.port is None and opts.tcp_port is None:
             usage('you must specify a connection port.')
             sys.exit(1)
 
