@@ -36,7 +36,11 @@ DSRDTR        = False
 BOOTLOADER_TIMEOUT = 2
 BOOTLOADER_DIE_TIMEOUT = BOOTLOADER_TIMEOUT  # seconds for comm to die
 BOOTLOADER_LIVE_TIMEOUT = BOOTLOADER_TIMEOUT # seconds for comm to be reborn
+
 USE_FAKE_SERIAL = True # debug with FakeSerial objects instead of Serial
+RUN_LOCAL = True
+HOSTNAME = 'localhost'
+TCP_PORT = 5323
 
 # Packet constants
 PACKET_START = 0x1B
@@ -443,7 +447,7 @@ class ResponseParser(object):
         self.payload_spec = list(payload_spec)
 
         flex_field = None
-        fixed_size = 0
+        fixed_size = 0 # number of fixed payload bytes, not including command
         for field, size in payload_spec:
             if size is ResponseParser.FLEX:
                 if flex_field is not None:
@@ -454,20 +458,19 @@ class ResponseParser(object):
                 fixed_size += size
         self.flex_field = flex_field
 
+        # cmd + payload
+        body_size = 1 + fixed_size
+
         if flex_field is None:
-            # cmd + payload
-            body_size = 1 + fixed_size
             if body_size > PACKET_MAX_PAYLOAD:
                 e = 'given MESSAGE_BODY size {0} exceeds maximum of {1}'
                 raise ValueError(e.format(body_size, PACKET_MAX_PAYLOAD))
-            # non-payload fields use 9 bytes:
-            # START=1, SEQUENCE_NUM=1, MESSAGE_SIZE=2, TOKEN=1, CHECKSUM=4
-            self.size = body_size + 9
+            self.size = body_size
         else:
-            if fixed_size > PACKET_MAX_PAYLOAD:
+            if body_size > PACKET_MAX_PAYLOAD:
                 e = "non-FLEX fields' total size {0} exceeds maximum of {1}"
-                raise ValueError(e.format(fixed_size, PACKET_MAX_PAYLOAD))
-            self.fixed_size = fixed_size
+                raise ValueError(e.format(body_size, PACKET_MAX_PAYLOAD))
+            self.fixed_size = body_size
 
     def parse(self, filelike):
         """Parse a response from a file-like object (it just needs to
@@ -496,10 +499,11 @@ class ResponseParser(object):
         if msg_size > PACKET_MAX_PAYLOAD:
             e = 'MESSAGE_SIZE {0} exceeds maximum of {1}'
             raise ResponseError(e.format(msg_size, PACKET_MAX_PAYLOAD))
-        elif hasattr(self, size) and msg_size != self.size:
-            self._err('MESSAGE_SIZE', msg_size, self.size)
+        elif hasattr(self, 'size'):
+            if msg_size != self.size:
+                self._err('MESSAGE_SIZE', msg_size, self.size)
         else:
-            assert hasattr(self, fixed_size), "can't happen"
+            assert hasattr(self, 'fixed_size'), "can't happen"
             if msg_size < self.fixed_size:
                 e = 'MESSAGE_SIZE {0} is less than total size of ' + \
                     'non-flex fields, {1}'
@@ -523,7 +527,9 @@ class ResponseParser(object):
             buf = bytearray(size)
             for i in xrange(size):
                 n = 'field {0} byte {1}'.format(field, i)
-                buf[i] = self._get_byte(filelike, name=n)
+                b = self._get_byte(filelike, name=n)
+                assert len(b) == 1, "can't happen"
+                buf[i] = b[0]
             payload[field] = buf
             barr.extend(buf)
         printv('Done parsing message body', level=NOISY)
@@ -533,10 +539,13 @@ class ResponseParser(object):
         expected_checksum = packet_checksum(barr)
         csum = bytearray(4)
         for i in range(4):
-            try:
-                csum[i] = self._get_byte(filelike, expected_checksum[i])
-            except ResponseError as exc:
-                raise ChecksumError(*exc.args)
+                csum[i] = self._get_byte(filelike)[0]
+        if csum != expected_checksum:
+            e = 'got checksum {0:X}, expected {1:X}. packet data:\n[{2}]'
+            raise ChecksumError(e.format(bytearray_to_int(csum),
+                                         bytearray_to_int(expected_checksum),
+                                         ', '.join(['0x{0:02X}'.format(b) 
+                                                    for b in barr])))
         barr += csum
         printv('Done checksumming, things look good', level=NOISY)
 
@@ -568,7 +577,7 @@ class ResponseParser(object):
         if expected is not None and byte != expected:
             self._err(name, byte, expected)
 
-        return byte
+        return barr
 
     def _err(self, value=None, received=None, expected=None):
         val = 'error on {0}'.format(value) if value is not None else ''
@@ -774,28 +783,60 @@ class SoftResetResponseParser(ResponseParser):
 
 # -- FakeSerial --------------------------------------------------------------#
 
+import socket
 class FakeSerial(object):       # for debugging
 
     def __init__(self):
-        self.child = subprocess.Popen(['../../test/sp_test'],
-                                      stdin=subprocess.PIPE,
-                                      stdout=subprocess.PIPE)
+        global RUN_LOCAL
+        global HOSTNAME
+        global TCP_PORT
+
+        if (RUN_LOCAL):
+            if (HOSTNAME != 'localhost'):
+                print("Will not spawn local server since the host is remote")
+                RUN_LOCAL = False
+            else:
+                self.child = subprocess.Popen(['../../test/sp_test'],
+                                              stdin=subprocess.PIPE,
+                                              stdout=subprocess.PIPE)
+        # woefully under error handled socket interface
+        self.sock = socket.socket(
+            socket.AF_INET, socket.SOCK_STREAM)
+        
+        print("hostname,port %s %i" % (HOSTNAME,TCP_PORT))
+        self.sock.connect((HOSTNAME,TCP_PORT))
 
     def write(self, data):
-        self.child.stdin.write(data)
+        bytesOut = 0;
+        while bytesOut < len(data):
+            newBytes = self.sock.send(data[bytesOut:])
+            if (newBytes == 0):
+                raise Exception("Connection to host lost unexpectedly during write")
+            bytesOut = bytesOut + newBytes
+
+        return bytesOut
 
     def read(self, size=1):
-        return self.child.read(size)
+        data = ''
+        while len(data) < size:
+            newBytes = self.sock.recv(size-len(data))
+            if newBytes == '':
+                raise Exception("Connection to host lost unexpectedly during read")
+            data += newBytes
+        return data
 
     def close(self):
-        sigterm_timeout = 3.0
-        self.child.terminate()
-        start = time.time()
-        while time.time() - start < sigterm_timeout:
-            if self.child.returncode is not None:
-                break
-        else:
-            self.child.kill()
+        self.sock.close()
+
+        if (RUN_LOCAL):
+            sigterm_timeout = 3.0
+            self.child.terminate()
+            start = time.time()
+            while time.time() - start < sigterm_timeout:
+                if self.child.returncode is not None:
+                    break
+            else:
+                self.child.kill()
 
 # -- Command-line interface --------------------------------------------------#
 
@@ -813,6 +854,12 @@ def main():
                       help='(flash|ram):(r|w|v):<program.bin>')
     parser.add_option('-v', '--verbose', action='count',
                       help='Enable verbose output; -v -v for more.')
+    parser.add_option('-H', '--hostname', default='localhost',
+                      help='Specify the IP or hostname of the remote client. If equal to localhost, then the server will be auto-spawned')
+    parser.add_option('-p', '--tcp-port', default=5323,
+                      help='Specify the port of the remote client')
+    parser.add_option('-S', '--run-local-server', default=True,
+                      help='The program will spawn its own test server. Must have hostname set to localhost')
 
     # TODO lose this ugliness
     global opts
@@ -833,6 +880,16 @@ def main():
         doctest.testmod(verbose=verbose(level=VERBOSE))
 
     printv('Noisy output enabled', level=NOISY)
+
+    global RUN_LOCAL
+    global HOSTNAME
+    global TCP_PORT
+    if opts.run_local_server:
+        RUN_LOCAL = opts.run_local_server
+    if opts.hostname:
+        HOSTNAME = opts.hostname
+    if opts.tcp_port:
+        TCP_PORT = opts.tcp_port
 
     if opts.upload:
         match = re.match('(?P<memtype>flash|ram):(?P<rwv>r|w|v):(?P<file>.*)',

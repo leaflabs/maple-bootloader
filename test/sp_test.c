@@ -15,6 +15,12 @@
 #include <unistd.h>
 #include "sp_test.h"
 
+/* socket related stuff */
+#include <sys/socket.h> /* for socket() and socket functions*/
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#include <string.h>     /* for memset() */
+
+
 #define LOG_FILE "test_log.txt"
 #define ERR_DUMP test_log
 
@@ -28,6 +34,15 @@
 #define REPORT(fmt) S_REPORT(ERR_DUMP, fmt)
 
 FILE *test_log;
+
+#define MAXPENDING 5    /* Maximum outstanding connection requests */
+#define PORT       5323
+int servSock;                    /* Socket descriptor for server */
+int clntSock;                    /* Socket descriptor for client */
+struct sockaddr_in echoServAddr; /* Local address */
+struct sockaddr_in echoClntAddr; /* Client address */
+unsigned short echoServPort;     /* Server port */
+unsigned int clntLen;            /* Length of client address data structure */
 
 static void term_trap(int sig) {
   //  REPORT_F("Trapped UNIX Signal 0x%X",sig);
@@ -49,36 +64,46 @@ int main()
   REPORT("Maple Bootloader Test Utility");
   REPORT("Running sp_run(0)");
 
-  SP_PacketStatus status = sp_run(0); // will block until successfull JUMP_TO_USER,SOFT_RESET,or EXIT
-  REPORT("CMD Interface Finished...");
+  /* setup the socket */
+  tcp_init_server();
 
-  char* status_str;
-  switch (status) {
-  case SP_ERR_TIMEOUT:
-    status_str = "TIMEOUT";
-    break;
-  case SP_ERR_START:
-    status_str = "ERR_START";
-    break;
-  case SP_EXIT:
-    status_str = "EXIT";
-    break;
-  case SP_JUMP_RAM:
-    status_str = "JUMP_RAM";
-    break;
-  case SP_JUMP_FLASH:
-    status_str = "JUMP_FLASH";
-    break;
-  case SP_SYS_RESET:
-    status_str = "SYS_RESET";
-    break;
+  while (1) {
+    tcp_get_client();
 
-  default: 
-    status_str = "Unexpected return val";
-    break;
-  }
+    SP_PacketStatus status = sp_run(0); // will block until successfull JUMP_TO_USER,SOFT_RESET,or EXIT
+    REPORT("CMD Interface Finished...");
+
+    char* status_str;
+    switch (status) {
+    case SP_ERR_TIMEOUT:
+      status_str = "TIMEOUT";
+      break;
+    case SP_ERR_START:
+      status_str = "ERR_START";
+      break;
+    case SP_EXIT:
+      status_str = "EXIT";
+      break;
+    case SP_JUMP_RAM:
+      status_str = "JUMP_RAM";
+      break;
+    case SP_JUMP_FLASH:
+      status_str = "JUMP_FLASH";
+      break;
+    case SP_SYS_RESET:
+      status_str = "SYS_RESET";
+      break;
+
+    default: 
+      status_str = "Unexpected return val";
+      break;
+    }
   
-  REPORT_F("CMD Interface exit status:  %s",status_str);
+    REPORT_F("CMD Interface exit status:  %s",status_str);
+
+    close(clntSock);    /* Close client socket */
+  }
+
   return 0; 
 }
 
@@ -568,10 +593,8 @@ void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
   /* stuff the packet header in the buffer, only need to change msg_len! */
   SP_PHeader* header = (SP_PHeader*)p_packet->buffer;
   header->msg_len = msg_len;
-
-  /* reverse any fields that need it before checksum */
   sp_reverse_bytes((uint8*)&header->msg_len,2);
-  
+
   /* compute the checksum */
   uint32 checksum = sp_compute_checksum(p_packet->buffer,p_packet->total_len - SP_SIZEOF_PFOOTER);
   p_packet->checksum = checksum;
@@ -579,9 +602,6 @@ void sp_setup_pbuf_out (SP_PacketBuf* p_packet, uint16 msg_len) {
   /* stuff the checksum */
   uint8* p_checksum = &p_packet->buffer[SP_SIZEOF_PHEADER + msg_len];
   sp_maligned_copy_u32(checksum,p_checksum);
-  // *(uint32*)p_checksum = checksum; // this may be a dangrous cast because of alignment
-  
-  /* and reverse it */
   sp_reverse_bytes(p_checksum,4);
 
 }
@@ -619,6 +639,7 @@ uint32 sp_compute_checksum(uint8* buf_in, uint16 len) {
   if ((len%4) != 0) {
     checksum ^= this_word;
   }
+  REPORT_F("computed checksum: %x", checksum);
   return checksum;
 }
 
@@ -645,7 +666,9 @@ uint32 sp_maligned_cast_u32(uint8* start) {
 void sp_maligned_copy_u32(uint32 val, uint8* dest) {
   int i;
   for (i=0;i<4;i++) {
-    *dest = ((val << (24-8*i)) >> 8*i);
+    uint32 mask = 0xFF << 8*i;
+    uint32 mask_word = (val&mask) >> 8*i;
+    *dest++ = (uint8)mask_word; 
   }
 }
 
@@ -675,19 +698,9 @@ void sp_debug_dump_packet(SP_PacketBuf* p_packet) {
 
 /* functions that were provided by other portions of the bootloader */
 uint16 usbSendBytes(uint8* sendBuf,uint16 len) {
-  int nwrote = -1;
-  while (nwrote < 0) {
-    errno = 0;
-    nwrote = write(STDOUT_FILENO, (char*)sendBuf,len);
-    if (nwrote < 1) {
-      if (errno == 11) {
-        sleep(2);
-      } else {
-        REPORT_F("Hard file io error, errno: %i",errno);
-      }
-      nwrote = 0;
-    }
-  }
+  if (send(clntSock, sendBuf, len, 0) != len)
+    DieWithError("send() failed");
+    
   return len;
 }
 
@@ -696,30 +709,15 @@ uint8 usbBytesAvailable(void) {
 }
 
 uint8 usbReceiveBytes(uint8* recvBuf, uint8 len) {
-  int i;
-  int nread = 0;
-  int total_read = 0;
+  int bytesIn = 0;                    /* Size of received message */
 
-  // must block in the test program since we have a fake bytes_availble func
-  while (total_read != len) {
-    errno = 0;
-    nread = read(STDIN_FILENO, (char*)recvBuf,len);
-    if (nread < 1) {
-      if (errno == 11) {
-        sleep(2);
-      } else {
-        REPORT_F("Hard file i/o error. errno: %i",errno);
-        return total_read;
-      }
-      nread = 0;
-    }
-
-    total_read += nread;
-    len -= nread;
-    recvBuf += nread;
+  /* Receive message from client */
+  while (bytesIn < len) {
+    if ((bytesIn += recv(clntSock, &recvBuf[bytesIn], len-bytesIn, 0)) <= 0)
+      DieWithError("recv() failed, connection lost");
   }
 
-  return total_read;
+  return bytesIn;
 }
 
 
@@ -753,4 +751,47 @@ void flashLock       (void) {
 }
 
 void flashUnlock     (void) {
+}
+
+void tcp_init_server() {
+  echoServPort = PORT;
+
+  /* Create socket for incoming connections */
+  if ((servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    DieWithError("socket() failed");
+      
+  /* Construct local address structure */
+  memset(&echoServAddr, 0, sizeof(echoServAddr));   /* Zero out structure */
+  echoServAddr.sin_family = AF_INET;                /* Internet address family */
+  echoServAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+  echoServAddr.sin_port = htons(echoServPort);      /* Local port */
+
+  /* Bind to the local address */
+  if (bind(servSock, (struct sockaddr *) &echoServAddr, sizeof(echoServAddr)) < 0)
+    DieWithError("bind() failed");
+
+  /* Mark the socket so it will listen for incoming connections */
+  if (listen(servSock, MAXPENDING) < 0)
+    {
+      DieWithError("listen() failed");
+    }
+}
+
+void tcp_get_client() {
+  /* Set the size of the in-out parameter */
+  clntLen = sizeof(echoClntAddr);
+
+  /* Wait for a client to connect */
+  if ((clntSock = accept(servSock, (struct sockaddr *) &echoClntAddr, &clntLen)) < 0)
+    DieWithError("accept() failed");
+
+  /* clntSock is connected to a client! */
+  REPORT_F("Connected over TCP to %s", inet_ntoa(echoClntAddr.sin_addr));
+}
+
+void DieWithError(char *errorMessage)
+{
+  REPORT(errorMessage);
+  perror(errorMessage);
+  exit(1);
 }

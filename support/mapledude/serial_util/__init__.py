@@ -28,7 +28,7 @@ OS = _guess_os()
 
 # pull in platform-specific definitions
 if OS == OSX:     from _ser_osx import *
-elif OS == WINXP: from _ser_win32 import *
+elif OS == WIN32: from _ser_win32 import *
 elif OS == LINUX: from _ser_linux import *
 else:             die('unknown operating system: {0}'.format(OS))
 

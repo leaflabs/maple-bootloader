@@ -310,8 +310,11 @@ bool flashErasePages (u32 addr, u16 n);
 void flashLock       (void);
 void flashUnlock     (void);
 
-// temporary debug for the test
+// temporary debug for the testOA
 void sp_debug_dump_packet(SP_PacketBuf* p_packet);
- 
+void tcp_init_server(void);
+void tcp_get_client(void);
+void DieWithError(char *errorMessage);
+
 
 #endif
