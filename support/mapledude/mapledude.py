@@ -20,6 +20,7 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 from itertools import izip, cycle, chain
 
 import serial
@@ -106,6 +107,10 @@ def upload_bin(prog_bin, port, memory_location=LOCATION_FLASH):
      - ResponseError: some response packet is malformed
 
      - ChecksumError: some packet's checksum is mismatched
+
+     - SequenceNumError: a packet's SEQUENCE_NUM was mismatched.  In
+       this case, an attempt was made to flush the remainder of the
+       packet's bytes.
     """
     with open(prog_bin, 'rb') as f_in:
         prog_bytes = bytearray(f_in.read())
@@ -420,10 +425,23 @@ class Response(object):
             print('\t{0}={1:X}'.format(k, v))
 
 class ResponseError(RuntimeError):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        self.received = kwargs.get('received')
+        self.expected = kwargs.get('expected')
+
+        RuntimeError.__init__(self, *args, **kwargs)
 
 class ChecksumError(ResponseError):
     pass
+
+class SequenceNumError(ResponseError):
+
+    def __init__(self, *args, **kwargs):
+        self.expected = kwargs.get('expected')
+        self.received = kwargs.get('received')
+        self.command = kwargs.get('command')
+        ResponseError.__init__(self)
 
 class Fields(dict):
     # HACK no time to read how to do this properly
@@ -498,7 +516,19 @@ class ResponseParser(object):
         # packet header (START, SEQUENCE_NUM, etc.)
         printv('Parsing packet header', level=NOISY)
         barr += self._get_byte(filelike, PACKET_START, 'START')
-        barr += self._get_byte(filelike, self.sequence_num, 'SEQUENCE_NUM')
+        try:
+            barr += self._get_byte(filelike, self.sequence_num, 'SEQUENCE_NUM')
+        except ResponseError as exc:
+            if exc.received is not None:
+                # we got something, it just wasn't the right sequence
+                # number. to avoid a cascading error, flush the rest
+                # of the packet's bytes, and raise SequenceNumError
+                # instead, so the caller knows what happened.
+                self._bad_seqnum_flush_packet(filelike)
+                raise SequenceNumError(expected=self.sequence_num,
+                                       received=exc.received,
+                                       command=self.command)
+            raise
 
         msg_size_msb = self._get_byte(filelike, name='MESSAGE_SIZE[0]')
         msg_size_lsb = self._get_byte(filelike, name='MESSAGE_SIZE[1]')
@@ -578,7 +608,7 @@ class ResponseParser(object):
         string = filelike.read(size=1)
         barr = bytearray(string)
         if len(barr) != 1:
-            self._err(name, received='nothing')
+            self._err(name, expected=expected)
 
         byte = barr[0]
         if expected is not None and byte != expected:
@@ -588,15 +618,27 @@ class ResponseParser(object):
 
     def _err(self, value=None, received=None, expected=None):
         val = 'error on {0}'.format(value) if value is not None else ''
-        rec = 'received {0}'.format(received) if received is not None else ''
+        rec = ('received {0}'.format(received) if received is not None
+               else 'got nothing')
         exp = 'expected {0}'.format(expected) if expected is not None else ''
-
-        if exp and not rec: rec = 'got nothing'
 
         exprec = ', '.join(filter(None, [exp, rec]))
         msg = ': '.join(filter(None, [val, exprec]))
 
-        raise ResponseError(msg)
+        raise ResponseError(msg, expected=expected, received=received)
+
+    def _bad_seqnum_flush_packet(self, filelike):
+        # called by parse() on SEQUENCE_NUM mismatch.  parses
+        # MESSAGE_SIZE and flushes that many packets (plus 4 for
+        # checksum) to avoid cascading failure.  if anything times
+        # out, just ignores it.
+        msg_size_msb = self._get_byte(filelike, name='MESSAGE_SIZE[0]')
+        msg_size_lsb = self._get_byte(filelike, name='MESSAGE_SIZE[1]')
+        msg_size = bytearray_to_int(msg_size_barr)
+        nbytes = msg_size + 4
+        for i in xrange(nbytes):
+            self._get_byte(filelike, name='flush {0}/{1}'.format(i, nbytes))
+
 
 # -- Serial packet transaction -----------------------------------------------#
 
@@ -843,6 +885,16 @@ class FakeSerial(object):       # for debugging
 
 opts, args = None, None
 
+def query_try_again():
+    yes = ['', 'y', 'yes']
+    no = ['n', 'no']
+    response = None
+    while response not in yes + no:
+        try:
+            response = raw_input('Try again? [Y/n] ').strip().lower()
+        except EOFError:
+            response = no[0]
+    return response in yes
 
 def main():
     parser = optparse.OptionParser(usage='usage: %prog [options]')
@@ -924,7 +976,15 @@ def main():
         if rwv == 'r':          # TODO
             pass
         elif rwv == 'w':
-            upload_bin(program, opts.port, location)
+            keep_trying = True
+            while keep_trying:
+                try:
+                    upload_bin(program, opts.port, location)
+                except SequenceNumError:
+                    print('SEQUENCE_NUM mismatch during upload.')
+                    if verbose(NOISY):
+                        traceback.print_exception()
+                    keep_trying = query_try_again()
         else: # TODO rwv == 'v'
             pass
 
