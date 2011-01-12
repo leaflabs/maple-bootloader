@@ -1,3 +1,18 @@
+Maple Bootloader with modifications to run on the LeafLabs Audio Board, 
+which runs off of an stm32f103RET6 instead of an RBT6. The changes between
+the regular bootloader and this one are:
+
+config.h - 
+    added a FLASH_PAGE_SIZE parameter, which is used in flash_erase_pages
+    moved the LED/BUT pins to their proper places
+
+usb.h
+    changed wMaxTransferSize to FLASH_PAGE_SIZE
+    moved the DISC pin to its proper place
+
+hardware.c
+    flash_erase_pages now depends on FLASH_PAGE_SIZE
+
 
 FILES -------------------------------------------------------------------------
 
@@ -31,8 +46,5 @@ dfu.c
 
 
 TODO --------------------------------------------------------------------------
-
- * tap reset then quickly tap The Button leaves the board in dfu wait loop 
-   forever instead of just 2 seconds
 
  * use sizeof() for usb application descriptor
