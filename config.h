@@ -35,6 +35,8 @@
 
 #include "common.h"
 
+#define FLASH_PAGE_SIZE 0x800 /* 2KB pages for high density devices */
+
 /* On the Mini, LED is PB12 */
 #define LED_BANK         GPIOC
 #define LED              9
