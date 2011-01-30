@@ -100,7 +100,7 @@ void setupLED (void) {
   pRCC->APB2ENR |= RCC_APB2ENR_LED;
 
   /* Setup LED pin as output open drain */
-  SET_REG(LED_BANK_CR,(GET_REG(LED_BANK_CR) & LED_CR_MASK) | LED_CR_OUTPUT_OD);
+  SET_REG(LED_BANK_CR,(GET_REG(LED_BANK_CR) & LED_CR_MASK) | LED_CR_OUTPUT);
   setPin(LED_BANK, LED);
 }
 
