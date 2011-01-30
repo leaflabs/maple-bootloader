@@ -37,12 +37,12 @@
 
 #define FLASH_PAGE_SIZE 0x800 /* 2KB pages for high density devices */
 
-/* On the Mini, LED is PB12 */
+/* On the Native, LED is PC15 */
 #define LED_BANK         GPIOC
-#define LED              9
+#define LED              15
 #define LED_BANK_CR      GPIO_CRH(LED_BANK)
-#define LED_CR_MASK      0xFFFFFF0F
-#define LED_CR_OUTPUT    0x00000010
+#define LED_CR_MASK      0x0FFFFFFF
+#define LED_CR_OUTPUT    0x10000000
 #define RCC_APB2ENR_LED  0x00000010 /* enable PB */
 
 /* Speed controls for strobing the LED pin */
