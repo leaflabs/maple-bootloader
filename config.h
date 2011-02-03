@@ -40,7 +40,7 @@
 #define LED              12
 #define LED_BANK_CR      GPIO_CRH(LED_BANK)
 #define LED_CR_MASK      0xFFF0FFFF
-#define LED_CR_OUTPUT_OD 0x00050000
+#define LED_CR_OUTPUT_PP 0x00010000
 #define RCC_APB2ENR_LED  0x00000008 /* enable PB */
 
 /* Speed controls for strobing the LED pin */
