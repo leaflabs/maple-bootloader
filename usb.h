@@ -1,4 +1,4 @@
-/* *****************************************************************************
+/******************************************************************************
  * The MIT License
  *
  * Copyright (c) 2010 LeafLabs LLC.
@@ -20,7 +20,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * ****************************************************************************/
+ *****************************************************************************/
 #ifndef __USB_H
 #define __USB_H
 
@@ -28,7 +28,7 @@
 #include "usb_lib.h"
 #include "usb_descriptor.h"
 
-/* USB Disc Pin Setup.  On the Mini, USB DISC is PB9 */
+/* USB Disc Pin Setup.  On the Native, USB DISC is PB8 */
 #define USB_DISC_BANK         GPIOB
 #define USB_DISC              8
 #define USB_DISC_CR           GPIO_CRH(USB_DISC_BANK)
@@ -45,8 +45,11 @@
 #define ENDP2_TXADDR    0x100
 #define ENDP3_RXADDR    0x110
 
-#define bMaxPacketSize  0x40    /* 64B,  maximum for usb FS devices */
-#define wTransferSize   FLASH_PAGE_SIZE  /* 2048B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
+#define bMaxPacketSize  0x40    /* 64B, maximum for usb FS devices */
+#define wTransferSize   FLASH_PAGE_SIZE /* 2048B, want: maxpacket <
+                                           wtransfer < 10KB (to ensure
+                                           everything can live in
+                                           ram */
 
 #define NUM_ENDPTS      0x01
 
@@ -54,14 +57,14 @@
 #define F_SUSPEND_ENABLED 1
 
 /* defines which interrupts are handled */
-#define ISR_MSK (CNTR_CTRM   |			\
-                 CNTR_WKUPM  |			\
-                 CNTR_SUSPM  |			\
-                 CNTR_ERRM   |			\
-                 CNTR_SOFM   |			\
-                 CNTR_ESOFM  |			\
-                 CNTR_RESETM			\
-		 )
+#define ISR_MSK (CNTR_CTRM   |                  \
+                 CNTR_WKUPM  |                  \
+                 CNTR_SUSPM  |                  \
+                 CNTR_ERRM   |                  \
+                 CNTR_SOFM   |                  \
+                 CNTR_ESOFM  |                  \
+                 CNTR_RESETM                    \
+                 )
 
 typedef enum _RESUME_STATE
   {
@@ -121,7 +124,7 @@ void usbSetEndpointFeature(void);
 void usbSetDeviceFeature(void);
 void usbSetDeviceAddress(void);
 
-/* the small number of comm emulator functions to 
+/* the small number of comm emulator functions to
    eventually be migrated into their own usart sources
 */
 u8* vcomGetLineCoding(u16 length);
@@ -129,8 +132,8 @@ u8* vcomSetLineCoding(u16 length);
 void vcomEp1In(void);
 void vcomEp3Out(void);
 
-/* Interrupt setup/handling exposed only so that 
-   its obvious from main what interrupts are overloaded 
+/* Interrupt setup/handling exposed only so that
+   its obvious from main what interrupts are overloaded
    from c_only_startup.s (see the top of main.c) */
 void usbDsbISR(void);
 void usbEnbISR(void);

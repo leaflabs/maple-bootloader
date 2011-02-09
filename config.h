@@ -35,7 +35,7 @@
 
 #include "common.h"
 
-#define FLASH_PAGE_SIZE 0x800 /* 2KB pages for high density devices */
+#define FLASH_PAGE_SIZE  0x800 /* 2KB pages for high density devices */
 
 /* On the Native, LED is PC15 */
 #define LED_BANK         GPIOC
@@ -43,29 +43,29 @@
 #define LED_BANK_CR      GPIO_CRH(LED_BANK)
 #define LED_CR_MASK      0x0FFFFFFF
 #define LED_CR_OUTPUT    0x10000000
-#define RCC_APB2ENR_LED  0x00000010 /* enable PB */
+#define RCC_APB2ENR_LED  0x00000010 /* enable PC */
 
 /* Speed controls for strobing the LED pin */
-#define BLINK_FAST 0x50000
-#define BLINK_SLOW 0x100000
+#define BLINK_FAST       0x50000
+#define BLINK_SLOW       0x100000
 
-/* On the Mini, BUT is PB8 */
-#define BUTTON_BANK      GPIOB
-#define BUTTON           4
-#define BUT_BANK_CR      GPIO_CRL(BUTTON_BANK)
-#define BUT_CR_MASK      0xFFF0FFFF
-#define BUT_CR_OUTPUT_IN 0x00040000
-#define RCC_APB2ENR_BUT  0x00000008 /* enable PB */
+/* On the Native, BUT is PG15 */
+#define BUTTON_BANK      GPIOG
+#define BUTTON           15
+#define BUT_BANK_CR      GPIO_CRH(BUTTON_BANK)
+#define BUT_CR_MASK      0x0FFFFFFF
+#define BUT_CR_OUTPUT    0x40000000
+#define RCC_APB2ENR_BUT  0x00000100 /* enable PG */
 
-#define STARTUP_BLINKS 5
-#define BOOTLOADER_WAIT 6
+#define STARTUP_BLINKS   5
+#define BOOTLOADER_WAIT  6
 
-#define USER_CODE_RAM     ((u32)0x20000C00)
-#define USER_CODE_FLASH   ((u32)0x08005000)
+#define USER_CODE_RAM    ((u32)0x20000C00)
+#define USER_CODE_FLASH  ((u32)0x08005000)
 
-#define VEND_ID0 0xAF
-#define VEND_ID1 0x1E
-#define PROD_ID0 0x03
-#define PROD_ID1 0x00
+#define VEND_ID0         0xAF
+#define VEND_ID1         0x1E
+#define PROD_ID0         0x03
+#define PROD_ID1         0x00
 
 #endif

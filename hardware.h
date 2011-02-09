@@ -35,22 +35,26 @@
 #define GPIOA ((u32)0x40010800)
 #define GPIOB ((u32)0x40010C00)
 #define GPIOC ((u32)0x40011000)
+#define GPIOD ((u32)0x40011400)
+#define GPIOE ((u32)0x40011800)
+#define GPIOF ((u32)0x40011C00)
+#define GPIOG ((u32)0x40012000)
 
-#define RCC_CR      RCC
-#define RCC_CFGR    RCC + 0x04
-#define RCC_CIR     RCC + 0x08
-#define RCC_AHBENR  RCC + 0x14
-#define RCC_APB2ENR RCC + 0x18
-#define RCC_APB1ENR RCC + 0x16
+#define RCC_CR      (RCC)
+#define RCC_CFGR    (RCC + 0x04)
+#define RCC_CIR     (RCC + 0x08)
+#define RCC_AHBENR  (RCC + 0x14)
+#define RCC_APB2ENR (RCC + 0x18)
+#define RCC_APB1ENR (RCC + 0x16)
 
-#define FLASH_ACR     FLASH + 0x00
-#define FLASH_KEYR    FLASH + 0x04
-#define FLASH_OPTKEYR FLASH + 0x08
-#define FLASH_SR      FLASH + 0x0C
-#define FLASH_CR      FLASH + 0x10
-#define FLASH_AR      FLASH + 0x14
-#define FLASH_OBR     FLASH + 0x1C
-#define FLASH_WRPR    FLASH + 0x20
+#define FLASH_ACR     (FLASH + 0x00)
+#define FLASH_KEYR    (FLASH + 0x04)
+#define FLASH_OPTKEYR (FLASH + 0x08)
+#define FLASH_SR      (FLASH + 0x0C)
+#define FLASH_CR      (FLASH + 0x10)
+#define FLASH_AR      (FLASH + 0x14)
+#define FLASH_OBR     (FLASH + 0x1C)
+#define FLASH_WRPR    (FLASH + 0x20)
 
 #define FLASH_KEY1     0x45670123
 #define FLASH_KEY2     0xCDEF89AB
@@ -61,10 +65,10 @@
 #define FLASH_CR_START 0x40
 
 #define GPIO_CRL(port)  port
-#define GPIO_CRH(port)  port+0x04
-#define GPIO_IDR(port)  port+0x08
-#define GPIO_ODR(port)  port+0x0c
-#define GPIO_BSRR(port) port+0x10
+#define GPIO_CRH(port)  (port+0x04)
+#define GPIO_IDR(port)  (port+0x08)
+#define GPIO_ODR(port)  (port+0x0c)
+#define GPIO_BSRR(port) (port+0x10)
 
 #define SCS_BASE   ((u32)0xE000E000)
 #define NVIC_BASE  (SCS_BASE + 0x0100)
@@ -81,12 +85,12 @@
 
 #define TIM1_APB2_ENB ((u32)0x00000800)
 #define TIM1          ((u32)0x40012C00)
-#define TIM1_PSC      TIM1+0x28
-#define TIM1_ARR      TIM1+0x2C
-#define TIM1_RCR      TIM1+0x30
-#define TIM1_CR1      TIM1+0x00
-#define TIM1_CR2      TIM1+0x04
-#define TIM1_DIER     TIM1+0x0C
+#define TIM1_PSC      (TIM1+0x28)
+#define TIM1_ARR      (TIM1+0x2C)
+#define TIM1_RCR      (TIM1+0x30)
+#define TIM1_CR1      (TIM1+0x00)
+#define TIM1_CR2      (TIM1+0x04)
+#define TIM1_DIER     (TIM1+0x0C)
 #define TIM1_UP_IRQ_Channel ((u8)0x19)
 
 #define USB_HP_IRQ  ((u8)0x13)
