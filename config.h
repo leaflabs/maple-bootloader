@@ -1,4 +1,4 @@
-/* *****************************************************************************
+/******************************************************************************
  * The MIT License
  *
  * Copyright (c) 2010 LeafLabs LLC.
@@ -20,7 +20,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * ****************************************************************************/
+ *****************************************************************************/
 
 /**
  *  @file config.h
@@ -38,9 +38,9 @@
 /* On the Mini, LED is PB1 */
 #define LED_BANK         GPIOB
 #define LED              1
-#define LED_BANK_CR      GPIO_CRH(LED_BANK)
+#define LED_BANK_CR      GPIO_CRL(LED_BANK)
 #define LED_CR_MASK      0xFFFFFF0F
-#define LED_CR_OUTPUT_PP 0x00000010
+#define LED_CR_MODE      0x00000010
 #define RCC_APB2ENR_LED  0x00000008 /* enable PB */
 
 /* Speed controls for strobing the LED pin */
