@@ -27,14 +27,8 @@
 #include "common.h"
 #include "usb_lib.h"
 #include "usb_descriptor.h"
+#include "config.h"
 
-/* USB Disc Pin Setup.  On the Native, USB DISC is PB8 */
-#define USB_DISC_BANK         GPIOB
-#define USB_DISC              8
-#define USB_DISC_CR           GPIO_CRH(USB_DISC_BANK)
-#define USB_DISC_CR_MASK      0xFFFFFFF0
-#define USB_DISC_CR_OUTPUT_OD 0x00000005
-#define RCC_APB2ENR_USB       0x00000008
 #define RCC_APB1ENR_USB_CLK   0x00800000
 
 /* USB configuration params */

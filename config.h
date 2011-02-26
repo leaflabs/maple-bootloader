@@ -35,33 +35,42 @@
 
 #include "common.h"
 
-#define FLASH_PAGE_SIZE  0x800 /* 2KB pages for high density devices */
+/* High density devices have 2KB flash pages */
+#define FLASH_PAGE_SIZE  0x800
 
-/* On the Native, LED is PC15 */
-#define LED_BANK         GPIOC
-#define LED              15
-#define LED_BANK_CR      GPIO_CRH(LED_BANK)
-#define LED_CR_MASK      0x0FFFFFFF
-#define LED_CR_OUTPUT    0x10000000
-#define RCC_APB2ENR_LED  0x00000010 /* enable PC */
+/* On the Maple RET6, LED is PA5 */
+#define LED_BANK         GPIOA
+#define LED              5
+#define LED_BANK_CR      GPIO_CRL(LED_BANK)
+#define LED_CR_MASK      0xFF0FFFFF
+#define LED_CR_OUTPUT    0x00100000
+#define RCC_APB2ENR_LED  0x00000004 /* enable PA */
 
-/* Speed controls for strobing the LED pin */
+/* On the Maple RET6, BUT is PC9 */
+#define BUTTON_BANK      GPIOC
+#define BUTTON           9
+#define BUT_BANK_CR      GPIO_CRH(BUTTON_BANK)
+#define BUT_CR_MASK      0xFFFFFF0F
+#define BUT_CR_OUTPUT    0x00000040
+#define RCC_APB2ENR_BUT  0x00000010 /* enable PC */
+
+/* USB Disc Pin Setup.  On the Maple RET6, USB_DISC is PC12 */
+#define USB_DISC_BANK         GPIOC
+#define USB_DISC              12
+#define USB_DISC_CR           GPIO_CRH(USB_DISC_BANK)
+#define USB_DISC_CR_MASK      0xFFF0FFFF
+#define USB_DISC_CR_OUTPUT_OD 0x00050000
+#define RCC_APB2ENR_USB       0x00000010
+
+/* Controls for strobing the LED pin during bootloader startup */
 #define BLINK_FAST       0x50000
 #define BLINK_SLOW       0x100000
-
-/* On the Native, BUT is PG15 */
-#define BUTTON_BANK      GPIOG
-#define BUTTON           15
-#define BUT_BANK_CR      GPIO_CRH(BUTTON_BANK)
-#define BUT_CR_MASK      0x0FFFFFFF
-#define BUT_CR_OUTPUT    0x40000000
-#define RCC_APB2ENR_BUT  0x00000100 /* enable PG */
-
 #define STARTUP_BLINKS   5
 #define BOOTLOADER_WAIT  6
 
-#define USER_CODE_RAM    ((u32)0x20000C00)
-#define USER_CODE_FLASH  ((u32)0x08005000)
+/* Addresses to place user code, in RAM and in Flash builds. */
+#define USER_CODE_RAM    0x20000C00
+#define USER_CODE_FLASH  0x08005000
 
 #define VEND_ID0         0xAF
 #define VEND_ID1         0x1E

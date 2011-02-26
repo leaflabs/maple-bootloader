@@ -25,9 +25,9 @@
 /**
  *  @file usb.c
  *
- *  @brief usb-specific hardware setup, NVIC, clocks, and usb activities
+ *  @brief USB-specific hardware setup, NVIC, clocks, and USB activities
  *  in the pre-attached state. includes some of the lower level callbacks 
- *  needed by the usb library, like suspend,resume,init,etc
+ *  needed by the USB library, like suspend, resume, init, etc.
  */
 
 #include "usb.h"
@@ -40,15 +40,14 @@ void setupUSB (void) {
   /* Setup USB DISC pin as output open drain */
   SET_REG(USB_DISC_CR,
           (GET_REG(USB_DISC_CR) & USB_DISC_CR_MASK) | USB_DISC_CR_OUTPUT_OD);
-  setPin (USB_DISC_BANK,USB_DISC);
+  setPin(USB_DISC_BANK, USB_DISC);
 
   /* turn on the USB clock */
   pRCC->APB1ENR |= RCC_APB1ENR_USB_CLK;
 
-  /* initialize the usb application */
-  resetPin (USB_DISC_BANK,USB_DISC);  /* present ourselves to the host */
+  /* initialize the USB application */
+  resetPin(USB_DISC_BANK, USB_DISC);  /* present ourselves to the host */
   usbAppInit();
-
 }
 
 void usbDsbBus(void) {
