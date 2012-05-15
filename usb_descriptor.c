@@ -50,7 +50,7 @@ u8 u8_usbDeviceDescriptorDFU[18] =
     PROD_ID0,   /* idProduct (0x1001 or 1002) */
     PROD_ID1,
 
-    0x00,   /* bcdDevice*/
+    0x01,   /* bcdDevice*/
     0x02,
     0x01,   /* iManufacturer : index of string Manufacturer  */
     0x02,   /* iProduct      : index of string descriptor of product*/
