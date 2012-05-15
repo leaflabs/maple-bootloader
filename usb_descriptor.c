@@ -71,10 +71,10 @@ u8 u8_usbFunctionalDescriptor[9] =
     0x21,   /* DFU Functional Descriptor*/
     0x01,   /*bmAttribute, can only download for now */
     0xFF,   /*DetachTimeOut= 255 ms*/
-    0xFF,
+    0x00,
     (wTransferSize & 0x00FF),
     (wTransferSize & 0xFF00) >> 8, /* TransferSize = 1024 Byte*/
-    0x1A,                          /* bcdDFUVersion*/
+    0x10,                          /* bcdDFUVersion = 1.1 */
     0x01
   };
 
@@ -129,11 +129,11 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x21,   /* DFU Functional Descriptor*/
     0x01,   /*bmAttribute, can only download for now */
     0xFF,   /*DetachTimeOut= 255 ms*/
-    0xFF,
+    0x00,
     (wTransferSize & 0x00FF),
     (wTransferSize & 0xFF00) >> 8, /* TransferSize = 1024 Byte*/
-    0x01,                          /* bcdDFUVersion*/
-    0x00
+    0x10,                          /* bcdDFUVersion = 1.1 */
+    0x01
     /***********************************************************/
     /*36*/
   };
