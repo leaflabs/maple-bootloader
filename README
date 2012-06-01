@@ -1,0 +1,11 @@
+This is a bootloader derived from leaflabs' maple dfu bootloader.
+It has a better support for multiple boards, and some other
+goodies.
+To compile run 'make'
+To specify toolchain - use CROSS_COMPILE, e.g.
+'CROSS_COMPILE=arm-none-eabi- make'
+Results are piled to build/ directory.
+To see what's actually happening - run with V=y, e.g.
+CROSS_COMPILE=arm-none-eabi- make V=y
+This will dump a lot of info for you.
+Have fun.

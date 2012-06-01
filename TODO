@@ -1,0 +1,10 @@
+This is a personal TODO list.
+
+Clean up board init, free up some space
+Shut up a shitload of warnings from usb_lib
+Merge here all the CREDITS, Licensing info and other shit
+Wrap altsettings in macros, add API for adding custom endpoints
+Merge Xilinx-SSCU for Mcortex
+Add support for boards: mcortex mctx-dm sISP ucGUN, etc.
+Talk with leaflabs, merge&check their boards
+fix coding style!!!
