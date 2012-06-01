@@ -41,6 +41,7 @@ tb_ylw=$(shell echo -e '\e[1;33m')
 tb_blu=$(shell echo -e '\e[1;34m')
 tb_pur=$(shell echo -e '\e[1;35m')
 col_rst=$(shell echo -e '\e[0m')
+tb_grn=$(shell echo -e '\e[1;32m')
 
 ifneq ($(V),y)
    SILENT_CC       = @echo '  $(tb_ylw)[CC]$(col_rst)       ' $(@F);
@@ -48,7 +49,7 @@ ifneq ($(V),y)
    SILENT_LD       = @echo '  $(tb_pur)[LD]$(col_rst)       ' $(@F);
    SILENT_OBJCOPY  = @echo '  $(tb_pur)[OBJCOPY]$(col_rst)  ' $(@F);
    SILENT_OBJDUMP  = @echo '  $(tb_pur)[OBJDUMP]$(col_rst)  ' $(OBJDUMP);
-   SILENT_INFO     = @echo '  $(tb_blu)[INFO]$(col_rst)	Build for board $(tb_pur)$(BOARD)$(col_rst) complete';
+   SILENT_INFO     = @echo '  $(tb_grn)[INFO]$(col_rst)	Build for board $(tb_grn)$(BOARD)$(col_rst) complete';
    #Shut up this crap
    MAKEFLAGS+=--no-print-directory
 endif
