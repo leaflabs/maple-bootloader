@@ -32,18 +32,21 @@
  */
 
 #include "common.h"
+#include "dfu.h"
 
 int main() {
   systemReset(); // peripherals but not PC
   boardInit();
-  setupUSB();
+  usbAppInit();
   setupFLASH();
 
   strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
 
   /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
+  #ifdef LDR_DELAYED
+  bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON));
   int delay_count = 0;
+  #endif
 
   while (bootloaderCondition) {
     strobePin(LED_BANK,LED,1,BLINK_SLOW);

@@ -334,7 +334,7 @@ void dfuCopyBufferToExec() {
     flashErasePage((u32)(userSpace));
 
     for (i=0;i<thisBlockLen;i=i+4) {
-      flashWriteWord(userSpace++,*(u32*)(recvBuffer+i));
+	    flashWriteWord((u32)userSpace++,*(u32*)(recvBuffer+i));
     }
 
   }

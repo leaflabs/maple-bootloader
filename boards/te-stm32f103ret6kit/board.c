@@ -65,21 +65,21 @@ static void inline setupUSB (void) {
 
   /* Setup the USB DISC Pin */
   rwmVal  = GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
+  rwmVal |= 0x8;
   SET_REG(RCC_APB2ENR,rwmVal);
 
   // todo, macroize usb_disc pin
   /* Setup GPIOC Pin 12 as OD out */
-  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-  rwmVal &= 0xFFF0FFFF;
-  rwmVal |= 0x00050000;
-  setPin (GPIOC,12);
-  SET_REG(GPIO_CRH(GPIOC),rwmVal);
+  rwmVal  = GET_REG(GPIO_CRL(GPIOB));
+  rwmVal &= 0xFF0FFFFF;
+  rwmVal |= 0x00500000;
+  setPin (GPIOB,5);
+  SET_REG(GPIO_CRL(GPIOB),rwmVal);
 
   pRCC->APB1ENR |= 0x00800000;
 
   /* initialize the usb application */
-  resetPin (GPIOC,12);  /* present ourselves to the host */
+  resetPin (GPIOB,5);  /* present ourselves to the host */
 
 }
 
@@ -87,7 +87,7 @@ static void inline setupUSB (void) {
 /* executed before actual jump to user code */
 void boardTeardown()
 {
-  setPin(GPIOC,12); // disconnect usb from host. todo, macroize pin
+  resetPin(GPIOB,5); // disconnect usb from host. todo, macroize pin
 }
 
 /* This is a common routine to setup the board */

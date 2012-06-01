@@ -36,7 +36,7 @@
 //WTF WAS THAT DOING HERE??
 //#include "common.h"
 
-#define INHIBIT_LEDS
+#define NUM_ALT_SETTINGS 2
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -57,10 +57,10 @@
 #define PROD_ID0 0x03
 #define PROD_ID1 0x00
 
+
 /* while this is '1' we're looping in the bootloader */
 
-#define bootloaderCondition (delay_count++ < BOOTLOADER_WAIT) \
-	|| no_user_jump
+#define bootloaderCondition (1)
 
 #define bootloaderExitCondition 0
 

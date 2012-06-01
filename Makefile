@@ -1,4 +1,3 @@
-unexport
 CROSS_COMPILE?=arm-ncrmnt-eabi-
 SRCDIR=.
 OBJDIR=./build
@@ -13,7 +12,6 @@ TARGET=$(OBJDIR)/ucboot-$(BOARD)
 CFLAGS += -O$(OPT)
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -Wimplicit
-CFLAGS += -Wcast-align
 CFLAGS += -Wpointer-arith -Wswitch
 CFLAGS += -Wredundant-decls -Wreturn-type -Wshadow -Wunused
 CFLAGS += -Wa,-adhlns=$(OBJDIR)/$(subst $(suffix $<),.lst,$<)

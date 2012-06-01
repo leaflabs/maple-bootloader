@@ -192,9 +192,9 @@ u8 u8_usbStringAlt1[0x3A] =
     '0',0
   };
 
-u8 u8_usbStringInterface = NULL;
+u8 u8_usbStringInterface = 0;
 
-ONE_DESCRIPTOR usbStringDescriptor[STR_DESC_LEN] =
+ONE_DESCRIPTOR usbStringDescriptor[] =
   {
     { (u8*)u8_usbStringLangId,  0x04 },
     { (u8*)u8_usbStringVendor,  0x12 },
