@@ -39,7 +39,8 @@ board.c has 2 functions that need to be implemented.
 boardInit() - This should init the board, any leds, buttons, clocks and
 present the usb device to the host
 
-boardTeardown() - should disconnect the device from host for good.
+boardTeardown() - should disconnect the device from host for good. Any
+ other code you want to run defore exiting loader goes here
 
 usb_descriptors.c gives you fine-tuning of the device descriptors.
 
