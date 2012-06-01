@@ -73,14 +73,13 @@ static void inline setupUSB (void) {
   rwmVal  = GET_REG(GPIO_CRL(GPIOB));
   rwmVal &= 0xFF0FFFFF;
   rwmVal |= 0x00500000;
-  setPin (GPIOB,5);
+  resetPin (GPIOB,5);
   SET_REG(GPIO_CRL(GPIOB),rwmVal);
 
   pRCC->APB1ENR |= 0x00800000;
-
   /* initialize the usb application */
-  resetPin (GPIOB,5);  /* present ourselves to the host */
-
+  setPin (GPIOB,5);  /* present ourselves to the host */
+  usbAppInit();
 }
 
 

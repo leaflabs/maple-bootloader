@@ -51,6 +51,7 @@ bool readPin(u32 bank, u8 pin) {
   }
 }
 
+#ifndef CONFIG_INHIBIT_STROBE
 void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
   resetPin(bank,pin);
 
@@ -66,6 +67,7 @@ void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
     resetPin(bank,pin);
   }
 }
+#endif
 
 void systemReset(void) {
   SET_REG(RCC_CR, GET_REG(RCC_CR)     | 0x00000001);

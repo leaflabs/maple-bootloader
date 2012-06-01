@@ -178,7 +178,14 @@ void boardTeardown();
 void setPin    (u32 bank, u8 pin);
 void resetPin  (u32 bank, u8 pin);
 bool readPin   (u32 bank, u8 pin);
+
+
+#ifndef CONFIG_INHIBIT_STROBE
 void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
+#else
+#define strobePin(bank, pin, count, rate) ;;
+#endif
+
 
 void systemHardReset(void);
 void systemReset   (void);

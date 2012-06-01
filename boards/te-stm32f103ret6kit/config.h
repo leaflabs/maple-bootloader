@@ -37,6 +37,8 @@
 //#include "common.h"
 
 #define NUM_ALT_SETTINGS 2
+//No LED strobing whatsoever - saves space
+//#define CONFIG_INHIBIT_STROBE
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -50,7 +52,7 @@
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
-#define USER_CODE_FLASH   ((u32)0x08005000)
+#define USER_CODE_FLASH   ((u32)0x08002800)
 
 #define VEND_ID0 0xAF
 #define VEND_ID1 0x1E
@@ -58,10 +60,13 @@
 #define PROD_ID1 0x00
 
 
-/* while this is '1' we're looping in the bootloader */
+//Any extra code for main, e.g. for timeouts
+//#define CONFIG_EXTRA_MAIN_CODE
 
+/* while this is '1' we're looping in the bootloader */
 #define bootloaderCondition (1)
 
+/* define to 0 to never exit, undefine to save space */
 #define bootloaderExitCondition 0
 
 #endif

@@ -33,7 +33,7 @@
 
 extern ONE_DESCRIPTOR  usbDeviceDescriptorDFU;
 extern ONE_DESCRIPTOR  usbConfigDescriptorDFU;
-extern ONE_DESCRIPTOR  usbStringDescriptor[];
+extern ONE_DESCRIPTOR  usbStringDescriptor[6];
 extern ONE_DESCRIPTOR  usbFunctionalDescriptor;
 
 #endif

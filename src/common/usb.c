@@ -33,30 +33,6 @@
 #include "usb.h"
 #include "dfu.h"
 
-void setupUSB (void) {
-  u32 rwmVal; /* read-write-modify place holder var */
-
-  /* Setup the USB DISC Pin */
-  rwmVal  = GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
-  SET_REG(RCC_APB2ENR,rwmVal);
-
-  // todo, macroize usb_disc pin
-  /* Setup GPIOC Pin 12 as OD out */
-  rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-  rwmVal &= 0xFFF0FFFF;
-  rwmVal |= 0x00050000;
-  setPin (GPIOC,12);
-  SET_REG(GPIO_CRH(GPIOC),rwmVal);
-
-  pRCC->APB1ENR |= 0x00800000;
-
-  /* initialize the usb application */
-  resetPin (GPIOC,12);  /* present ourselves to the host */
-  usbAppInit();
-
-}
-
 vu32 bDeviceState = UNCONNECTED;
 
 /* tracks sequential behavior of the ISTR */
@@ -407,6 +383,7 @@ void usbSetEndpointFeature(void) {
 void usbSetDeviceFeature(void) {
   /* nothing process */
 }
+
 
 void usbSetDeviceAddress(void) {
   bDeviceState = ADDRESSED;
