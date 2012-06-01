@@ -45,6 +45,13 @@
 #define F_SUSPEND_ENABLED 0
 
 /* defines which interrupts are handled */
+#ifdef CONFIG_DISABLE_USB_SUSPEND
+#define ISR_MSK (CNTR_CTRM   |			\
+                 CNTR_ERRM   |			\
+                 CNTR_SOFM   |			\
+                 CNTR_RESETM			\
+		 )
+#else
 #define ISR_MSK (CNTR_CTRM   |			\
                  CNTR_WKUPM  |			\
                  CNTR_SUSPM  |			\
@@ -53,6 +60,7 @@
                  CNTR_ESOFM  |			\
                  CNTR_RESETM			\
 		 )
+#endif
 
 typedef enum _RESUME_STATE
   {

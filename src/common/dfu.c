@@ -35,14 +35,14 @@
 #include "usb.h"
 
 /* DFU globals */
-static u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
-static DFUStatus dfuAppStatus;       /* includes state */
-static bool userFlash = FALSE;
+u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
+ DFUStatus dfuAppStatus;       /* includes state */
+ bool userFlash = FALSE;
 bool dfuBusy = FALSE;
 
-static u8 recvBuffer[wTransferSize];
-static u32 userFirmwareLen = 0;
-static u16 thisBlockLen = 0;
+ u8 recvBuffer[wTransferSize];
+ u32 userFirmwareLen = 0;
+ u16 thisBlockLen = 0;
 
 
 PLOT code_copy_lock;

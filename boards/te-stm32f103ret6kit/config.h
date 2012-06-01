@@ -40,6 +40,10 @@
 //No LED strobing whatsoever - saves space
 //#define CONFIG_INHIBIT_STROBE
 
+//Replace USB suspend/resume code with dummies.
+//Saves a few bytes more
+#define CONFIG_DISABLE_USB_SUSPEND
+
 #define LED_BANK GPIOA
 #define LED      5
 #define BLINK_FAST 0x50000
@@ -52,12 +56,12 @@
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
-#define USER_CODE_FLASH   ((u32)0x08002800)
+#define USER_CODE_FLASH   ((u32)0x08005000)
 
-#define VEND_ID0 0xAF
-#define VEND_ID1 0x1E
-#define PROD_ID0 0x03
-#define PROD_ID1 0x00
+#define VEND_ID0 0xAD
+#define VEND_ID1 0xDE
+#define PROD_ID0 0xDE
+#define PROD_ID1 0xC0
 
 
 //Any extra code for main, e.g. for timeouts

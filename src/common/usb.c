@@ -64,14 +64,14 @@ DEVICE_PROP Device_Property =
 
 USER_STANDARD_REQUESTS User_Standard_Requests =
   {
-    usbGetConfiguration,
+    nothingProc,
     usbSetConfiguration,
-    usbGetInterface,
-    usbSetInterface,
-    usbGetStatus,
-    usbClearFeature,
-    usbSetEndpointFeature,
-    usbSetDeviceFeature,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
+    nothingProc,
     usbSetDeviceAddress
   };
 
@@ -114,6 +114,7 @@ void usbAppInit(void) {
   USB_Init();
 }
 
+#ifndef CONFIG_DISABLE_USB_SUSPEND
 void usbSuspend(void) {
   u16 wCNTR;
   wCNTR = _GetCNTR();
@@ -187,6 +188,7 @@ void usbResume(RESUME_STATE eResumeSetVal) {
       break;
     }
 }
+#endif
 
 RESULT usbPowerOn(void) {
   u16 wRegVal;
@@ -349,10 +351,10 @@ u8* usbGetFunctionalDescriptor(u16 len) {
  * application level
  *******************************************/
 
+/*
 void usbGetConfiguration(void) {
-  /* nothing process */
 }
-
+*/
 void usbSetConfiguration(void) {
   if (pInformation->Current_Configuration != 0)
     {
@@ -360,30 +362,32 @@ void usbSetConfiguration(void) {
     }
 }
 
+/*
+ Lets save some space, shall we?
 void usbGetInterface(void) {
-  /* nothing process */
+
 }
 
 void usbSetInterface(void) {
-  /* nothing process */
+
 }
 
 void usbGetStatus(void) {
-  /* nothing process */
+
 }
 
 void usbClearFeature(void) {
-  /* nothing process */
+
 }
 
 void usbSetEndpointFeature(void) {
-  /* nothing process */
+
 }
 
 void usbSetDeviceFeature(void) {
-  /* nothing process */
-}
 
+}
+*/
 
 void usbSetDeviceAddress(void) {
   bDeviceState = ADDRESSED;
