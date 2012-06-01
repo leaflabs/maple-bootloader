@@ -48,6 +48,7 @@ ifneq ($(V),y)
    SILENT_LD       = @echo '  $(tb_pur)[LD]$(col_rst)       ' $(@F);
    SILENT_OBJCOPY  = @echo '  $(tb_pur)[OBJCOPY]$(col_rst)  ' $(@F);
    SILENT_OBJDUMP  = @echo '  $(tb_pur)[OBJDUMP]$(col_rst)  ' $(OBJDUMP);
+   SILENT_INFO     = @echo '  $(tb_blu)[INFO]$(col_rst)	Build for board $(tb_pur)$(BOARD)$(col_rst) complete';
    #Shut up this crap
    MAKEFLAGS+=--no-print-directory
 endif
@@ -97,7 +98,7 @@ warmup:
 	@touch $(OBJDIR)/config.h
 
 build: warmup $(OBJDIR)/ucboot-$(BOARD).bin
-	@echo "Build for board $(BOARD) complete"
+	$(SILENT_INFO)
 
 clean:
 	@rm -Rfv $(OBJDIR)

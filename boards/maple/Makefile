@@ -1,1 +1,1 @@
-objects-y+=board.o
+objects-y+=board.o usb_descriptor.o

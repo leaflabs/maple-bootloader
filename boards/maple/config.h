@@ -36,7 +36,9 @@
 //WTF WAS THAT DOING HERE??
 //#include "common.h"
 
-#define INHIBIT_LEDS
+#define NUM_ALT_SETTINGS 2
+
+//#define INHIBIT_LEDS
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -59,6 +61,9 @@
 #define PROD_ID1 0x00
 
 /* while this is '1' we're looping in the bootloader */
+#define CONFIG_EXTRA_MAIN_CODE \
+	bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON)); \
+	int delay_count =0;
 
 #define bootloaderCondition (delay_count++ < BOOTLOADER_WAIT) \
 	|| no_user_jump
