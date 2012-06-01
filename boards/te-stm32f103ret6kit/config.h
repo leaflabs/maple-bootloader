@@ -38,10 +38,11 @@
 
 #define NUM_ALT_SETTINGS 2
 //No LED strobing whatsoever - saves space
-//#define CONFIG_INHIBIT_STROBE
+#define CONFIG_INHIBIT_STROBE
 
 //Replace USB suspend/resume code with dummies.
 //Saves a few bytes more
+
 #define CONFIG_DISABLE_USB_SUSPEND
 
 #define LED_BANK GPIOA

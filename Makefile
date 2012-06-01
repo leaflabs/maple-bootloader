@@ -9,6 +9,8 @@ THUMB_IW = -mthumb-interwork
 
 TARGET=$(OBJDIR)/ucboot-$(BOARD)
 
+OPT=s
+DEBUG=
 CFLAGS += -O$(OPT)
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -Wimplicit
