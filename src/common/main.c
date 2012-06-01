@@ -38,7 +38,7 @@ int main() {
   systemReset(); // peripherals but not PC
   boardInit();
   setupFLASH();
-  //usbAppInit();
+  usbAppInit();
   strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
   #ifdef CONFIG_EXTRA_MAIN_CODE
   CONFIG_EXTRA_MAIN_CODE
@@ -56,8 +56,10 @@ int main() {
     if (dfuUploadStarted()) {
       dfuFinishUpload(); // systemHardReset from DFU once done
     }
+    #ifdef bootloaderExitCondition
     if (bootloaderExitCondition)
 	    break;
+    #endif
   }
 
   if (checkUserCode(USER_CODE_RAM)) {
