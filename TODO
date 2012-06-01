@@ -1,11 +1,11 @@
 This is a personal TODO list.
 
-Clean up board init, free up some space
+Clean up board init, free up some space *WiP
 Do we need different LD script and c_startup for different uCs??
-Shut up a shitload of warnings from usb_lib
-Merge here all the CREDITS, Licensing info and other shit
+Shut up a shitload of warnings from usb_lib *DONE
+Merge here all the CREDITS, Licensing info and other shit *DONE (Somewhat)
 Wrap altsettings in macros, add API for adding custom endpoints
 Merge Xilinx-SSCU for Mcortex
 Add support for boards: mcortex mctx-dm sISP ucGUN, etc.
-Talk with leaflabs, merge&check their boards
+Talk with leaflabs, merge&check their boards *WiP
 fix coding style!!!
