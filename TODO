@@ -1,6 +1,7 @@
 This is a personal TODO list.
 
 Clean up board init, free up some space
+Do we need different LD script and c_startup for different uCs??
 Shut up a shitload of warnings from usb_lib
 Merge here all the CREDITS, Licensing info and other shit
 Wrap altsettings in macros, add API for adding custom endpoints
