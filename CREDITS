@@ -10,3 +10,7 @@ The fields are: name (N), email (E), web-address (W), description (D).
 N: Tormod Volden
 E: debian.tormod@gmail.com
 D: Fixes for DFU compliance
+
+N: Andrew 'Necromant' Andrianov
+E: andrew@ncrmnt.org
+D: Portability, cleanups, buildsystem tweeks
