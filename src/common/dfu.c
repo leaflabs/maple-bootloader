@@ -35,17 +35,17 @@
 #include "usb.h"
 
 /* DFU globals */
-u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
- DFUStatus dfuAppStatus;       /* includes state */
- bool userFlash = FALSE;
-bool dfuBusy = FALSE;
+volatile u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
+DFUStatus dfuAppStatus;       /* includes state */
+volatile bool userFlash = FALSE;
+volatile bool dfuBusy = FALSE;
 
- u8 recvBuffer[wTransferSize];
- u32 userFirmwareLen = 0;
- u16 thisBlockLen = 0;
+volatile u8 recvBuffer[wTransferSize];
+volatile u32 userFirmwareLen = 0;
+volatile u16 thisBlockLen = 0;
 
 
-PLOT code_copy_lock;
+volatile PLOT code_copy_lock;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
@@ -151,6 +151,7 @@ bool dfuUpdateByRequest(void) {
     /* if were actually done writing, goto sync, else stay busy */
     if (code_copy_lock == END) {
       dfuAppStatus.bwPollTimeout0 = 0x00;
+      dfuAppStatus.bwPollTimeout1 = 0x00;
       code_copy_lock=WAIT;
       dfuAppStatus.bState = dfuDNLOAD_IDLE;
     } else {

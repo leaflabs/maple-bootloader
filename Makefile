@@ -21,9 +21,9 @@ CFLAGS += -I$(OBJDIR)/
 
 GENDEPFLAGS = -MD -MP -MF $(@).d
 
-CFLAGS += -mcpu=$(MCU) $(THUMB_IW) $(GENDEPFLAGS)
+CFLAGS += -mcpu=$(MCU) $(THUMB) $(THUMB_IW) $(GENDEPFLAGS)
 ASFLAGS = -Wa,-adhlns=$(OBJDIR)/$(<:.s=.lst)#,--g$(DEBUG)
-ASFLAGS += -mcpu=$(MCU) $(THUMB_IW) -x assembler-with-cpp
+ASFLAGS += -mcpu=$(MCU) $(THUMB) $(THUMB_IW) -x assembler-with-cpp
 ASFLAGS += $(GENDEPFLAGS)
 LDFLAGS = -nostartfiles -Wl,-Map=$(TARGET).map,--cref,--gc-sections
 LDFLAGS += -lc -lgcc
