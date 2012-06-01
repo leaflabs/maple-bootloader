@@ -23,6 +23,14 @@ CONFIG_INHIBIT_STROBE
 CONFIG_DISABLE_USB_SUSPEND
   Disables USB suspend/resume support and saves quite a few bytes
 
+CONFIG_RUNAPP_ALT
+  !!!This is a hack, that breaks the dfu standart.
+  Define this the to the altsetting number, e.g. 0, 1, etc.
+  Trying to download anything to that altsetting will cause immediate
+  jump to user code. dfu-util should exit due to device 'disconnect'
+  In this case you would normally want to tune the number of altsettings
+  to 3, to have a spare altsetting (or you can sacrifice RAM altsetting 0)
+
 You can also adjust the USER_CODE_FLASH to some lower adress, depending
 on the resulting loader size. Default maple settings waste a lot of
 space.

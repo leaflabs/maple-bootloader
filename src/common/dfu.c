@@ -90,6 +90,12 @@ bool dfuUpdateByRequest(void) {
 	  flashUnlock();
 
 	} else {
+#ifdef CONFIG_RUNAPP_ALT
+if (pInformation->Current_AlternateSetting == CONFIG_RUNAPP_ALT) {
+	boardTeardown();
+	jumpToUser(USER_CODE_FLASH);
+}
+#endif
 	  userAppAddr = USER_CODE_RAM;
 	  userFlash = FALSE;
 	}

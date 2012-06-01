@@ -33,10 +33,9 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-//WTF WAS THAT DOING HERE??
-//#include "common.h"
-
 #define NUM_ALT_SETTINGS 2
+
+#define CONFIG_RUNAPP_ALT 0
 //No LED strobing whatsoever - saves space
 #define CONFIG_INHIBIT_STROBE
 
