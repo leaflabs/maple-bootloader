@@ -69,4 +69,5 @@ int main() {
     strobePin(LED_BANK,LED,5,BLINK_FAST);
     systemHardReset();
   }
+	return 0;
 }
