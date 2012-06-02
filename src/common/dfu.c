@@ -30,7 +30,7 @@
  *
  *
  */
-
+#include "config.h"
 #include "dfu.h"
 #include "usb.h"
 

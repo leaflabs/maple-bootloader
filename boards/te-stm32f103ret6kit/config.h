@@ -35,6 +35,7 @@
 
 #define NUM_ALT_SETTINGS 3
 #define STR_DESC_LEN 7
+#define FLASH_PAGE_SIZE  0x800
 
 #define CONFIG_RUNAPP_ALT 0
 //No LED strobing whatsoever - saves space

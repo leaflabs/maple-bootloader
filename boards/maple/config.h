@@ -36,6 +36,8 @@
 //WTF WAS THAT DOING HERE??
 //#include "common.h"
 
+#define FLASH_PAGE_SIZE  0x400
+
 #define NUM_ALT_SETTINGS 2
 #define STR_DESC_LEN 6
 //#define INHIBIT_LEDS

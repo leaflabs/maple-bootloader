@@ -36,7 +36,7 @@
 #define NUM_ALT_SETTINGS 3
 #define STR_DESC_LEN 7
 
-#define CONFIG_RUNAPP_ALT 0
+//#define CONFIG_RUNAPP_ALT 0
 #define CONFIG_INFO_ALT
 
 //No LED strobing whatsoever - saves space
@@ -45,7 +45,10 @@
 //Replace USB suspend/resume code with dummies.
 //Saves a few bytes more
 
-//#define CONFIG_DISABLE_USB_SUSPEND
+#define CONFIG_DISABLE_USB_SUSPEND
+
+/* F*ck, that costed me an hour of lifetime to figure out! */
+#define FLASH_PAGE_SIZE  0x800
 
 #define LED_BANK GPIOG
 #define LED      8
@@ -56,7 +59,7 @@
 #define BUTTON      9
 
 #define STARTUP_BLINKS 5
-#define BOOTLOADER_WAIT 6
+#define BOOTLOADER_WAIT 16
 
 #define USER_CODE_RAM     ((u32)  0x20000C00)
 #define USER_CODE_FLASH   ((u32)  0x08005000)
@@ -72,9 +75,13 @@
 //#define CONFIG_EXTRA_MAIN_CODE
 
 /* while this is '1' we're looping in the bootloader */
-#define bootloaderCondition (1)
+#define CONFIG_EXTRA_MAIN_CODE \
+	bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON)); \
+	int delay_count =0;
+
+#define bootloaderCondition (delay_count++ < BOOTLOADER_WAIT)
 
 /* define to 0 to never exit, undefine to save space */
-#define bootloaderExitCondition 0
+	//#define bootloaderExitCondition 0
 
 #endif

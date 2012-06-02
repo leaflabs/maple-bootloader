@@ -37,7 +37,7 @@
 #define ENDP3_RXADDR    0x110
 
 #define bMaxPacketSize  0x40    /* 64B,  maximum for usb FS devices */
-#define wTransferSize   0x0400  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
+#define wTransferSize   FLASH_PAGE_SIZE  /* 1024B, want: maxpacket < wtransfer < 10KB (to ensure everything can live in ram */
 
 #define NUM_ENDPTS      0x01
 

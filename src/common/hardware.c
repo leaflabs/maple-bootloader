@@ -199,7 +199,7 @@ bool flashErasePage(u32 pageAddr) {
 }
 bool flashErasePages(u32 pageAddr, u16 n) {
   while (n-->0) {
-    if (!flashErasePage(pageAddr+0x400*n)) {
+    if (!flashErasePage(pageAddr*FLASH_PAGE_SIZE*n)) {
       return FALSE;
     }
   }
