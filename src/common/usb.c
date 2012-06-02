@@ -29,7 +29,7 @@
  *  in the pre-attached state. includes some of the lower level callbacks
  *  needed by the usb library, like suspend,resume,init,etc
  */
-
+#include "config.h"
 #include "usb.h"
 #include "dfu.h"
 
