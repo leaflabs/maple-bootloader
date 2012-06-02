@@ -85,7 +85,7 @@ ONE_DESCRIPTOR usbFunctionalDescriptor =
   };
 
 
-u8 u8_usbConfigDescriptorDFU[36] =
+u8 u8_usbConfigDescriptorDFU[] =
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
@@ -106,9 +106,7 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x00,   /* bNumEndpoints*/
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
-
     0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
-
     0x04,   /* iInterface: */
 
     /************ Descriptor of DFU interface 0 Alternate setting 1 *********/
@@ -119,10 +117,19 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x00,   /* bNumEndpoints*/
     0xFE,   /* bInterfaceClass: DFU */
     0x01,   /* bInterfaceSubClass */
-
     0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
-
     0x05,   /* iInterface: */
+
+    /************ Descriptor of DFU interface 0 Alternate setting 2 *********/
+    0x09,   /* bLength: Interface Descriptor size */
+    0x04,   /* bDescriptorType: */
+    0x00,   /* bInterfaceNumber: Number of Interface */
+    0x02,   /* bAlternateSetting: Alternate setting */
+    0x00,   /* bNumEndpoints*/
+    0xFE,   /* bInterfaceClass: DFU */
+    0x01,   /* bInterfaceSubClass */
+    0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+    0x06,   /* iInterface: */
 
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
@@ -152,54 +159,70 @@ u8 u8_usbStringLangId[0x04] =
     0x04    /* LangID = 0x0409: U.S. English */
   };
 
-u8 u8_usbStringVendor[0x12] =
-  {
-    0x12,
-    0x03,
-    'L',0,'e',0,'a',0,'f',0,'L',0,'a',0,'b',0,'s',0
-  };
 
-u8 u8_usbStringProduct[0x14] =
-  {
-    0x14,
-    0x03,
-    'M',0,'a',0,'p',0,'l',0,'e',0,' ',0,'0',0,'0',0,'3',0
-  };
 
-u8 u8_usbStringSerial[0x10] =
-  {
-    0x10,
-    0x03,
-    'L',0,'L',0,'M',0,' ',0,'0',0,'0',0,'3',0
-  };
 
-u8 u8_usbStringAlt0[0x36] =
-  {
-    0x36,
-    0x03,
-    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
-    'a',0,'m',0,' ',0,'R',0,'A',0,'M',0,' ',0,'0',0,'x',0,
-    '2',0,'0',0,'0',0,'0',0,'0',0,'C',0,'0',0,'0',0
-  };
+u8 u8_usbStringVendor[] =
+{
+	0x24,
+	0x03,
+	'T', 0x0, 'e', 0x0, 'r', 0x0, 'r', 0x0, 'a', 0x0, ' ',
+	0x0, 'E', 0x0, 'l', 0x0, 'e', 0x0, 'c', 0x0, 't', 0x0, 'r',
+	0x0, 'o', 0x0, 'n', 0x0, 'i', 0x0, 'c', 0x0, 'a', 0x0,
+};
 
-u8 u8_usbStringAlt1[0x3A] =
-  {
-    0x3A,
-    0x03,
-    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
-    'a',0,'m',0,' ',0,'F',0,'L',0,'A',0,'S',0,'H',0,' ',0,
-    '0',0,'x',0,'0',0,'8',0,'0',0,'0',0,'5',0,'0',0,'0',0,
-    '0',0
-  };
+u8 u8_usbStringProduct[] =
+{
+	0x26,
+	0x03,
+	'T', 0x0, 'e', 0x0, 'r', 0x0, 'r', 0x0, 'a', 0x0, 'D', 0x0, 'u',
+	0x0, 'm', 0x0, 'b', 0x0, 'y', 0x0, 'B', 0x0, 'o', 0x0, 'a', 0x0, 'r',
+	0x0, 'd', 0x0, 'K', 0x0, 'i', 0x0, 't', 0x0,
+};
+
+u8 u8_usbStringSerial[] =
+{
+	0x2A,
+	0x03,
+	'T', 0x0, 'E', 0x0, '-', 0x0, 'S', 0x0, 'T', 0x0, 'M', 0x0, '3',
+	0x0, '2', 0x0, 'F', 0x0, '1', 0x0, '0', 0x0, '3', 0x0, 'R', 0x0,
+	'E', 0x0, 'T', 0x0, '6', 0x0, '-', 0x0, 'K', 0x0, 'I', 0x0, 'T', 0x0,
+};
+
+u8 u8_usbStringAlt0[] =
+{
+	0x16,
+	0x03,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0,
+	'R', 0x0, 'A', 0x0, 'M', 0x0,
+};
+
+u8 u8_usbStringAlt1[] =
+{
+	0x1A,
+	0x03,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0, 'F',
+	0x0, 'l', 0x0, 'a', 0x0, 's', 0x0, 'h', 0x0,
+};
+
+u8 u8_usbStringAlt2[] =
+{
+	0x18,
+	0x03,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0, 'I',
+	0x0, 'N', 0x0, 'F', 0x0, 'O', 0x0,
+};
+
 
 u8 u8_usbStringInterface = 0;
 
-ONE_DESCRIPTOR usbStringDescriptor[6] =
+ONE_DESCRIPTOR usbStringDescriptor[] =
   {
     { (u8*)u8_usbStringLangId,  0x04 },
-    { (u8*)u8_usbStringVendor,  0x12 },
-    { (u8*)u8_usbStringProduct, 0x20 },
-    { (u8*)u8_usbStringSerial,  0x10 },
-    { (u8*)u8_usbStringAlt0,    0x36 },
-    { (u8*)u8_usbStringAlt1,    0x3A }
+    { (u8*)u8_usbStringVendor,  0x24 },
+    { (u8*)u8_usbStringProduct, 0x26 },
+    { (u8*)u8_usbStringSerial,  0x2A },
+    { (u8*)u8_usbStringAlt0,    0x16 },
+    { (u8*)u8_usbStringAlt1,    0x1A },
+    { (u8*)u8_usbStringAlt2,    0x18 },
   };

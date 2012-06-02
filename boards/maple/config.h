@@ -1,4 +1,4 @@
-/* *****************************************************************************
+/******************************************************************************
  * The MIT License
  *
  * Copyright (c) 2010 LeafLabs LLC.
@@ -37,7 +37,7 @@
 //#include "common.h"
 
 #define NUM_ALT_SETTINGS 2
-
+#define STR_DESC_LEN 6
 //#define INHIBIT_LEDS
 
 #define LED_BANK GPIOA
@@ -52,8 +52,13 @@
 #define STARTUP_BLINKS 5
 #define BOOTLOADER_WAIT 6
 
+
+//Enable informational altsetting
+//#define CONFIG_INFO_ALT
+
 #define USER_CODE_RAM     ((u32)0x20000C00)
 #define USER_CODE_FLASH   ((u32)0x08005000)
+#define USER_INFO_FLASH   ((u32)0x08004000)
 
 #define VEND_ID0 0xAF
 #define VEND_ID1 0x1E

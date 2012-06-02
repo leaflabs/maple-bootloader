@@ -33,7 +33,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define NUM_ALT_SETTINGS 2
+#define NUM_ALT_SETTINGS 3
+#define STR_DESC_LEN 7
 
 #define CONFIG_RUNAPP_ALT 0
 //No LED strobing whatsoever - saves space
@@ -55,8 +56,9 @@
 #define STARTUP_BLINKS 5
 #define BOOTLOADER_WAIT 6
 
-#define USER_CODE_RAM     ((u32)0x20000C00)
-#define USER_CODE_FLASH   ((u32)0x08005000)
+#define USER_CODE_RAM     ((u32)  0x20000C00)
+#define USER_CODE_FLASH   ((u32)  0x08005000)
+#define USER_INFO_FLASH	  ((us32) 0x08004000)
 
 #define VEND_ID0 0xAD
 #define VEND_ID1 0xDE
