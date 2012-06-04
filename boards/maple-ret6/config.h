@@ -37,7 +37,7 @@
 //#include "common.h"
 
 /* THIS IS MCU-DEPENDANT! RTFM: Reference Manual */
-#define FLASH_PAGE_SIZE  0x400
+#define FLASH_PAGE_SIZE  0x800
 
 #define NUM_ALT_SETTINGS 2
 #define STR_DESC_LEN 6
