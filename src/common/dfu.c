@@ -37,7 +37,6 @@
 /* DFU globals */
 volatile u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
 DFUStatus dfuAppStatus;       /* includes state */
-volatile bool userFlash = FALSE;
 volatile bool dfuBusy = FALSE;
 
 volatile u8 recvBuffer[wTransferSize];
@@ -56,11 +55,17 @@ void dfuInit(void) {
 	dfuAppStatus.iString = 0x00;          /* all strings must be 0x00 until we make them! */
 	userFirmwareLen = 0;
 	thisBlockLen = 0;;
-	userAppAddr = USER_CODE_RAM; /* default RAM user code location */
-	userFlash = FALSE;
 	code_copy_lock = WAIT;
 	dfuBusy=FALSE;
 }
+
+/* Hell yeah */
+#include "dfu_io.c"
+
+#define MAP_ALTSETTING_INIT(alt,func)					\
+	if ((pInformation->Current_AlternateSetting == alt) func();
+
+void (*dfuCopyFunc)(void);
 
 bool dfuUpdateByRequest(void) {
 	/* were using the global pInformation struct from usb_lib here,
@@ -77,31 +82,26 @@ bool dfuUpdateByRequest(void) {
 			if (pInformation->USBwLengths.w > 0) {
 				userFirmwareLen = 0;
 				dfuAppStatus.bState  = dfuDNLOAD_SYNC;
-				if ((pInformation->Current_AlternateSetting == 1)
-#ifdef CONFIG_INFO_ALT
-					|| (pInformation->Current_AlternateSetting == 2)
+#ifdef CONFIG_ALTSETTING_RAM
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_RAM,dfuToRamInit);
 #endif
-					) {
-#ifndef CONFIG_INFO_ALT
-					userAppAddr = USER_CODE_FLASH;
-#else
-					userAppAddr = (pInformation->Current_AlternateSetting == 2) ? USER_INFO_FLASH : USER_CODE_FLASH;
-#endif
-					userFlash = TRUE;
-					/* make sure the flash is setup properly, unlock it */
-					setupFLASH();
-					flashUnlock();
 
-				} else {
-#ifdef CONFIG_RUNAPP_ALT
-					if (pInformation->Current_AlternateSetting == CONFIG_RUNAPP_ALT) {
-						boardTeardown();
-						jumpToUser(USER_CODE_FLASH);
-					}
+#ifdef CONFIG_ALTSETTING_FLASH
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_FLASH,dfuToFlashInit);
 #endif
-					userAppAddr = USER_CODE_RAM;
-					userFlash = FALSE;
-				}
+
+#ifdef CONFIG_ALTSETTING_RUN
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_RUN,dfuToRunInit);
+#endif
+
+#ifdef CONFIG_ALTSETTING_SPI
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_RUN,dfuToSPIInit);
+#endif
+
+#ifdef CONFIG_ALTSETTING_FPGA
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_FPGA,dfuToFPGAInit);
+#endif
+
 			} else {
 				dfuAppStatus.bState  = dfuERROR;
 				dfuAppStatus.bStatus = errNOTDONE;
@@ -125,29 +125,24 @@ bool dfuUpdateByRequest(void) {
 
 		if (pInformation->USBbRequest == DFU_GETSTATUS) {
 			/* todo, add routine to wait for last block write to finish */
-			if (userFlash) {
-				if (code_copy_lock==WAIT) {
-					code_copy_lock=BEGINNING;
-					dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
-					dfuAppStatus.bwPollTimeout1 = 0x01; /* is this enough? */
-					dfuAppStatus.bState=dfuDNBUSY;
+			if (code_copy_lock==WAIT) {
+				code_copy_lock=BEGINNING;
+				dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
+				dfuAppStatus.bwPollTimeout1 = 0x01; /* is this enough? */
+				dfuAppStatus.bState=dfuDNBUSY;
 
-				} else if (code_copy_lock==BEGINNING) {
-					dfuAppStatus.bState=dfuDNLOAD_SYNC;
+			} else if (code_copy_lock==BEGINNING) {
+				dfuAppStatus.bState=dfuDNLOAD_SYNC;
 
-				} else if (code_copy_lock==MIDDLE) {
-					dfuAppStatus.bState=dfuDNLOAD_SYNC;
+			} else if (code_copy_lock==MIDDLE) {
+				dfuAppStatus.bState=dfuDNLOAD_SYNC;
 
-				} else if (code_copy_lock==END) {
-					dfuAppStatus.bwPollTimeout0 = 0x00;
-					code_copy_lock=WAIT;
-					dfuAppStatus.bState=dfuDNLOAD_IDLE;
-				}
-
-			} else {
-				dfuAppStatus.bState = dfuDNLOAD_IDLE;
-				dfuCopyBufferToExec();
+			} else if (code_copy_lock==END) {
+				dfuAppStatus.bwPollTimeout0 = 0x00;
+				code_copy_lock=WAIT;
+				dfuAppStatus.bState=dfuDNLOAD_IDLE;
 			}
+
 
 		} else if (pInformation->USBbRequest == DFU_GETSTATE) {
 			dfuAppStatus.bState  = dfuDNLOAD_SYNC;
@@ -327,29 +322,6 @@ u8* dfuCopyUPLOAD(u16 length) {
 	return NULL;
 }
 
-void dfuCopyBufferToExec() {
-	int i;
-	u32* userSpace;
-
-	if (!userFlash) {
-		userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
-		/* we dont need to handle when thisBlock len is not divisible by 4,
-		   since the linker will align everything to 4B anyway */
-		for (i=0;i<thisBlockLen;i=i+4) {
-			*userSpace++ = *(u32*)(recvBuffer+i);
-		}
-	} else {
-		userSpace = (u32*)(USER_CODE_FLASH+userFirmwareLen);
-		flashErasePage((u32)(userSpace));
-		for (i=0;i<thisBlockLen;i=i+4) {
-			flashWriteWord((u32)userSpace++,*(u32*)(recvBuffer+i));
-		}
-
-	}
-	userFirmwareLen += thisBlockLen;
-	thisBlockLen = 0;
-}
-
 u8 dfuGetState(void) {
 	return dfuAppStatus.bState;
 }
@@ -364,16 +336,12 @@ bool dfuUploadStarted() {
 
 void dfuFinishUpload() {
 	while (1) {
-		if (userFlash) {
-			if (code_copy_lock == BEGINNING) {
-				code_copy_lock=MIDDLE;
-				strobePin(LED_BANK,LED,2,0x1000);
-				dfuCopyBufferToExec();
-				strobePin(LED_BANK,LED,2,0x500);
-				code_copy_lock = END;
-			}
+		if (code_copy_lock == BEGINNING) {
+			code_copy_lock=MIDDLE;
+			dfuCopyFunc();
+			code_copy_lock = END;
 		}
-		/* otherwise do nothing, dfu state machine resets itself */
 	}
+	/* otherwise do nothing, dfu state machine resets itself */
 }
 

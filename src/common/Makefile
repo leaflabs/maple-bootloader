@@ -3,6 +3,5 @@ objects-common +=	dfu.o \
 		hardware.o \
 		main.o \
 		usb.o \
-		usb_callbacks.o \
-		dfu_ram.o
+		usb_callbacks.o
 
