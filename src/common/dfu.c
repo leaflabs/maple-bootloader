@@ -44,7 +44,6 @@ volatile u8 recvBuffer[wTransferSize];
 volatile u32 userFirmwareLen = 0;
 volatile u16 thisBlockLen = 0;
 
-
 volatile PLOT code_copy_lock;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
@@ -341,16 +340,13 @@ void dfuCopyBufferToExec() {
 		}
 	} else {
 		userSpace = (u32*)(USER_CODE_FLASH+userFirmwareLen);
-
 		flashErasePage((u32)(userSpace));
-
 		for (i=0;i<thisBlockLen;i=i+4) {
 			flashWriteWord((u32)userSpace++,*(u32*)(recvBuffer+i));
 		}
 
 	}
 	userFirmwareLen += thisBlockLen;
-
 	thisBlockLen = 0;
 }
 
