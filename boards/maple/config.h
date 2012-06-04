@@ -36,11 +36,14 @@
 //WTF WAS THAT DOING HERE??
 //#include "common.h"
 
-#define FLASH_PAGE_SIZE  0x400
+/* THIS IS MCU-DEPENDANT! RTFM: Reference Manual */
+#define FLASH_PAGE_SIZE  0x800
 
 #define NUM_ALT_SETTINGS 2
 #define STR_DESC_LEN 6
-//#define INHIBIT_LEDS
+
+//No LED strobing whatsoever - saves space
+#define CONFIG_INHIBIT_STROBE
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -60,7 +63,12 @@
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
 #define USER_CODE_FLASH   ((u32)0x08005000)
-#define USER_INFO_FLASH   ((u32)0x08004000)
+
+#define CONFIG_ALSETTING_RAM 0
+#define CONFIG_ALSETTING_FLASH 1
+#define CONFIG_ALSETTING_RUN 2
+/* Any transfer to run altsetting will cause a jump to this addr */
+#define CONFIG_RUN_ADDR USER_CODE_FLASH
 
 #define VEND_ID0 0xAF
 #define VEND_ID1 0x1E

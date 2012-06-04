@@ -35,9 +35,7 @@
 
 #define NUM_ALT_SETTINGS 3
 #define STR_DESC_LEN 7
-#define FLASH_PAGE_SIZE  0x800
 
-#define CONFIG_RUNAPP_ALT 0
 //No LED strobing whatsoever - saves space
 #define CONFIG_INHIBIT_STROBE
 
@@ -45,6 +43,9 @@
 //Saves a few bytes more
 
 #define CONFIG_DISABLE_USB_SUSPEND
+
+/* THIS IS MCU-DEPENDANT! RTFM: Reference Manual */
+#define FLASH_PAGE_SIZE  0x800
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -59,8 +60,20 @@
 
 #define USER_CODE_RAM     ((u32)  0x20000C00)
 #define USER_CODE_FLASH   ((u32)  0x08005000)
-#define USER_INFO_FLASH	  ((us32) 0x08004000)
 
+
+/* AltSetting Configuration
+ * Undefine those you do not need to strip
+ * down the size of the loader
+ */
+
+#define CONFIG_ALSETTING_RAM 0
+#define CONFIG_ALSETTING_FLASH 1
+#define CONFIG_ALSETTING_RUN 2
+/* Any transfer to run altsetting will cause a jump to this addr */
+#define CONFIG_RUN_ADDR USER_CODE_FLASH
+
+/* VID&PID Settings */
 #define VEND_ID0 0xAD
 #define VEND_ID1 0xDE
 #define PROD_ID0 0xDE

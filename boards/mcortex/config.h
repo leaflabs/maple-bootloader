@@ -36,18 +36,15 @@
 #define NUM_ALT_SETTINGS 3
 #define STR_DESC_LEN 7
 
-//#define CONFIG_RUNAPP_ALT 0
-#define CONFIG_INFO_ALT
-
 //No LED strobing whatsoever - saves space
-//#define CONFIG_INHIBIT_STROBE
+#define CONFIG_INHIBIT_STROBE
 
-//Replace USB suspend/resume code with dummies.
-//Saves a few bytes more
+/* Replace USB suspend/resume code with dummies. */
+/* Saves a few bytes */
 
 #define CONFIG_DISABLE_USB_SUSPEND
 
-/* F*ck, that costed me an hour of lifetime to figure out! */
+/* THIS IS MCU-DEPENDANT! RTFM: Reference Manual */
 #define FLASH_PAGE_SIZE  0x800
 
 #define LED_BANK GPIOG
@@ -63,8 +60,19 @@
 
 #define USER_CODE_RAM     ((u32)  0x20000C00)
 #define USER_CODE_FLASH   ((u32)  0x08005000)
-#define USER_INFO_FLASH	  ((u32) 0x08004000)
 
+/* AltSetting Configuration
+ * Undefine those you do not need to strip
+ * down the size of the loader
+ */
+
+#define CONFIG_ALSETTING_RAM 0
+#define CONFIG_ALSETTING_FLASH 1
+#define CONFIG_ALSETTING_RUN 2
+/* Any transfer to run altsetting will cause a jump to this addr */
+#define CONFIG_RUN_ADDR USER_CODE_FLASH
+
+/* VID&PID Settings */
 #define VEND_ID0 0xAD
 #define VEND_ID1 0xDE
 #define PROD_ID0 0xDE
@@ -79,7 +87,7 @@
 	bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON)); \
 	int delay_count =0;
 
-#define bootloaderCondition (delay_count++ < BOOTLOADER_WAIT)
+#define bootloaderCondition ((no_user_jump) || (delay_count++ < BOOTLOADER_WAIT))
 
 /* define to 0 to never exit, undefine to save space */
 	//#define bootloaderExitCondition 0

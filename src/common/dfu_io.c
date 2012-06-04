@@ -48,9 +48,8 @@ void dfuToFlashInit()
 #ifdef CONFIG_ALTSETTING_RUN
 void dfuToRunInit()
 {
-
 	boardTeardown();
-	jumpToUser(USER_CODE_FLASH);
+	jumpToUser(CONFIG_RUN_ADDR);
 }
 #endif
 
@@ -73,6 +72,7 @@ void dfuToFPGAInit()
 {
 	/* TODO */
 }
+
 #endif
 /* TODO: FPGA,SPI,etc */
 /* DFU ====> FPGA */
