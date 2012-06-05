@@ -59,13 +59,15 @@ void dfuInit(void) {
 	dfuBusy=FALSE;
 }
 
-/* Hell yeah */
-#include "dfu_io.c"
 
 #define MAP_ALTSETTING_INIT(alt,func)					\
-	if ((pInformation->Current_AlternateSetting == alt) func();
+	if (pInformation->Current_AlternateSetting == alt) func();
+
 
 void (*dfuCopyFunc)(void);
+
+/* Hell yeah */
+#include "dfu_io.c"
 
 bool dfuUpdateByRequest(void) {
 	/* were using the global pInformation struct from usb_lib here,
@@ -210,8 +212,8 @@ bool dfuUpdateByRequest(void) {
 		   usb reset or power on reset to run the new code */
 
 		/* consider timing out and self-resetting */
-		dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
-
+		//dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
+		dfuAppStatus.bState = dfuIDLE;
 	} else if (startState == dfuUPLOAD_IDLE)         {
 		/* device expecting further dfu_upload requests */
 

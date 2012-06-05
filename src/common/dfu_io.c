@@ -18,7 +18,7 @@ void dfuToRamInit()
 {
 	dfuCopyFunc = dfuToRamCopy;
 	userAppAddr = USER_CODE_RAM;
-	userFlash = FALSE;
+	strobePin(LED_BANK,LED,5,BLINK_FAST);
 }
 #endif
 
@@ -38,8 +38,7 @@ void dfuToFlashCopy()
 void dfuToFlashInit()
 {
 	userAppAddr = USER_CODE_FLASH;
-	userFlash = TRUE;
-	dfuCopyFunc = dfuToFlashCopy();
+	dfuCopyFunc = dfuToFlashCopy;
 	setupFLASH();
 	flashUnlock();
 }
@@ -48,7 +47,6 @@ void dfuToFlashInit()
 #ifdef CONFIG_ALTSETTING_RUN
 void dfuToRunInit()
 {
-	boardTeardown();
 	jumpToUser(CONFIG_RUN_ADDR);
 }
 #endif
