@@ -14,11 +14,29 @@ void dfuToRamCopy()
 	}
 }
 
+#ifdef CONFIG_UPLOAD
+
+void dfuFromRamCopy()
+{
+	int i;
+	u32* userSpace = (u32*)(USER_CODE_RAM+userFirmwareLen);
+	/* we dont need to handle when thisBlock len is not divisible by 4,
+	   since the linker will align everything to 4B anyway */
+	for (i=0;i<thisBlockLen;i=i+4) {
+		*(u32*)(recvBuffer+i) = *userSpace++;
+	}
+}
+#endif
+
+
 void dfuToRamInit()
 {
 	dfuCopyFunc = dfuToRamCopy;
 	userAppAddr = USER_CODE_RAM;
 	strobePin(LED_BANK,LED,5,BLINK_FAST);
+#ifdef CONFIG_UPLOAD
+	dfuUploadFunc = dfuFromRamCopy;
+#endif
 }
 #endif
 

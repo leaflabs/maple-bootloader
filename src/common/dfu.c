@@ -65,6 +65,9 @@ void dfuInit(void) {
 
 
 void (*dfuCopyFunc)(void);
+#ifdef CONFIG_UPLOAD
+void (*dfuUploadFunc)(void);
+#endif
 
 /* Hell yeah */
 #include "dfu_io.c"
@@ -321,6 +324,13 @@ u8* dfuCopyDNLOAD(u16 length) {
 
 u8* dfuCopyUPLOAD(u16 length) {
 	/* not implemented here nor supported by dfu-util */
+	if (length==0) {
+		pInformation->Ctrl_Info.Usb_wLength = pInformation->USBwLengths.w - pInformation->Ctrl_Info.Usb_wOffset;
+		thisBlockLen = pInformation->USBwLengths.w;
+		return NULL;
+	} else {
+		return ((u8*)recvBuffer + pInformation->Ctrl_Info.Usb_wOffset);
+	}
 	return NULL;
 }
 
