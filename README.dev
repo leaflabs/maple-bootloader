@@ -1,0 +1,22 @@
+These are misc developer hints.
+
+Adding new io targets.
+----------------------
+The stock maple booloader supported only 2 targets. RAM and FLASH.
+However, in my case I needed to add more targets, and made it easy to add new
+ones.
+
+
+You have to do the following.
+
+* In dfu_io.c (located under src/common)
+  implement your dfuToSomewhereInit function
+  It should set dfuCopyFunc to your dfuToSomewhereCopy implementation, located just here.
+  DO wrap it in CONFIG_ALSETTING_SOMEWHERE #ifdef to save space for the others.
+
+* In dfu.c, in dfuUpdateByRequest add the MAP_ALSETTING_INIT macro, wrapped it #ifdefs
+  that will call your init function, when a query arrives to the specified altsetting.
+
+* Test it!
+
+* Send the patches
