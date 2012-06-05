@@ -4,7 +4,7 @@
 #include "hardware.h"
 
 
-void setupLED (void) {
+inline void setupLED (void) {
   // todo, swap out hardcoded pin/bank with macro
   u32 rwmVal; /* read-write-modify place holder var */
 
@@ -23,7 +23,7 @@ void setupLED (void) {
 
 
 /* Motor Cortex uses 12Mhz quartz */
-void setupCLK (void) {
+inline void setupCLK (void) {
   /* enable HSE */
   SET_REG(RCC_CR,GET_REG(RCC_CR) | 0x00010001);
   while ((GET_REG(RCC_CR) & 0x00020000) == 0); /* for it to come on */
@@ -41,33 +41,27 @@ void setupCLK (void) {
   while ((GET_REG(RCC_CFGR) & 0x00000008) == 0); /* wait for it to come on */
 }
 
-void setupUSB (void) {
+
+/* We simulate disconnection by pulling PA12(USB) to the ground */
+/* This saves us a pin */
+inline void setupUSB (void) {
   u32 rwmVal; /* read-write-modify place holder var */
-
-  /* Setup the USB DISC Pin */
   rwmVal  = GET_REG(RCC_APB2ENR);
-  rwmVal |= 0x00000010;
+  rwmVal |= 0x0000004;
   SET_REG(RCC_APB2ENR,rwmVal);
-
-  // todo, macroize usb_disc pin
-  /* Setup GPIOC Pin 12 as OD out */
   rwmVal  = GET_REG(GPIO_CRH(GPIOA));
-  rwmVal &= 0xFFF0FFFF;
-  rwmVal |= 0x00050000;
-  setPin (GPIOA,12);
+  rwmVal &= 0xFFF00FFF;
+  rwmVal |= 0x00011000;
   SET_REG(GPIO_CRH(GPIOA),rwmVal);
+  resetPin (GPIOA,12);
   pRCC->APB1ENR |= 0x00800000;
-  /* initialize the usb application */
-  resetPin (GPIOA,12);  /* present ourselves to the host */
-  u32 c = 120000000;
-  while (c--);
 }
 
 
 /* executed before actual jump to user code */
 void boardTeardown()
 {
-	//resetPin(GPIOB,5); // disconnect usb from host. todo, macroize pin
+
 }
 
 /* This is a common routine to setup the board */
