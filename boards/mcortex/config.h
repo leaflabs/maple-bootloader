@@ -37,7 +37,7 @@
 #define STR_DESC_LEN 7
 
 //No LED strobing whatsoever - saves space
-#define CONFIG_INHIBIT_STROBE
+//#define CONFIG_INHIBIT_STROBE
 
 /* Replace USB suspend/resume code with dummies. */
 /* Saves a few bytes */
