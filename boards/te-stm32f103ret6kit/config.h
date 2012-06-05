@@ -37,7 +37,7 @@
 #define STR_DESC_LEN 7
 
 //No LED strobing whatsoever - saves space
-#define CONFIG_INHIBIT_STROBE
+//#define CONFIG_INHIBIT_STROBE
 
 //Replace USB suspend/resume code with dummies.
 //Saves a few bytes more
@@ -67,9 +67,9 @@
  * down the size of the loader
  */
 
-#define CONFIG_ALSETTING_RAM 0
-#define CONFIG_ALSETTING_FLASH 1
-#define CONFIG_ALSETTING_RUN 2
+#define CONFIG_ALTSETTING_RAM 0
+#define CONFIG_ALTSETTING_FLASH 1
+#define CONFIG_ALTSETTING_RUN 2
 /* Any transfer to run altsetting will cause a jump to this addr */
 #define CONFIG_RUN_ADDR USER_CODE_FLASH
 

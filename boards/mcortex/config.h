@@ -66,9 +66,9 @@
  * down the size of the loader
  */
 
-#define CONFIG_ALSETTING_RAM 0
-#define CONFIG_ALSETTING_FLASH 1
-#define CONFIG_ALSETTING_RUN 2
+#define CONFIG_ALTSETTING_RAM 0
+#define CONFIG_ALTSETTING_FLASH 1
+#define CONFIG_ALTSETTING_RUN 2
 /* Any transfer to run altsetting will cause a jump to this addr */
 #define CONFIG_RUN_ADDR USER_CODE_FLASH
 
