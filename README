@@ -9,3 +9,22 @@ To see what's actually happening - run with V=y, e.g.
 CROSS_COMPILE=arm-none-eabi- make V=y
 This will dump a lot of info for you.
 Have fun.
+
+WHY?
+----
+I needed a bootloader for my custom boards. Upstream maple was
+shitty in places. So I cleaned up the mess
+
+WHAT'S THE DIFFERENCE, COMPARED TO MAPLE's UPSTREAM ONE?
+--------------------------------------------------------
+Easy to add new boards
+Configurable FLASH_PAGE_SIZE per-board
+Configurable bootloader enter and leave conditions. per-board.
+Configurable descriptors. per-board.
+Extra options to save space
+Batch-compile for all boards.
+Pretty colored compilation output.
+Configurable altsettings, easy to add new download targets
+Multiple downloads in one run support.4
+New altsetting: download-to-run
+Compiles with -Os, and works when compiled like that
