@@ -59,7 +59,7 @@
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)  0x20000C00)
-#define USER_CODE_FLASH   ((u32)  0x08005000)
+#define USER_CODE_FLASH   ((u32)  0x08003000)
 
 
 /* AltSetting Configuration

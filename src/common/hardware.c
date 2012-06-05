@@ -115,6 +115,7 @@ void jumpToUser (u32 usrAddr) {
   flashLock();
   usbDsbISR();
   nvicDisableInterrupts();
+  SET_REG(SCB_VTOR,usrAddr);
   boardTeardown();
   systemReset(); // resets clocks and periphs, not core regs
 
