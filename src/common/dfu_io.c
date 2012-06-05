@@ -1,4 +1,6 @@
 
+
+
 /* This file will be just sucked in dfu.c for the sake of simplicity */
 
 #ifdef CONFIG_ALTSETTING_RAM
@@ -12,6 +14,8 @@ void dfuToRamCopy()
 	for (i=0;i<thisBlockLen;i=i+4) {
 		*userSpace++ = *(u32*)(recvBuffer+i);
 	}
+	userFirmwareLen += thisBlockLen;
+	thisBlockLen = 0;
 }
 
 #ifdef CONFIG_UPLOAD
@@ -51,6 +55,9 @@ void dfuToFlashCopy()
 	for (i=0;i<thisBlockLen;i=i+4) {
 		flashWriteWord((u32)userSpace++,*(u32*)(recvBuffer+i));
 	}
+	userFirmwareLen += thisBlockLen;
+	thisBlockLen = 0;
+
 }
 
 void dfuToFlashInit()
