@@ -347,13 +347,11 @@ bool dfuUploadStarted() {
 }
 
 void dfuFinishUpload() {
-	while (1) {
 		if (code_copy_lock == BEGINNING) {
 			code_copy_lock=MIDDLE;
 			dfuCopyFunc();
 			code_copy_lock = END;
 		}
-	}
 	/* otherwise do nothing, dfu state machine resets itself */
 }
 
