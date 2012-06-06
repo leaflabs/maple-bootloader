@@ -132,7 +132,7 @@ bool dfuUpdateByRequest(void) {
 			/* todo, add routine to wait for last block write to finish */
 			if (code_copy_lock==WAIT) {
 				code_copy_lock=BEGINNING;
-				dfuAppStatus.bwPollTimeout0 = 0x50; /* is this enough? */
+				dfuAppStatus.bwPollTimeout0 = 0x40; /* is this enough? */
 				dfuAppStatus.bwPollTimeout1 = 0x00; /* is this enough? */
 				dfuAppStatus.bState=dfuDNBUSY;
 
