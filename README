@@ -28,3 +28,7 @@ Configurable altsettings, easy to add new download targets
 Multiple downloads in one run support.4
 New altsetting: download-to-run
 Compiles with -Os, and works when compiled like that
+a LOT faster:
+   Max USB download speed - 61 Kilobytes/s.
+   Real Life flash programming speed - 20 Kilobytes/s
+
