@@ -131,6 +131,29 @@ u8 u8_usbConfigDescriptorDFU[] =
     0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
     0x06,   /* iInterface: */
 
+   /************ Descriptor of DFU interface 0 Alternate setting 3 *********/
+    0x09,   /* bLength: Interface Descriptor size */
+    0x04,   /* bDescriptorType: */
+    0x00,   /* bInterfaceNumber: Number of Interface */
+    0x03,   /* bAlternateSetting: Alternate setting */
+    0x00,   /* bNumEndpoints*/
+    0xFE,   /* bInterfaceClass: DFU */
+    0x01,   /* bInterfaceSubClass */
+    0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+    0x07,   /* iInterface: */
+
+   /************ Descriptor of DFU interface 0 Alternate setting 4 *********/
+    0x09,   /* bLength: Interface Descriptor size */
+    0x04,   /* bDescriptorType: */
+    0x00,   /* bInterfaceNumber: Number of Interface */
+    0x04,   /* bAlternateSetting: Alternate setting */
+    0x00,   /* bNumEndpoints*/
+    0xFE,   /* bInterfaceClass: DFU */
+    0x01,   /* bInterfaceSubClass */
+    0x02,   /* nInterfaceProtocol, switched to 0x02 while in dfu_mode */
+    0x08,   /* iInterface: */
+
+
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
     0x21,   /* DFU Functional Descriptor*/
@@ -148,7 +171,7 @@ u8 u8_usbConfigDescriptorDFU[] =
 ONE_DESCRIPTOR usbConfigDescriptorDFU =
   {
     u8_usbConfigDescriptorDFU,
-    0x24
+    0x48
   };
 
 u8 u8_usbStringLangId[0x04] =
@@ -200,12 +223,26 @@ u8 u8_usbStringAlt1[] =
 	0x0, 'l', 0x0, 'a', 0x0, 's', 0x0, 'h', 0x0,
 };
 
-u8 u8_usbStringAlt2[] =
-{
+u8 u8_usbStringAlt2[] = {
+	0x16,
+	0x03,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0,
+	'R', 0x0, 'U', 0x0, 'N', 0x0,
+};
+
+u8 u8_usbStringAlt3[] = {
 	0x18,
 	0x03,
-	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0, 'I',
-	0x0, 'N', 0x0, 'F', 0x0, 'O', 0x0,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0,
+	'F', 0x0, 'P', 0x0, 'G', 0x0, 'A', 0x0,
+};
+
+u8 u8_usbStringAlt4[] = {
+	0x22,
+	0x03,
+	'D', 0x0, 'F', 0x0, 'U', 0x0, ' ', 0x0, 't', 0x0, 'o', 0x0, ' ', 0x0,
+	'S', 0x0, 'P', 0x0, 'I', 0x0, ' ', 0x0, 'F', 0x0, 'l', 0x0, 'a', 0x0,
+	's', 0x0, 'h', 0x0,
 };
 
 
@@ -220,4 +257,7 @@ ONE_DESCRIPTOR usbStringDescriptor[] =
     { (u8*)u8_usbStringAlt0,    0x16 },
     { (u8*)u8_usbStringAlt1,    0x1A },
     { (u8*)u8_usbStringAlt2,    0x18 },
+    { (u8*)u8_usbStringAlt3,    0x18 },
+    { (u8*)u8_usbStringAlt4,    0x22 },
+
   };

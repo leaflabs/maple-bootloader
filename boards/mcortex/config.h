@@ -33,8 +33,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define NUM_ALT_SETTINGS 3
-#define STR_DESC_LEN 7
+#define NUM_ALT_SETTINGS 5
+#define STR_DESC_LEN 9
 
 //No LED strobing whatsoever - saves space
 //#define CONFIG_INHIBIT_STROBE
