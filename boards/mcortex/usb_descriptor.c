@@ -89,7 +89,7 @@ u8 u8_usbConfigDescriptorDFU[] =
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
-    0x24,   /* wTotalLength: Bytes returned */
+    0x3f,   /* wTotalLength: Bytes returned */
     0x00,
     0x01,   /* bNumInterfaces: 1 interface */
     0x01,   /* bConfigurationValue: */
@@ -171,7 +171,7 @@ u8 u8_usbConfigDescriptorDFU[] =
 ONE_DESCRIPTOR usbConfigDescriptorDFU =
   {
     u8_usbConfigDescriptorDFU,
-    0x48
+    0x3f
   };
 
 u8 u8_usbStringLangId[0x04] =
