@@ -132,7 +132,7 @@ bool dfuUpdateByRequest(void) {
 			/* todo, add routine to wait for last block write to finish */
 			if (code_copy_lock==WAIT) {
 				code_copy_lock=BEGINNING;
-				dfuAppStatus.bwPollTimeout0 = 0x40; /* is this enough? */
+				dfuAppStatus.bwPollTimeout0 = 0x30; /* is this enough? */
 				dfuAppStatus.bwPollTimeout1 = 0x00; /* is this enough? */
 				dfuAppStatus.bState=dfuDNBUSY;
 
@@ -347,11 +347,14 @@ bool dfuUploadStarted() {
 }
 
 void dfuFinishUpload() {
+	while (dfuAppStatus.bState != dfuDNLOAD_IDLE)
+	{
 		if (code_copy_lock == BEGINNING) {
 			code_copy_lock=MIDDLE;
 			dfuCopyFunc();
 			code_copy_lock = END;
 		}
+	}
 	/* otherwise do nothing, dfu state machine resets itself */
 }
 
