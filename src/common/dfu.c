@@ -87,6 +87,10 @@ bool dfuUpdateByRequest(void) {
 			if (pInformation->USBwLengths.w > 0) {
 				userFirmwareLen = 0;
 				dfuAppStatus.bState  = dfuDNLOAD_SYNC;
+#ifdef CONFIG_ALTSETTING_DUMMY
+				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_DUMMY,dfuToNowhereInit);
+#endif
+
 #ifdef CONFIG_ALTSETTING_RAM
 				MAP_ALTSETTING_INIT(CONFIG_ALTSETTING_RAM,dfuToRamInit);
 #endif
@@ -132,7 +136,7 @@ bool dfuUpdateByRequest(void) {
 			/* todo, add routine to wait for last block write to finish */
 			if (code_copy_lock==WAIT) {
 				code_copy_lock=BEGINNING;
-				dfuAppStatus.bwPollTimeout0 = 0x30; /* is this enough? */
+				dfuAppStatus.bwPollTimeout0 = 0x20; /* is this enough? */
 				dfuAppStatus.bwPollTimeout1 = 0x00; /* is this enough? */
 				dfuAppStatus.bState=dfuDNBUSY;
 

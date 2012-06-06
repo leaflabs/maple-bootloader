@@ -76,6 +76,26 @@ void dfuToRunInit()
 }
 #endif
 
+
+/* This one copies the fw to nowhere, just for performance testing */
+#ifdef CONFIG_ALTSETTING_DUMMY
+
+void dfuToNowhereCopy()
+{
+	userFirmwareLen += thisBlockLen;
+	thisBlockLen = 0;
+
+	/* just copied all the fw to astral */
+}
+
+void dfuToNowhereInit()
+{
+	userAppAddr = USER_CODE_FLASH;
+	dfuCopyFunc = dfuToNowhereCopy;
+}
+
+#endif
+
 #ifdef CONFIG_ALTSETTING_SPI
 
 void dfuToSPICopy()
