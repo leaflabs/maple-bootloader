@@ -83,11 +83,17 @@
 //#define CONFIG_EXTRA_MAIN_CODE
 
 /* while this is '1' we're looping in the bootloader */
+
+/*
 #define CONFIG_EXTRA_MAIN_CODE \
 	bool have_code = (((checkUserCode(USER_CODE_FLASH)) || (checkUserCode(USER_CODE_RAM)))); \
 	int delay_count =0;
 
+
 #define bootloaderCondition ((!have_code) || (delay_count++ < BOOTLOADER_WAIT))
+*/
+
+#define bootloaderCondition 1
 
 /* define to 0 to never exit, undefine to save space */
 	//#define bootloaderExitCondition 0
