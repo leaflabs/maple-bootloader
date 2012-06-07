@@ -166,8 +166,6 @@ void nvicDisableInterrupts() {
 	rNVIC->ICER[1] = 0xFFFFFFFF;
 	rNVIC->ICPR[0] = 0xFFFFFFFF;
 	rNVIC->ICPR[1] = 0xFFFFFFFF;
-
-	SET_REG(STK_CTRL,0x04); /* disable the systick, which operates separately from nvic */
 }
 
 void systemHardReset(void) {
