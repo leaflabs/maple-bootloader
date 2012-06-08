@@ -43,7 +43,7 @@
 #define STR_DESC_LEN 6
 
 //No LED strobing whatsoever - saves space
-#define CONFIG_INHIBIT_STROBE
+//#define CONFIG_INHIBIT_STROBE
 
 #define LED_BANK GPIOA
 #define LED      5
@@ -66,7 +66,7 @@
 
 #define CONFIG_ALTSETTING_RAM 0
 #define CONFIG_ALTSETTING_FLASH 1
-#define CONFIG_ALTSETTING_RUN 2
+//#define CONFIG_ALTSETTING_RUN 2
 /* Any transfer to run altsetting will cause a jump to this addr */
 #define CONFIG_RUN_ADDR USER_CODE_FLASH
 
@@ -80,8 +80,8 @@
 	bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON)); \
 	int delay_count =0;
 
-#define bootloaderCondition (delay_count++ < BOOTLOADER_WAIT) \
-	|| no_user_jump
+#define bootloaderCondition ((delay_count++ < BOOTLOADER_WAIT)	\
+	|| no_user_jump)
 
 #define bootloaderExitCondition 0
 
