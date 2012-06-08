@@ -27,14 +27,14 @@
  *  @file usb_descriptor.c
  *
  *  @brief aka application descriptor; big static struct and callbacks for sending
- *  the descriptor. 
+ *  the descriptor.
  *
  */
 
 
 #include "usb_descriptor.h"
 
-u8 u8_usbDeviceDescriptorDFU[18] = 
+u8 u8_usbDeviceDescriptorDFU[18] =
   {
     0x12,   /* bLength */
     0x01,   /* bDescriptorType */
@@ -58,13 +58,13 @@ u8 u8_usbDeviceDescriptorDFU[18] =
     0x01    /*bNumConfigurations */
   };
 
-ONE_DESCRIPTOR usbDeviceDescriptorDFU = 
+ONE_DESCRIPTOR usbDeviceDescriptorDFU =
   {
     u8_usbDeviceDescriptorDFU,
     0x12
   };
 
-u8 u8_usbFunctionalDescriptor[9] = 
+u8 u8_usbFunctionalDescriptor[9] =
   {
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
@@ -78,14 +78,14 @@ u8 u8_usbFunctionalDescriptor[9] =
     0x01
   };
 
-ONE_DESCRIPTOR usbFunctionalDescriptor = 
+ONE_DESCRIPTOR usbFunctionalDescriptor =
   {
     u8_usbFunctionalDescriptor,
     0x09
   };
 
 
-u8 u8_usbConfigDescriptorDFU[36] = 
+u8 u8_usbConfigDescriptorDFU[36] =
   {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
@@ -138,7 +138,7 @@ u8 u8_usbConfigDescriptorDFU[36] =
     /*36*/
   };
 
-ONE_DESCRIPTOR usbConfigDescriptorDFU = 
+ONE_DESCRIPTOR usbConfigDescriptorDFU =
   {
     u8_usbConfigDescriptorDFU,
     0x24
@@ -152,28 +152,28 @@ u8 u8_usbStringLangId[0x04] =
     0x04    /* LangID = 0x0409: U.S. English */
   };
 
-u8 u8_usbStringVendor[0x12] = 
+u8 u8_usbStringVendor[0x12] =
   {
     0x12,
     0x03,
     'L',0,'e',0,'a',0,'f',0,'L',0,'a',0,'b',0,'s',0
   };
 
-u8 u8_usbStringProduct[0x14] = 
+u8 u8_usbStringProduct[0x14] =
   {
     0x14,
     0x03,
     'M',0,'a',0,'p',0,'l',0,'e',0,' ',0,'0',0,'0',0,'3',0
   };
 
-u8 u8_usbStringSerial[0x10] = 
+u8 u8_usbStringSerial[0x10] =
   {
     0x10,
     0x03,
     'L',0,'L',0,'M',0,' ',0,'0',0,'0',0,'3',0
   };
 
-u8 u8_usbStringAlt0[0x36] = 
+u8 u8_usbStringAlt0[0x36] =
   {
     0x36,
     0x03,
@@ -182,7 +182,7 @@ u8 u8_usbStringAlt0[0x36] =
     '2',0,'0',0,'0',0,'0',0,'0',0,'C',0,'0',0,'0',0
   };
 
-u8 u8_usbStringAlt1[0x3A] = 
+u8 u8_usbStringAlt1[0x3A] =
   {
     0x3A,
     0x03,

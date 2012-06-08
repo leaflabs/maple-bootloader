@@ -81,7 +81,7 @@ ALL_ASFLAGS = -mcpu=$(MCU) $(THUMB_IW) -I. -x assembler-with-cpp $(ASFLAGS)
 # file management
 ASRC = $(ST_LIB)/c_only_startup.s $(ST_LIB)/cortexm3_macro.s
 
-STM32SRCS = 
+STM32SRCS =
 
 _STM32USBSRCS = usb_regs.c \
 usb_int.c \
@@ -117,7 +117,7 @@ build: elf bin lss sym
 
 bin: $(TARGET).bin
 elf: $(TARGET).elf
-lss: $(TARGET).lss 
+lss: $(TARGET).lss
 sym: $(TARGET).sym
 dfu: $(TARGET).bin
 	sudo dfu-util -d 0110:1001 -a 0 -D $(TARGET).bin
@@ -139,15 +139,15 @@ end:
 	@echo
 sizeafter:
 	@if [ -f $(TARGET).elf ]; then echo; echo $(MSG_SIZE_AFTER); $(ELFSIZE); echo; fi
-gccversion: 
+gccversion:
 	@$(CC) --version
 
-program: 
+program:
 	@echo "Flash-programming with OpenOCD"
 	cp $(TARGET).bin flash/tmpflash.bin
 	cd flash && openocd -f flash.cfg
 
-program_serial: 
+program_serial:
 	@echo "Flash-programming with stm32loader.py"
 	./flash/stm32loader.py -p /dev/ttyUSB0 -evw build/maple_boot.bin
 
@@ -192,7 +192,7 @@ run: $(TARGET).bin
 
 
 # Link: create ELF output file from object files.
-.SECONDARY : $(TARGET).elf 
+.SECONDARY : $(TARGET).elf
 .PRECIOUS : $(COBJ) $(AOBJ)
 
 %.elf:  $(COBJ) $(AOBJ)
@@ -204,7 +204,7 @@ run: $(TARGET).bin
 $(COBJ) : $(BUILDDIR)/%.o : %.c
 	@echo
 	@echo $(MSG_COMPILING) $<
-	$(CC) -c $(THUMB) $(ALL_CFLAGS) $< -o $@ 
+	$(CC) -c $(THUMB) $(ALL_CFLAGS) $< -o $@
 
 # Assemble: create object files from assembler source files. ARM/Thumb
 $(AOBJ) : $(BUILDDIR)/%.o : %.s

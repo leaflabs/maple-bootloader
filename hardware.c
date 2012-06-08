@@ -64,8 +64,8 @@ void strobePin(u32 bank, u8 pin, u8 count, u32 rate) {
       asm volatile ("nop");
     }
     resetPin(bank,pin);
-  } 
-} 
+  }
+}
 
 void systemReset(void) {
   SET_REG(RCC_CR, GET_REG(RCC_CR)     | 0x00000001);
@@ -81,7 +81,7 @@ void setupCLK (void) {
   /* enable HSE */
   SET_REG(RCC_CR,GET_REG(RCC_CR) | 0x00010001);
   while ((GET_REG(RCC_CR) & 0x00020000) == 0); /* for it to come on */
-  
+
   /* enable flash prefetch buffer */
   SET_REG(FLASH_ACR, 0x00000012);
 
@@ -89,7 +89,7 @@ void setupCLK (void) {
   SET_REG(RCC_CFGR,GET_REG(RCC_CFGR) | 0x001D0400);  /* pll=72Mhz,APB1=36Mhz,AHB=72Mhz */
   SET_REG(RCC_CR,GET_REG(RCC_CR)     | 0x01000000);  /* enable the pll */
   while ((GET_REG(RCC_CR) & 0x03000000) == 0);         /* wait for it to come on */
-  
+
   /* Set SYSCLK as PLL */
   SET_REG(RCC_CFGR,GET_REG(RCC_CFGR) | 0x00000002);
   while ((GET_REG(RCC_CFGR) & 0x00000008) == 0); /* wait for it to come on */
@@ -157,18 +157,18 @@ bool checkUserCode (u32 usrAddr) {
 void jumpToUser (u32 usrAddr) {
   typedef void (*funcPtr)(void);
 
-  u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */  
+  u32 jumpAddr = *(vu32*) (usrAddr + 0x04); /* reset ptr in vector table */
   funcPtr usrMain = (funcPtr) jumpAddr;
 
   /* tear down all the dfu related setup */
   // disable usb interrupts, clear them, turn off usb, set the disc pin
-  // todo pick exactly what we want to do here, now its just a conservative 
+  // todo pick exactly what we want to do here, now its just a conservative
   flashLock();
   usbDsbISR();
   nvicDisableInterrupts();
   setPin(GPIOC,12); // disconnect usb from host. todo, macroize pin
   systemReset(); // resets clocks and periphs, not core regs
-  
+
 
   __MSR_MSP(*(vu32*) usrAddr);              /* set the users stack ptr */
 
@@ -186,25 +186,25 @@ void nvicInit(NVIC_InitTypeDef* NVIC_InitStruct) {
   NVIC_TypeDef* rNVIC = (NVIC_TypeDef *) NVIC_BASE;
 
 
-  /* Compute the Corresponding IRQ Priority --------------------------------*/    
+  /* Compute the Corresponding IRQ Priority --------------------------------*/
   tmppriority = (0x700 - (rSCB->AIRCR & (u32)0x700))>> 0x08;
   tmppre = (0x4 - tmppriority);
   tmpsub = tmpsub >> tmppriority;
-  
+
   tmppriority = (u32)NVIC_InitStruct->NVIC_IRQChannelPreemptionPriority << tmppre;
   tmppriority |=  NVIC_InitStruct->NVIC_IRQChannelSubPriority & tmpsub;
 
   tmppriority = tmppriority << 0x04;
   tmppriority = ((u32)tmppriority) << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
-    
+
   tmpreg = rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)];
   tmpmask = (u32)0xFF << ((NVIC_InitStruct->NVIC_IRQChannel & (u8)0x03) * 0x08);
   tmpreg &= ~tmpmask;
-  tmppriority &= tmpmask;  
+  tmppriority &= tmpmask;
   tmpreg |= tmppriority;
 
   rNVIC->IPR[(NVIC_InitStruct->NVIC_IRQChannel >> 0x02)] = tmpreg;
-    
+
   /* Enable the Selected IRQ Channels --------------------------------------*/
   rNVIC->ISER[(NVIC_InitStruct->NVIC_IRQChannel >> 0x05)] =
     (u32)0x01 << (NVIC_InitStruct->NVIC_IRQChannel & (u8)0x1F);
@@ -222,7 +222,7 @@ void nvicDisableInterrupts() {
 
 void systemHardReset(void) {
   SCB_TypeDef* rSCB = (SCB_TypeDef *) SCB_BASE;
-  
+
   /* Reset  */
   rSCB->AIRCR = (u32)AIRCR_RESET_REQ;
 

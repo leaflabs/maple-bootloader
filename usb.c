@@ -26,7 +26,7 @@
  *  @file usb.c
  *
  *  @brief usb-specific hardware setup, NVIC, clocks, and usb activities
- *  in the pre-attached state. includes some of the lower level callbacks 
+ *  in the pre-attached state. includes some of the lower level callbacks
  *  needed by the usb library, like suspend,resume,init,etc
  */
 
@@ -63,13 +63,13 @@ vu32 bDeviceState = UNCONNECTED;
 vu16 wIstr;
 vu8 bIntPackSOF = 0;
 
-DEVICE Device_Table = 
+DEVICE Device_Table =
   {
     NUM_ENDPTS,
     1
   };
 
-DEVICE_PROP Device_Property = 
+DEVICE_PROP Device_Property =
   {
     usbInit,
     usbReset,
@@ -86,7 +86,7 @@ DEVICE_PROP Device_Property =
     bMaxPacketSize
   };
 
-USER_STANDARD_REQUESTS User_Standard_Requests = 
+USER_STANDARD_REQUESTS User_Standard_Requests =
   {
     usbGetConfiguration,
     usbSetConfiguration,
@@ -100,7 +100,7 @@ USER_STANDARD_REQUESTS User_Standard_Requests =
   };
 
 void (*pEpInt_IN[7])(void) =
-{ 
+{
   nothingProc,
   nothingProc,
   nothingProc,
@@ -232,7 +232,7 @@ RESULT usbPowerOff(void) {
   _SetISTR(0);
   _SetCNTR(CNTR_FRES + CNTR_PDWN);
 
-  /* note that all weve done here is powerdown the 
+  /* note that all weve done here is powerdown the
      usb peripheral. we have no disabled the clocks,
      pulled the usb_disc pin back up, or reset the
      application state machines */
@@ -367,9 +367,9 @@ u8* usbGetFunctionalDescriptor(u16 len) {
 
 
 /***** start of USER STANDARD REQUESTS ******
- * 
- * These are the USER STANDARD REQUESTS, they are handled 
- * in the core but we are given these callbacks at the 
+ *
+ * These are the USER STANDARD REQUESTS, they are handled
+ * in the core but we are given these callbacks at the
  * application level
  *******************************************/
 

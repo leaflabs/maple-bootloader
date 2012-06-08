@@ -100,8 +100,8 @@ void dfuInit(void);  /* singleton dfu initializer */
 
 /* should consume dfuEvent type, but for now we can use pInfo (see comment above) */
 bool dfuUpdateByRequest(void);  /* returns if new status is OK */
-void dfuUpdateByReset(void); 
-void dfuUpdateByTimeout(void); 
+void dfuUpdateByReset(void);
+void dfuUpdateByTimeout(void);
 
 /* usb callbacks */
 u8* dfuCopyState(u16);
@@ -112,7 +112,7 @@ u8* dfuCopyUPLOAD(u16);
 void dfuCopyBufferToExec(void);
 bool checkTestFile(void);
 
-u8 dfuGetState(void); 
+u8 dfuGetState(void);
 void dfuSetState(u8);
 bool dfuUploadStarted();
 void dfuFinishUpload();

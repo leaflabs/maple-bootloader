@@ -25,9 +25,9 @@
 /**
  *  @file main.c
  *
- *  @brief main loop and calling any hardware init stuff. timing hacks for EEPROM 
+ *  @brief main loop and calling any hardware init stuff. timing hacks for EEPROM
  *  writes not to block usb interrupts. logic to handle 2 second timeout then
- *  jump to user code. 
+ *  jump to user code.
  *
  */
 
@@ -47,7 +47,7 @@ int main() {
   bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
   int delay_count = 0;
 
-  while ((delay_count++ < BOOTLOADER_WAIT) 
+  while ((delay_count++ < BOOTLOADER_WAIT)
 	 || no_user_jump) {
 
     strobePin(LED_BANK,LED,1,BLINK_SLOW);
@@ -56,7 +56,7 @@ int main() {
       dfuFinishUpload(); // systemHardReset from DFU once done
     }
   }
-  
+
   if (checkUserCode(USER_CODE_RAM)) {
     jumpToUser(USER_CODE_RAM);
   } else if (checkUserCode(USER_CODE_FLASH)) {
@@ -66,5 +66,5 @@ int main() {
     strobePin(LED_BANK,LED,5,BLINK_FAST);
     systemHardReset();
   }
-  
+
 }

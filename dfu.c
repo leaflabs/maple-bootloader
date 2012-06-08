@@ -27,7 +27,7 @@
  *
  *  @brief The principle dfu state machine as well as the data
  *  transfer callbacks accessed by the usb library
- *   
+ *
  *
  */
 
@@ -50,9 +50,9 @@ PLOT code_copy_lock;
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
   dfuAppStatus.bStatus = OK;
-  dfuAppStatus.bwPollTimeout0 = 0x00;  
-  dfuAppStatus.bwPollTimeout1 = 0x00;  
-  dfuAppStatus.bwPollTimeout2 = 0x00;  
+  dfuAppStatus.bwPollTimeout0 = 0x00;
+  dfuAppStatus.bwPollTimeout1 = 0x00;
+  dfuAppStatus.bwPollTimeout2 = 0x00;
   dfuAppStatus.bState = dfuIDLE;
   dfuAppStatus.iString = 0x00;          /* all strings must be 0x00 until we make them! */
   userFirmwareLen = 0;
@@ -69,7 +69,7 @@ bool dfuUpdateByRequest(void) {
   dfuBusy = TRUE;
 
   u8 startState = dfuAppStatus.bState;
-  dfuAppStatus.bStatus = OK;      
+  dfuAppStatus.bStatus = OK;
   /* often leaner to nest if's then embed a switch/case */
   if (startState == dfuIDLE)  {
     /*  device running inside DFU mode */
@@ -84,7 +84,7 @@ bool dfuUpdateByRequest(void) {
 	if (pInformation->Current_AlternateSetting == 1) {
 	  userAppAddr = USER_CODE_FLASH;
 	  userFlash = TRUE;
-	  
+
 	  /* make sure the flash is setup properly, unlock it */
 	  setupFLASH();
 	  flashUnlock();
@@ -95,26 +95,26 @@ bool dfuUpdateByRequest(void) {
 	}
       } else {
 	dfuAppStatus.bState  = dfuERROR;
-	dfuAppStatus.bStatus = errNOTDONE;      
+	dfuAppStatus.bStatus = errNOTDONE;
       }
     } else if (pInformation->USBbRequest == DFU_UPLOAD) {
       dfuAppStatus.bState  = dfuUPLOAD_IDLE;
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;
-      dfuAppStatus.bStatus = OK;  /* are we really ok? we were just aborted */    
+      dfuAppStatus.bStatus = OK;  /* are we really ok? we were just aborted */
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
       dfuAppStatus.bState  = dfuIDLE;
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
       dfuAppStatus.bState  = dfuIDLE;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     }
 
   } else if (startState == dfuDNLOAD_SYNC)         {
     /* device received block, waiting for DFU_GETSTATUS request */
 
-    if (pInformation->USBbRequest == DFU_GETSTATUS) {      
+    if (pInformation->USBbRequest == DFU_GETSTATUS) {
       /* todo, add routine to wait for last block write to finish */
       if (userFlash) {
 	if (code_copy_lock==WAIT) {
@@ -124,7 +124,7 @@ bool dfuUpdateByRequest(void) {
 	  dfuAppStatus.bState=dfuDNBUSY;
 
 	} else if (code_copy_lock==BEGINNING) {
-	  dfuAppStatus.bState=dfuDNLOAD_SYNC;	  
+	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
 
 	} else if (code_copy_lock==MIDDLE) {
 	  dfuAppStatus.bState=dfuDNLOAD_SYNC;
@@ -144,7 +144,7 @@ bool dfuUpdateByRequest(void) {
       dfuAppStatus.bState  = dfuDNLOAD_SYNC;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     }
 
   } else if (startState == dfuDNBUSY)              {
@@ -165,10 +165,10 @@ bool dfuUpdateByRequest(void) {
       } else {
 	/* todo, support "disagreement" if device expects more data than this */
 	dfuAppStatus.bState  = dfuMANIFEST_SYNC;
-	
+
 	/* relock the flash */
 	flashLock();
-      }      
+      }
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
@@ -177,12 +177,12 @@ bool dfuUpdateByRequest(void) {
       dfuAppStatus.bState  = dfuIDLE;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     }
 
   } else if (startState == dfuMANIFEST_SYNC)       {
     /* device has received last block, waiting DFU_GETSTATUS request */
-    
+
     if (pInformation->USBbRequest == DFU_GETSTATUS) {
       dfuAppStatus.bState  = dfuMANIFEST_WAIT_RESET;
       dfuAppStatus.bStatus = OK;
@@ -190,7 +190,7 @@ bool dfuUpdateByRequest(void) {
       dfuAppStatus.bState  = dfuMANIFEST_SYNC;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;            
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     }
 
   } else if (startState == dfuMANIFEST)            {
@@ -210,10 +210,10 @@ bool dfuUpdateByRequest(void) {
   } else if (startState == dfuUPLOAD_IDLE)         {
     /* device expecting further dfu_upload requests */
 
-    if (pInformation->USBbRequest == DFU_UPLOAD) {      
+    if (pInformation->USBbRequest == DFU_UPLOAD) {
       /* todo, add routine to wait for last block write to finish */
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT; 
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     } else if (pInformation->USBbRequest == DFU_ABORT) {
       dfuAppStatus.bState  = dfuIDLE;
     } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
@@ -222,14 +222,14 @@ bool dfuUpdateByRequest(void) {
       dfuAppStatus.bState  = dfuUPLOAD_IDLE;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
+      dfuAppStatus.bStatus = errSTALLEDPKT;
     }
-    
+
 
   } else if (startState == dfuERROR)               {
     /* status is in error, awaiting DFU_CLRSTATUS request */
 
-    if (pInformation->USBbRequest == DFU_GETSTATUS) {      
+    if (pInformation->USBbRequest == DFU_GETSTATUS) {
       /* todo, add routine to wait for last block write to finish */
       dfuAppStatus.bState  = dfuERROR;
     } else if (pInformation->USBbRequest == DFU_GETSTATE) {
@@ -237,16 +237,16 @@ bool dfuUpdateByRequest(void) {
     } else if (pInformation->USBbRequest == DFU_CLRSTATUS) {
       /* todo handle any cleanup we need here */
       dfuAppStatus.bState  = dfuIDLE;
-      dfuAppStatus.bStatus = OK;      
+      dfuAppStatus.bStatus = OK;
     } else {
       dfuAppStatus.bState  = dfuERROR;
-      dfuAppStatus.bStatus = errSTALLEDPKT;      
-    }    
+      dfuAppStatus.bStatus = errSTALLEDPKT;
+    }
 
   } else {
     /* some kind of error... */
     dfuAppStatus.bState  = dfuERROR;
-    dfuAppStatus.bStatus = errSTALLEDPKT;      
+    dfuAppStatus.bStatus = errSTALLEDPKT;
   }
 
   if (dfuAppStatus.bStatus == OK) {
@@ -271,7 +271,7 @@ void dfuUpdateByReset(void) {
     /* do nothing...might be normal usb bus activity */
   } else {
     /* we reset from the dfu, reset everything and startover,
-       which is the correct operation if this is an erroneous 
+       which is the correct operation if this is an erroneous
        event or properly following a MANIFEST */
     dfuAppStatus.bState = dfuIDLE;
     dfuAppStatus.bStatus = OK;

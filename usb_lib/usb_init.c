@@ -57,7 +57,7 @@ void USB_Init(void)
   pProperty = &Device_Property;
   pUser_Standard_Requests = &User_Standard_Requests;
   /* Initialize devices one by one */
-  
+
   pProperty->Init();
 }
 

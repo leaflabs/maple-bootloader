@@ -111,7 +111,7 @@ void usbSetEndpointFeature(void);
 void usbSetDeviceFeature(void);
 void usbSetDeviceAddress(void);
 
-/* the small number of comm emulator functions to 
+/* the small number of comm emulator functions to
    eventually be migrated into their own usart sources
 */
 u8* vcomGetLineCoding(u16 length);
@@ -119,8 +119,8 @@ u8* vcomSetLineCoding(u16 length);
 void vcomEp1In(void);
 void vcomEp3Out(void);
 
-/* Interrupt setup/handling exposed only so that 
-   its obvious from main what interrupts are overloaded 
+/* Interrupt setup/handling exposed only so that
+   its obvious from main what interrupts are overloaded
    from c_only_startup.s (see the top of main.c) */
 void usbDsbISR(void);
 void usbEnbISR(void);
