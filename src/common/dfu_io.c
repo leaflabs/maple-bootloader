@@ -70,9 +70,17 @@ void dfuToFlashInit()
 #endif
 
 #ifdef CONFIG_ALTSETTING_RUN
-void dfuToRunInit()
+
+void dfuToRunCopy()
 {
 	jumpToUser(CONFIG_RUN_ADDR);
+}
+
+void dfuToRunInit()
+{
+	/* We cannot jump from here, sice we're in interrupt */
+	/* Without extra init it screws up interrupts in the app */
+	dfuCopyFunc = dfuToRunCopy;
 }
 #endif
 
