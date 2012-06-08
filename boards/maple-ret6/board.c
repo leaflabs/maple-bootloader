@@ -4,23 +4,13 @@
 #include "hardware.h"
 
 
-static void setupLED (void) {
-	// todo, swap out hardcoded pin/bank with macro
-	u32 rwmVal; /* read-write-modify place holder var */
+void setupLED (void) {
+	/* enable LED pin */
+	pRCC->APB2ENR |= RCC_APB2ENR_LED;
 
-	/* Setup APB2 (GPIOA) */
-	rwmVal =  GET_REG(RCC_APB2ENR);
-	rwmVal |= 0x00000004;
-	SET_REG(RCC_APB2ENR,rwmVal);
-
-	/* Setup GPIOA Pin 5 as PP Out */
-	SET_REG(GPIO_CRL(GPIOA), 0x00100000);
-
-	rwmVal =  GET_REG(GPIO_CRL(GPIOA));
-	rwmVal &= 0xFF0FFFFF;
-	rwmVal |= 0x00100000;
-	SET_REG(GPIO_CRL(GPIOA),rwmVal);
-	setPin(GPIOA,5);
+	/* Setup LED pin as output open drain */
+	SET_REG(LED_BANK_CR,(GET_REG(LED_BANK_CR) & LED_CR_MASK) | LED_CR_OUTPUT);
+	setPin(LED_BANK, LED);
 }
 
 static void setupCLK (void) {
@@ -41,51 +31,37 @@ static void setupCLK (void) {
 	while ((GET_REG(RCC_CFGR) & 0x00000008) == 0); /* wait for it to come on */
 }
 
-static void setupBUTTON (void) {
-	// todo, swap out hardcoded pin/bank with macro
-	u32 rwmVal; /* read-write-modify place holder var */
+void setupBUTTON (void) {
+	/* enable button pin */
+	pRCC->APB2ENR |= RCC_APB2ENR_BUT;
 
-	/* Setup APB2 (GPIOC) */
-	rwmVal =  GET_REG(RCC_APB2ENR);
-	rwmVal |= 0x00000010;
-	SET_REG(RCC_APB2ENR,rwmVal);
-
-	/* Setup GPIOC Pin 9 as PP Out */
-	rwmVal =  GET_REG(GPIO_CRH(GPIOC));
-	rwmVal &= 0xFFFFFF0F;
-	rwmVal |= 0x00000040;
-	SET_REG(GPIO_CRH(GPIOC),rwmVal);
-
+	/* Setup button pin as floating input */
+	SET_REG(BUT_BANK_CR,(GET_REG(BUT_BANK_CR) & BUT_CR_MASK) | BUT_CR_OUTPUT);
+	setPin(BUTTON_BANK, BUTTON);
 }
 
-static void inline setupUSB (void) {
-	u32 rwmVal; /* read-write-modify place holder var */
+void setupUSB (void) {
+	/* enable USB DISC Pin */
+	pRCC->APB2ENR |= RCC_APB2ENR_USB;
 
-	/* Setup the USB DISC Pin */
-	rwmVal  = GET_REG(RCC_APB2ENR);
-	rwmVal |= 0x4;
-	SET_REG(RCC_APB2ENR,rwmVal);
+	/* Setup USB DISC pin as output open drain */
+	SET_REG(USB_DISC_CR,
+		(GET_REG(USB_DISC_CR) & USB_DISC_CR_MASK) | USB_DISC_CR_OUTPUT_OD);
+	setPin(USB_DISC_BANK, USB_DISC);
 
-	// todo, macroize usb_disc pin
-	/* Setup GPIOC Pin 12 as OD out */
-	rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-	rwmVal &= 0xFFF0FFFF;
-	rwmVal |= 0x00050000;
-	SET_REG(GPIO_CRH(GPIOC),rwmVal);
+	/* turn on the USB clock */
 	pRCC->APB1ENR |= 0x00800000;
 
-	resetPin (GPIOC,12);
-	rwmVal = 10000000;
-	while (rwmVal--);;
-	/* initialize the usb application */
-	setPin (GPIOC,12);  /* present ourselves to the host */
+	/* initialize the USB application */
+	resetPin(USB_DISC_BANK, USB_DISC); /* present ourselves to the host */
+
 }
 
 
 /* executed before actual jump to user code */
 void boardTeardown()
 {
-	setPin(GPIOC,12); // disconnect usb from host. todo, macroize pin
+	setPin(USB_DISC_BANK, USB_DISC); /* unpresent ourselves to the host */
 }
 
 /* This is a common routine to setup the board */
