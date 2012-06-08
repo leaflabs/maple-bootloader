@@ -7,6 +7,8 @@ board.c
 It is a good idea to replace the beautiful get/set code with a bunch
 of SET_REGS with magic numbers. It will be less readable, but will
 occupy less space.
+Only leave boardInit and boardTeardown, or declare other functions
+as inline.
 
 config.h
 Disable any strobing at all, disable usb suspend code.
