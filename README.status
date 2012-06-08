@@ -1,0 +1,14 @@
+
+This is the status matrix of exisiting boards and 
+their current status.
+
+| Boardname           | Board Fullname         | Vendor               | Status | Notes |
+|---------------------+------------------------+----------------------+--------+-------|
+| mcortex             | Motor Cortex           | Necromant & DmitrySu | good   | 1     |
+| te-stm32f103ret6kit | TE eval board          | TerraElectronica.ru  | good   | 2     |
+| maple               | Leaflabs maple(master) | Leaflabs LLC         | should | 3     |
+| maple-ret6          | Leaflabs maple RET6    | Leaflabs LLC         | should | 3     |
+
+1. SPI and FPGA targets need extra love
+2. USB disconnection doesn't work. Screwed USB disc circuit?
+3. Being tested upstream right now, initial testing went bad. 
