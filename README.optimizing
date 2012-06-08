@@ -1,0 +1,25 @@
+Misc notes about code size.
+
+The default compiler settings provide quite good size optimizations.
+If you still aren't happy - read further.
+
+board.c
+It is a good idea to replace the beautiful get/set code with a bunch
+of SET_REGS with magic numbers. It will be less readable, but will
+occupy less space.
+
+config.h
+Disable any strobing at all, disable usb suspend code.
+Enable only one altsetting that you really need.
+
+The most minimal working config I could get was about 5.9KiB.
+
+VTOR. For the interrupts in your app to work, VTOR register, aka
+SCB->VTOR needs to be set to point to the new vector table.
+ST's app notes recommend setting this in the application itself,
+during init.
+ST's periph libs do that in SystemInit(); See their code for details.
+It is not necessary here, since the VTOR is set before the jump
+by the bootloader automatically and it proves to be working.
+It won't hurt setting it again, but if you are running in a memory
+constrained system, you can safely omit that.
