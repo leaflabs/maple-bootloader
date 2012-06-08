@@ -1,0 +1,110 @@
+This file will give you a short overview of the porting process
+Lacking of fast&easy porting of maple bootloader was the reason
+of the major code rework I've done here.
+
+Have a good look at the boards/ directory. These are all the boards,
+that are supported. Pick the one that looks like the closest to yours
+and copy it under a different name.
+
+Each port consists of 4 files.
+
+config.h
+usb_descriptors.c
+board.c
+Makefile
+
+config.h has several very important params, that are worth setting.
+Most are self-explanatory, some need manual tuning. There are several
+options that impact bootloader size.
+
+CONFIG_INHIBIT_STROBE
+  define this to completely remove any strobe code and save some bytes
+
+CONFIG_DISABLE_USB_SUSPEND
+  Disables USB suspend/resume support and saves quite a few bytes
+
+FLASH_PAGE_SIZE
+ Set this according to the datasheet. You can also use stm32flash output
+ if lazy. Incorrect setting of this one will cause the data corruption.
+
+Altsettings.
+The altsettings are configuread by defining the altsetting function
+to the altsetting number.
+e.g. CONFIG_ALTSETTING_RAM 0
+Currently 3 altsetting functions are supported:
+CONFIG_ALTSETTING_RAM CONFIG_ALTSETTING_FLASH and CONFIG_ALTSETTING_RUN
+
+CONFIG_ALTSETTING_RAM - provides the ability to download code to RAM
+CONFIG_ALTSETTING_FLASH - to flash
+CONFIG_ALTSETTING_RUN
+  !!!This is a hack, that breaks the dfu standart.
+  Define this the to the altsetting number, e.g. 0, 1, etc.
+  Trying to download anything to that altsetting will cause immediate
+  jump to user code. dfu-util should exit due to device 'disconnect'
+  The jump will be performed to the addr defined in CONFIG_RUN_ADDR
+
+Undefining any of the above will remove the involved code, thus reducing
+the loader size.
+
+N.B. Make sure you adjust usb string descriptors for altsettings to
+reflect your config.
+
+BONUS!
+For easy editing of string descriptors in emacs, you can use this lisp
+sniplet:
+
+--------8<----------
+(defun th-usb-string-descriptor(text)
+  (interactive "sString, plz: ")
+  (insert "{\n")
+  (setq pos '2)
+  (loop for x in (string-to-list text)
+        do (insert (concat "'" (make-string 1 x) "', 0x0, "))
+        (setq pos (+ 2 pos))
+        )
+  (insert " };")
+  (beginning-of-line)
+  (insert (format "0x%X,\n0x03,\n" pos))
+)
+--------8<----------
+
+just place it somewhere in your ~/.emacs, and use via
+M-x th-usb-string-descriptor
+
+You can also adjust the USER_CODE_FLASH to some lower adress, depending
+on the resulting loader size. Default maple settings waste a lot of precious
+code space.
+
+You can add any extra code to before the main loop via
+CONFIG_EXTRA_MAIN_CODE
+This is useful to implement custom rules whether to enter the
+bootloader or not.
+
+Example:
+
+#define CONFIG_EXTRA_MAIN_CODE \
+        bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON)); \
+        int delay_count =0;
+
+There are also
+
+bootloaderCondition and bootloaderExitCondition defines.
+The first one is used for the main loop, while it evaluates to 'TRUE'
+we're in the bootloader mode.
+The second one is the extra condition to break the loop. Undefine
+to save space.
+
+
+board.c has 2 functions that need to be implemented.
+boardInit() - This should init the board, any leds, buttons, clocks and
+present the device to host via enabling the pullup (If necessary)
+
+boardTeardown() - should disconnect the device from host for good. Any
+ other code you want to run defore exiting loader goes here
+
+usb_descriptors.c gives you fine-tuning of the device descriptors.
+
+Makefile - any additional CFLAGS, objects and other stuff goes here.
+Normally you wouldn't wat to edit it.
+
+That's it, enjoy

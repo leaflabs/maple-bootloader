@@ -1,38 +1,34 @@
+This is a bootloader derived from leaflabs' maple dfu bootloader.
+It has a better support for multiple boards, and some other
+goodies.
+To compile run 'make'
+To specify toolchain - use CROSS_COMPILE, e.g.
+'CROSS_COMPILE=arm-none-eabi- make'
+Results are piled to build/ directory.
+To see what's actually happening - run with V=y, e.g.
+CROSS_COMPILE=arm-none-eabi- make V=y
+This will dump a lot of info for you.
+Have fun.
 
-FILES -------------------------------------------------------------------------
+WHY?
+----
+I needed a bootloader for my custom boards. Upstream maple was
+shitty in places. So I cleaned up the mess
 
-stm32lib/*
-  - all the (possibly consolidated) stm32 lib and usb example code
+WHAT'S THE DIFFERENCE, COMPARED TO MAPLE's UPSTREAM ONE?
+--------------------------------------------------------
+Easy to add new boards
+Configurable FLASH_PAGE_SIZE per-board
+Configurable bootloader enter and leave conditions. per-board.
+Configurable descriptors. per-board.
+Extra options to save space
+Batch-compile for all boards.
+Pretty colored compilation output.
+Configurable altsettings, easy to add new download targets
+Multiple downloads in one run support.4
+New altsetting: download-to-run
+Compiles with -Os, and works when compiled like that
+a LOT faster:
+   Max USB download speed - 61 Kilobytes/s.
+   Real Life flash programming speed - 20 Kilobytes/s
 
-usb.c 
-  - USB-specific hardware setup. Interrupts, clocks, etc. handling USB when 
-    not "Attached". some low-level callbacks (low power mode, init, reset, 
-    resume, etc).
-
-usb_callbacks.c 
-  - aka endpoints: handling data transfer when "Configured". calls out to 
-    application specific callbacks (eg DFU or serial shit)
-
-usb_descriptor.c 
-  - aka application descriptor; big static struct and callbacks for sending
-    the descriptor. 
-
-main.c
-  - main loop and calling any hardware init stuff. timing hacks for EEPROM 
-    writes not to block usb interrupts. logic to handle 2 second timeout then
-    jump to user code. 
-
-hardware.c
-  - init routines to setup clocks, interrupts, also destructor functions.
-    does not include USB stuff. EEPROM read/write functions.
-
-dfu.c
-  - mostly the giant FSM case switch, also some USB endpoint callbacks
-
-
-TODO --------------------------------------------------------------------------
-
- * tap reset then quickly tap The Button leaves the board in dfu wait loop 
-   forever instead of just 2 seconds
-
- * use sizeof() for usb application descriptor
