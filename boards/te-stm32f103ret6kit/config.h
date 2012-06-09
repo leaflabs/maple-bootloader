@@ -42,7 +42,7 @@
 //Replace USB suspend/resume code with dummies.
 //Saves a few bytes more
 
-#define CONFIG_DISABLE_USB_SUSPEND
+//#define CONFIG_DISABLE_USB_SUSPEND
 
 /* THIS IS MCU-DEPENDANT! RTFM: Reference Manual */
 #define FLASH_PAGE_SIZE  0x800
@@ -59,7 +59,7 @@
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)  0x20000C00)
-#define USER_CODE_FLASH   ((u32)  0x08003000)
+#define USER_CODE_FLASH   ((u32)  0x08005000)
 
 
 /* AltSetting Configuration

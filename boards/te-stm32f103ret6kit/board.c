@@ -69,26 +69,20 @@ static void inline setupUSB (void) {
   SET_REG(RCC_APB2ENR,rwmVal);
 
   // todo, macroize usb_disc pin
-  /* Setup GPIOC Pin 12 as OD out */
+  /* Setup GPIOB Pin 5 as OD out */
   rwmVal  = GET_REG(GPIO_CRL(GPIOB));
   rwmVal &= 0xFF0FFFFF;
-  rwmVal |= 0x00500000;
+  rwmVal |= 0x00100000;
   SET_REG(GPIO_CRL(GPIOB),rwmVal);
-  pRCC->APB1ENR |= 0x00800000;
-
-  resetPin (GPIOB,5);
-  rwmVal = 10000000;
-  while (rwmVal--);;
-  /* initialize the usb application */
-  setPin (GPIOB,5);  /* present ourselves to the host */
-  usbAppInit();
+  setPin (GPIOB,5);
+  resetPin (GPIOB,5);  /* present ourselves to the host */
 }
 
 
 /* executed before actual jump to user code */
 void boardTeardown()
 {
-  resetPin(GPIOB,5); // disconnect usb from host. todo, macroize pin
+  setPin(GPIOB,5); // disconnect usb from host. todo, macroize pin
 }
 
 /* This is a common routine to setup the board */
@@ -97,5 +91,6 @@ void boardInit()
 	setupCLK();
 	setupLED();
 	setupBUTTON();
+	strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
 	setupUSB();
 }
