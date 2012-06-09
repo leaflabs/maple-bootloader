@@ -37,18 +37,16 @@
 int main() {
 	systemReset(); // peripherals but not PC
 	boardInit();
-	setupFLASH();
+	pRCC->APB1ENR |= 0x00800000;
 	usbAppInit();
+	setupFLASH();
 	strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
+
+
+		
 #ifdef CONFIG_EXTRA_MAIN_CODE
 	CONFIG_EXTRA_MAIN_CODE
 #endif
-
-/* This code now moved to CONFIG_EXTRA_MAIN_CODE */
-//  bool no_user_jump = (((!checkUserCode(USER_CODE_FLASH)) && (!checkUserCode(USER_CODE_RAM))) || readPin(BUTTON_BANK,BUTTON));
-//  #ifdef CONFIG_BOOTLOADER_WAIT
-//  int delay_count = 0;
-//  #endif
 
 /* wait for host to upload program or halt bootloader */
 		while (bootloaderCondition) {
