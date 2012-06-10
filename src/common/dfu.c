@@ -39,10 +39,9 @@ volatile u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
 DFUStatus dfuAppStatus;       /* includes state */
 volatile bool dfuBusy = FALSE;
 
-volatile u8 recvBuffer[wTransferSize];
-volatile u32 userFirmwareLen = 0;
-volatile u16 thisBlockLen = 0;
-
+u8 recvBuffer[wTransferSize];
+u32 userFirmwareLen = 0;
+int thisBlockLen;
 volatile PLOT code_copy_lock;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
@@ -355,7 +354,8 @@ void dfuFinishUpload() {
 	{
 		if (code_copy_lock == BEGINNING) {
 			code_copy_lock=MIDDLE;
-			dfuCopyFunc();
+			if (thisBlockLen!=0)
+				dfuCopyFunc();
 			code_copy_lock = END;
 		}
 	}
