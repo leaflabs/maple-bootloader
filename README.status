@@ -12,3 +12,20 @@ their current status.
 1. SPI and FPGA targets need extra love
 2. USB disconnection doesn't work. Screwed USB disc circuit?
 3. Being tested upstream right now, initial testing went bad. 
+
+
+Feature status.
+
+| Feature                    | boards  | status | upstream status | Notes |
+|----------------------------+---------+--------+-----------------+-------|
+| Flash Download             | all     | good   | good            |       |
+| RAM Download               | all     | good   | good            |       |
+| USB Software Disconnection | -all    | WiP    | ???             |       |
+| SPI Flash Download         | mcortex | WiP    | n/a             |     1 |
+| FPGA XSSCU Download        | mcortex | mostly | n/a             |     2 |
+
+1. Driver needs to be ported. Only board with flash - mcortex
+2. Should work, requires some extra dummy bytes in the fw, needs more testing
+
+
+
