@@ -69,6 +69,7 @@
 #define CONFIG_ALTSETTING_RAM 0
 #define CONFIG_ALTSETTING_FLASH 1
 #define CONFIG_ALTSETTING_RUN 2
+#define CONFIG_ALTSETTING_FPGA 3
 /* Any transfer to run altsetting will cause a jump to this addr */
 #define CONFIG_RUN_ADDR USER_CODE_FLASH
 
