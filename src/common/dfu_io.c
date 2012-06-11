@@ -1,6 +1,3 @@
-
-
-
 /* This file will be just sucked in dfu.c for the sake of simplicity */
 
 #ifdef CONFIG_ALTSETTING_RAM
@@ -92,7 +89,6 @@ void dfuToNowhereCopy()
 {
 	userFirmwareLen += thisBlockLen;
 	thisBlockLen = 0;
-
 	/* just copied all the fw to astral */
 }
 
@@ -118,10 +114,20 @@ void dfuToSPIInit()
 #endif
 
 #ifdef CONFIG_ALTSETTING_FPGA
+#include "xsscu.h"
 
+extern const struct xsscu_unit fpga0;
+
+void dfuToXsscuCopy()
+{
+	xsscu_write(&fpga0, (unsigned char*) recvBuffer, thisBlockLen);
+	userFirmwareLen += thisBlockLen;
+	thisBlockLen = 0;	
+}
 void dfuToFPGAInit()
 {
-	/* TODO */
+	xsscu_reset(&fpga0);
+	dfuCopyFunc = dfuToXsscuCopy;
 }
 
 #endif
