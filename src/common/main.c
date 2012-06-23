@@ -37,11 +37,11 @@
 int main() {
 	systemReset(); // peripherals but not PC
 	boardInit();
+	strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
 	pRCC->APB1ENR |= 0x00800000;
 	usbAppInit();
 	setupFLASH();
-	strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
-
+	
 
 		
 #ifdef CONFIG_EXTRA_MAIN_CODE
