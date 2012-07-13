@@ -119,8 +119,8 @@ bool dfuUpdateByRequest(void) {
       if (userFlash) {
 	if (code_copy_lock==WAIT) {
 	  code_copy_lock=BEGINNING;
- 	  dfuAppStatus.bwPollTimeout0 = 0xFF; /* is this enough? */
- 	  dfuAppStatus.bwPollTimeout1 = 0x01; /* is this enough? */
+ 	  dfuAppStatus.bwPollTimeout0 = 0x20; /* 32 ms */
+ 	  dfuAppStatus.bwPollTimeout1 = 0x00;
 	  dfuAppStatus.bState=dfuDNBUSY;
 
 	} else if (code_copy_lock==BEGINNING) {
