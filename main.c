@@ -34,37 +34,37 @@
 #include "common.h"
 
 int main() {
-  systemReset(); // peripherals but not PC
-  setupCLK();
-  setupLED();
-  setupUSB();
-  setupBUTTON();
-  setupFLASH();
+    systemReset(); // peripherals but not PC
+    setupCLK();
+    setupLED();
+    setupUSB();
+    setupBUTTON();
+    setupFLASH();
 
-  strobePin(LED_BANK,LED,STARTUP_BLINKS,BLINK_FAST);
+    strobePin(LED_BANK, LED, STARTUP_BLINKS, BLINK_FAST);
 
-  /* wait for host to upload program or halt bootloader */
-  bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK,BUTTON);
-  int delay_count = 0;
+    /* wait for host to upload program or halt bootloader */
+    bool no_user_jump = !checkUserCode(USER_CODE_FLASH) && !checkUserCode(USER_CODE_RAM) || readPin(BUTTON_BANK, BUTTON);
+    int delay_count = 0;
 
-  while ((delay_count++ < BOOTLOADER_WAIT)
-	 || no_user_jump) {
+    while ((delay_count++ < BOOTLOADER_WAIT)
+            || no_user_jump) {
 
-    strobePin(LED_BANK,LED,1,BLINK_SLOW);
+        strobePin(LED_BANK, LED, 1, BLINK_SLOW);
 
-    if (dfuUploadStarted()) {
-      dfuFinishUpload(); // systemHardReset from DFU once done
+        if (dfuUploadStarted()) {
+            dfuFinishUpload(); // systemHardReset from DFU once done
+        }
     }
-  }
 
-  if (checkUserCode(USER_CODE_RAM)) {
-    jumpToUser(USER_CODE_RAM);
-  } else if (checkUserCode(USER_CODE_FLASH)) {
-    jumpToUser(USER_CODE_FLASH);
-  } else {
-    // some sort of fault occurred, hard reset
-    strobePin(LED_BANK,LED,5,BLINK_FAST);
-    systemHardReset();
-  }
+    if (checkUserCode(USER_CODE_RAM)) {
+        jumpToUser(USER_CODE_RAM);
+    } else if (checkUserCode(USER_CODE_FLASH)) {
+        jumpToUser(USER_CODE_FLASH);
+    } else {
+        // some sort of fault occurred, hard reset
+        strobePin(LED_BANK, LED, 5, BLINK_FAST);
+        systemHardReset();
+    }
 
 }

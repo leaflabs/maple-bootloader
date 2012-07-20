@@ -111,80 +111,79 @@
    fail upon trying to activate RCC_APB1 |= 0x00800000. However, using
    the struct approach from ST, it works fine...temporarily switching
    to that approach */
-typedef struct
-{
-  vu32 CR;
-  vu32 CFGR;
-  vu32 CIR;
-  vu32 APB2RSTR;
-  vu32 APB1RSTR;
-  vu32 AHBENR;
-  vu32 APB2ENR;
-  vu32 APB1ENR;
-  vu32 BDCR;
-  vu32 CSR;
+typedef struct {
+    vu32 CR;
+    vu32 CFGR;
+    vu32 CIR;
+    vu32 APB2RSTR;
+    vu32 APB1RSTR;
+    vu32 AHBENR;
+    vu32 APB2ENR;
+    vu32 APB1ENR;
+    vu32 BDCR;
+    vu32 CSR;
 } RCC_RegStruct;
 #define pRCC ((RCC_RegStruct *) RCC)
 
 typedef struct {
-  vu32 ISER[2];
-  u32  RESERVED0[30];
-  vu32 ICER[2];
-  u32  RSERVED1[30];
-  vu32 ISPR[2];
-  u32  RESERVED2[30];
-  vu32 ICPR[2];
-  u32  RESERVED3[30];
-  vu32 IABR[2];
-  u32  RESERVED4[62];
-  vu32 IPR[15];
+    vu32 ISER[2];
+    u32  RESERVED0[30];
+    vu32 ICER[2];
+    u32  RSERVED1[30];
+    vu32 ISPR[2];
+    u32  RESERVED2[30];
+    vu32 ICPR[2];
+    u32  RESERVED3[30];
+    vu32 IABR[2];
+    u32  RESERVED4[62];
+    vu32 IPR[15];
 } NVIC_TypeDef;
 
 typedef struct {
-  u8 NVIC_IRQChannel;
-  u8 NVIC_IRQChannelPreemptionPriority;
-  u8 NVIC_IRQChannelSubPriority;
-  bool NVIC_IRQChannelCmd; /* TRUE for enable */
+    u8 NVIC_IRQChannel;
+    u8 NVIC_IRQChannelPreemptionPriority;
+    u8 NVIC_IRQChannelSubPriority;
+    bool NVIC_IRQChannelCmd; /* TRUE for enable */
 } NVIC_InitTypeDef;
 
 typedef struct {
-  vuc32 CPUID;
-  vu32 ICSR;
-  vu32 VTOR;
-  vu32 AIRCR;
-  vu32 SCR;
-  vu32 CCR;
-  vu32 SHPR[3];
-  vu32 SHCSR;
-  vu32 CFSR;
-  vu32 HFSR;
-  vu32 DFSR;
-  vu32 MMFAR;
-  vu32 BFAR;
-  vu32 AFSR;
+    vuc32 CPUID;
+    vu32 ICSR;
+    vu32 VTOR;
+    vu32 AIRCR;
+    vu32 SCR;
+    vu32 CCR;
+    vu32 SHPR[3];
+    vu32 SHCSR;
+    vu32 CFSR;
+    vu32 HFSR;
+    vu32 DFSR;
+    vu32 MMFAR;
+    vu32 BFAR;
+    vu32 AFSR;
 } SCB_TypeDef;
 
 
-void setPin    (u32 bank, u8 pin);
-void resetPin  (u32 bank, u8 pin);
-bool readPin   (u32 bank, u8 pin);
-void strobePin (u32 bank, u8 pin, u8 count, u32 rate);
+void setPin(u32 bank, u8 pin);
+void resetPin(u32 bank, u8 pin);
+bool readPin(u32 bank, u8 pin);
+void strobePin(u32 bank, u8 pin, u8 count, u32 rate);
 
 void systemHardReset(void);
-void systemReset   (void);
-void setupCLK      (void);
-void setupLED      (void);
-void setupFLASH    (void);
-void setupBUTTON   (void);
-bool checkUserCode (u32 usrAddr);
-void jumpToUser    (u32 usrAddr);
+void systemReset(void);
+void setupCLK(void);
+void setupLED(void);
+void setupFLASH(void);
+void setupBUTTON(void);
+bool checkUserCode(u32 usrAddr);
+void jumpToUser(u32 usrAddr);
 
-bool flashWriteWord  (u32 addr, u32 word);
-bool flashErasePage  (u32 addr);
-bool flashErasePages (u32 addr, u16 n);
-void flashLock       (void);
-void flashUnlock     (void);
-void nvicInit        (NVIC_InitTypeDef*);
+bool flashWriteWord(u32 addr, u32 word);
+bool flashErasePage(u32 addr);
+bool flashErasePages(u32 addr, u16 n);
+void flashLock(void);
+void flashUnlock(void);
+void nvicInit(NVIC_InitTypeDef *);
 void nvicDisableInterrupts(void);
 
 #endif
