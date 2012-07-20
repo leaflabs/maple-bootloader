@@ -11,7 +11,7 @@ usb.c
 
 usb_callbacks.c 
   - aka endpoints: handling data transfer when "Configured". calls out to 
-    application specific callbacks (eg DFU or serial shit)
+    application specific callbacks (i.e. DFU).
 
 usb_descriptor.c 
   - aka application descriptor; big static struct and callbacks for sending
@@ -29,10 +29,7 @@ hardware.c
 dfu.c
   - mostly the giant FSM case switch, also some USB endpoint callbacks
 
-
 TODO --------------------------------------------------------------------------
 
- * tap reset then quickly tap The Button leaves the board in dfu wait loop 
-   forever instead of just 2 seconds
-
- * use sizeof() for usb application descriptor
+ * pack the structs
+ * use sizeof() for usb application descriptor once structs are packed
