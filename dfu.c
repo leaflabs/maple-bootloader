@@ -110,7 +110,7 @@ bool dfuUpdateByRequest(void) {
             userFirmwareLen = uploadBlockLen * pInformation->USBwValue;
             if (pInformation->Current_AlternateSetting == 1) {
                 userAppAddr = USER_CODE_FLASH;
-	         userAppEnd = FLASH_END;
+                userAppEnd = FLASH_END;
             } else {
                 userAppAddr = USER_CODE_RAM;
                 userAppEnd = RAM_END;
@@ -244,8 +244,8 @@ bool dfuUpdateByRequest(void) {
                     dfuAppStatus.bState  = dfuIDLE;
                 }
             } else {
-	        dfuAppStatus.bState  = dfuERROR;
-	        dfuAppStatus.bStatus = errNOTDONE;
+                dfuAppStatus.bState  = dfuERROR;
+                dfuAppStatus.bStatus = errNOTDONE;
             }
         } else if (pInformation->USBbRequest == DFU_ABORT) {
             dfuAppStatus.bState  = dfuIDLE;
