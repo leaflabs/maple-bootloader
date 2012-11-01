@@ -47,7 +47,9 @@
 #define BOOTLOADER_WAIT 6
 
 #define USER_CODE_RAM     ((u32)0x20000C00)
+#define RAM_END           ((u32)0x20005000)
 #define USER_CODE_FLASH   ((u32)0x08005000)
+#define FLASH_END         ((u32)0x08020000)
 
 #define VEND_ID0 0xAF
 #define VEND_ID1 0x1E
