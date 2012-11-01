@@ -36,6 +36,7 @@
 
 /* DFU globals */
 u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
+u32 userAppEnd = RAM_END;
 DFUStatus dfuAppStatus;       /* includes state */
 bool userFlash = FALSE;
 bool dfuBusy = FALSE;
@@ -43,6 +44,7 @@ bool dfuBusy = FALSE;
 u8 recvBuffer[wTransferSize];
 u32 userFirmwareLen = 0;
 u16 thisBlockLen = 0;
+u16 uploadBlockLen = 0;
 
 
 PLOT code_copy_lock;
@@ -58,6 +60,7 @@ void dfuInit(void) {
     userFirmwareLen = 0;
     thisBlockLen = 0;;
     userAppAddr = USER_CODE_RAM; /* default RAM user code location */
+    userAppEnd = RAM_END;
     userFlash = FALSE;
     code_copy_lock = WAIT;
     dfuBusy = FALSE;
@@ -99,6 +102,19 @@ bool dfuUpdateByRequest(void) {
             }
         } else if (pInformation->USBbRequest == DFU_UPLOAD) {
             dfuAppStatus.bState  = dfuUPLOAD_IDLE;
+            /* record length of first block for calculating target
+               address from wValue in consecutive blocks */
+            uploadBlockLen = pInformation->USBwLengths.w;
+            thisBlockLen = uploadBlockLen; /* for this first block as well */
+            /* calculate where the data should be copied from */
+            userFirmwareLen = uploadBlockLen * pInformation->USBwValue;
+            if (pInformation->Current_AlternateSetting == 1) {
+                userAppAddr = USER_CODE_FLASH;
+	         userAppEnd = FLASH_END;
+            } else {
+                userAppAddr = USER_CODE_RAM;
+                userAppEnd = RAM_END;
+            }
         } else if (pInformation->USBbRequest == DFU_ABORT) {
             dfuAppStatus.bState  = dfuIDLE;
             dfuAppStatus.bStatus = OK;  /* are we really ok? we were just aborted */
@@ -211,9 +227,26 @@ bool dfuUpdateByRequest(void) {
         /* device expecting further dfu_upload requests */
 
         if (pInformation->USBbRequest == DFU_UPLOAD) {
-            /* todo, add routine to wait for last block write to finish */
-            dfuAppStatus.bState  = dfuERROR;
-            dfuAppStatus.bStatus = errSTALLEDPKT;
+            if (pInformation->USBwLengths.w > 0) {
+                /* check that this is not the last possible block */
+                userFirmwareLen = uploadBlockLen * pInformation->USBwValue;
+                if (userAppAddr + userFirmwareLen + uploadBlockLen <= userAppEnd) {
+                    thisBlockLen = uploadBlockLen;
+                    dfuAppStatus.bState  = dfuUPLOAD_IDLE;
+                } else {
+                    /* if above comparison was just equal, thisBlockLen becomes zero
+                    next time when USBWValue has been increased by one */
+                    thisBlockLen = userAppEnd - userAppAddr - userFirmwareLen;
+                    /* check for overflow due to USBwValue out of range */
+                    if (thisBlockLen >= pInformation->USBwLengths.w) {
+                        thisBlockLen = 0;
+                    }
+                    dfuAppStatus.bState  = dfuIDLE;
+                }
+            } else {
+	        dfuAppStatus.bState  = dfuERROR;
+	        dfuAppStatus.bStatus = errNOTDONE;
+            }
         } else if (pInformation->USBbRequest == DFU_ABORT) {
             dfuAppStatus.bState  = dfuIDLE;
         } else if (pInformation->USBbRequest == DFU_GETSTATUS) {
@@ -313,8 +346,12 @@ u8 *dfuCopyDNLOAD(u16 length) {
 }
 
 u8 *dfuCopyUPLOAD(u16 length) {
-    /* not implemented here nor supported by dfu-util */
-    return NULL;
+    if (length == 0) {
+        pInformation->Ctrl_Info.Usb_wLength = thisBlockLen - pInformation->Ctrl_Info.Usb_wOffset;
+        return NULL;
+    } else {
+        return((u8*) userAppAddr + userFirmwareLen + pInformation->Ctrl_Info.Usb_wOffset);
+    }
 }
 
 void dfuCopyBufferToExec() {
