@@ -29,9 +29,27 @@
 #include "usb_lib.h"
 #include "usb.h"
 
+#define USB_WCID_REQUEST_CODE 0x20
+
 #define NUM_ALT_SETTINGS 2
 #define STR_DESC_LEN 6
 
+
+typedef struct wcid_compat_id_descriptor {
+    u32 dwLength;
+    u16 wVersion;
+    u16 wIndex;
+    u8  bNumSections;
+    u8  bReserved[7];
+    u8  bInterfaceNumber;
+    u8  bReserved2;
+    u8  bCompatibleId[8];
+    u8  bSubCompatibleId[8];
+    u8  bReserved3[6];
+} __attribute((__packed__)) wcid_compat_id_descriptor;
+
+extern ONE_DESCRIPTOR wcid_Descriptor;
+extern ONE_DESCRIPTOR iMS_Descriptor;
 extern ONE_DESCRIPTOR  usbDeviceDescriptorDFU;
 extern ONE_DESCRIPTOR  usbConfigDescriptorDFU;
 extern ONE_DESCRIPTOR  usbStringDescriptor[6];

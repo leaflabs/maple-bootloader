@@ -283,6 +283,14 @@ RESULT usbDataSetup(u8 request) {
     u8 *(*CopyRoutine)(u16);
     CopyRoutine = NULL;
 
+    if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (VENDOR_REQUEST | DEVICE_RECIPIENT)) {
+        if (pInformation->USBwIndex0 == 0x0004) {
+            if (pInformation->USBbRequest == USB_WCID_REQUEST_CODE) {
+                CopyRoutine = usbGetVendorDescriptor;
+            }
+        }
+    }
+
     /* handle dfu class requests */
     if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT)) {
         if (dfuUpdateByRequest()) {
@@ -337,6 +345,11 @@ RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
     }
 }
 
+
+u8* usbGetVendorDescriptor(u16 length) {
+    return Standard_GetDescriptorData(length, &wcid_Descriptor);
+}
+
 u8 *usbGetDeviceDescriptor(u16 len) {
     return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
 }
@@ -347,7 +360,9 @@ u8 *usbGetConfigDescriptor(u16 len) {
 
 u8 *usbGetStringDescriptor(u16 len) {
     u8 strIndex = pInformation->USBwValue0;
-    if (strIndex > STR_DESC_LEN) {
+    if (strIndex == 0xEE) {
+        return Standard_GetDescriptorData(len, &iMS_Descriptor);
+    } else if (strIndex > STR_DESC_LEN) {
         return NULL;
     } else {
         return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
