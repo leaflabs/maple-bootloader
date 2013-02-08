@@ -34,13 +34,23 @@
 #define FLASH ((u32)0x40022000)
 #define GPIOA ((u32)0x40010800)
 #define GPIOC ((u32)0x40011000)
+#define PWR   ((u32)0x40007000)
 
 #define RCC_CR      RCC
 #define RCC_CFGR    (RCC + 0x04)
 #define RCC_CIR     (RCC + 0x08)
+#define RCC_APB2RSTR (RCC + 0x10)
+#define RCC_APB1RSTR (RCC + 0x12)
 #define RCC_AHBENR  (RCC + 0x14)
 #define RCC_APB2ENR (RCC + 0x18)
 #define RCC_APB1ENR (RCC + 0x1C)
+
+#define RCC_APB1ENR_PWREN (1U << 28)
+#define RCC_APB1ENR_BKPEN (1U << 27)
+#define RCC_APB1RSTR_BKPRST (1U << 27)
+
+#define PWR_CR      PWR
+#define PWR_CR_DBP  (1U << 8)     /*!< Disable Backup Domain write protection */
 
 #define FLASH_ACR     (FLASH + 0x00)
 #define FLASH_KEYR    (FLASH + 0x04)
@@ -124,6 +134,14 @@ typedef struct {
     vu32 CSR;
 } RCC_RegStruct;
 #define pRCC ((RCC_RegStruct *) RCC)
+
+#ifdef STM32_HIGH_DENSITY
+#define FLASH_PAGE_SIZE 0x800
+#endif
+
+#ifndef STM32_HIGH_DENSITY
+#define FLASH_PAGE_SIZE 0x400
+#endif
 
 typedef struct {
     vu32 ISER[2];
