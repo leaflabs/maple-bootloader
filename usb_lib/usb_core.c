@@ -280,7 +280,7 @@ RESULT Standard_ClearFeature(void)
     if (wIndex0 & 0x80)
     {
       /* IN endpoint */
-      if (_GetTxStallStatus(Related_Endpoint ))
+      if (_GetTxStallStatus(Related_Endpoint))
       {
         ClearDTOG_TX(Related_Endpoint);
         SetEPTxStatus(Related_Endpoint, EP_TX_VALID);
@@ -488,7 +488,7 @@ void DataStageIn(void)
 
   if ((save_wLength == 0) && (ControlState == LAST_IN_DATA))
   {
-    if(Data_Mul_MaxPacketSize == TRUE)
+    if (Data_Mul_MaxPacketSize == TRUE)
     {
       /* No more data to send and empty packet */
       Send0LengthData();
@@ -690,9 +690,10 @@ void Data_Setup0(void)
       else if (wValue1 == STRING_DESCRIPTOR)
       {
         CopyRoutine = pProperty->GetStringDescriptor;
-      } else if (wValue1 == 0x21) /* added to support functional descriptors */
+      }
+      else if (wValue1 == 0x21)     /* added to support functional descriptors */
       {
-	CopyRoutine = pProperty->GetFunctionalDescriptor;
+        CopyRoutine = pProperty->GetFunctionalDescriptor;
       } /* End of GET_DESCRIPTOR */
     }
   }

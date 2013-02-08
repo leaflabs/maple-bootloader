@@ -159,8 +159,9 @@ void usbResumeInit(void) {
 void usbResume(RESUME_STATE eResumeSetVal) {
     u16 wCNTR;
 
-    if (eResumeSetVal != RESUME_ESOF)
+    if (eResumeSetVal != RESUME_ESOF) {
         ResumeS.eState = eResumeSetVal;
+    }
 
     switch (ResumeS.eState) {
     case RESUME_EXTERNAL:
@@ -177,8 +178,9 @@ void usbResume(RESUME_STATE eResumeSetVal) {
         break;
     case RESUME_WAIT:
         ResumeS.bESOFcnt--;
-        if (ResumeS.bESOFcnt == 0)
+        if (ResumeS.bESOFcnt == 0) {
             ResumeS.eState = RESUME_START;
+        }
         break;
     case RESUME_START:
         wCNTR = _GetCNTR();
@@ -286,16 +288,16 @@ RESULT usbDataSetup(u8 request) {
         if (dfuUpdateByRequest()) {
             /* successfull state transition, handle the request */
             switch (request) {
-            case(DFU_GETSTATUS):
+            case (DFU_GETSTATUS):
                 CopyRoutine = dfuCopyStatus;
                 break;
-            case(DFU_GETSTATE):
+            case (DFU_GETSTATE):
                 CopyRoutine = dfuCopyState;
                 break;
-            case(DFU_DNLOAD):
+            case (DFU_DNLOAD):
                 CopyRoutine = dfuCopyDNLOAD;
                 break;
-            case(DFU_UPLOAD):
+            case (DFU_UPLOAD):
                 CopyRoutine = dfuCopyUPLOAD;
                 break;
             default:

@@ -74,10 +74,10 @@ void CTR_LP(void)
         _ClearEP_CTR_TX(ENDP0);
         In0_Process();
 
-           /* before terminate set Tx & Rx status */
-          _SetEPRxStatus(ENDP0, SaveRState);
-          _SetEPTxStatus(ENDP0, SaveTState);
-          return;
+        /* before terminate set Tx & Rx status */
+        _SetEPRxStatus(ENDP0, SaveRState);
+        _SetEPTxStatus(ENDP0, SaveTState);
+        return;
       }
       else
       {
