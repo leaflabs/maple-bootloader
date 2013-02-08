@@ -234,7 +234,7 @@ void systemHardReset(void) {
 
 bool flashErasePage(u32 pageAddr) {
     u32 rwmVal = GET_REG(FLASH_CR);
-    rwmVal = FLASH_CR_PER;
+    rwmVal |= FLASH_CR_PER;
     SET_REG(FLASH_CR, rwmVal);
 
     while (GET_REG(FLASH_SR) & FLASH_SR_BSY) {}
