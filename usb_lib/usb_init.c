@@ -21,7 +21,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /*  The number of current endpoint, it will be used to specify an endpoint */
- u8	EPindex;
+u8	EPindex;
 /*  The number of current device, it is an index to the Device_Table */
 /* u8	Device_no; */
 /*  Points to the DEVICE_INFO structure of current device */

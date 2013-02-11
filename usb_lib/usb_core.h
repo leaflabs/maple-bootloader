@@ -81,7 +81,7 @@ typedef struct _ENDPOINT_INFO
   u16  Usb_wOffset;
   u16  PacketSize;
   u8   *(*CopyData)(u16 Length);
-}ENDPOINT_INFO;
+} ENDPOINT_INFO;
 
 /*-*-*-*-*-*-*-*-*-*-*-* Definitions for device level -*-*-*-*-*-*-*-*-*-*-*-*/
 
@@ -120,7 +120,7 @@ typedef struct _DEVICE_INFO
                                      interface*/
 
   ENDPOINT_INFO Ctrl_Info;
-}DEVICE_INFO;
+} DEVICE_INFO;
 
 typedef struct _DEVICE_PROP
 {
@@ -147,7 +147,7 @@ typedef struct _DEVICE_PROP
     Since GET_CONFIGURATION & GET_INTERFACE are highly related to
     the individual classes, they will be checked and processed here.
   */
-  RESULT (*Class_Data_Setup)(u8 RequestNo);
+  RESULT(*Class_Data_Setup)(u8 RequestNo);
 
   /* Procedure of process on setup stage of a class specified request without data stage */
   /* All class specified requests without data stage are processed in Class_NoData_Setup
@@ -158,7 +158,7 @@ typedef struct _DEVICE_PROP
     Since SET_CONFIGURATION & SET_INTERFACE are highly related to
     the individual classes, they will be checked and processed here.
   */
-  RESULT (*Class_NoData_Setup)(u8 RequestNo);
+  RESULT(*Class_NoData_Setup)(u8 RequestNo);
 
   /*Class_Get_Interface_Setting
    This function is used by the file usb_core.c to test if the selected Interface
@@ -168,7 +168,7 @@ typedef struct _DEVICE_PROP
    and Alternate Setting are supported by the application or "UNSUPPORT" if they
    are not supported. */
 
-  RESULT  (*Class_Get_Interface_Setting)(u8 Interface, u8 AlternateSetting);
+  RESULT(*Class_Get_Interface_Setting)(u8 Interface, u8 AlternateSetting);
 
   u8* (*GetDeviceDescriptor)(u16 Length);
   u8* (*GetConfigDescriptor)(u16 Length);
@@ -178,7 +178,7 @@ typedef struct _DEVICE_PROP
   u8* RxEP_buffer;
   u8 MaxPacketSize;
 
-}DEVICE_PROP;
+} DEVICE_PROP;
 
 typedef struct _USER_STANDARD_REQUESTS
 {

@@ -34,11 +34,43 @@
 
 #include "usb_descriptor.h"
 
+/**
+ * Microsoft WCID descriptors
+ */
+
+u8 usbWCIDDescriptor[0x12] = {
+    0x12,
+    0x03,
+    'M', 0, 'S', 0, 'F', 0, 'T', 0, '1', 0, '0', 0, '0', 0,
+    USB_WCID_REQUEST_CODE, 0 // vendor code
+};
+
+const wcid_compat_id_descriptor usbVendorDescriptor_wcid = {
+    .dwLength = sizeof(usbVendorDescriptor_wcid),
+    .wVersion = 0x100,
+    .wIndex = 0x0004,
+    .bNumSections = 1,
+    .bReserved = { 0 },
+    .bInterfaceNumber = 0,
+    .bReserved2 = 1,
+    .bCompatibleId = "WINUSB\0\0",
+    .bSubCompatibleId = { 0 },
+    .bReserved3 = { 0 }
+};
+
+ONE_DESCRIPTOR wcid_Descriptor = {
+    (u8*)&usbVendorDescriptor_wcid, sizeof(usbVendorDescriptor_wcid)
+};
+
+ONE_DESCRIPTOR iMS_Descriptor = {
+    (u8*)&usbWCIDDescriptor, 0x12
+};
+
 u8 u8_usbDeviceDescriptorDFU[18] = {
     0x12,   /* bLength */
     0x01,   /* bDescriptorType */
-    0x00,   /* bcdUSB, version 1.00 */
-    0x01,
+    0x00,   /* bcdUSB, version 2.00 */
+    0x02,
     0x00,   /* bDeviceClass : See interface */
     0x00,   /* bDeviceSubClass : See interface*/
     0x00,   /* bDeviceProtocol : See interface */
@@ -190,4 +222,3 @@ ONE_DESCRIPTOR usbStringDescriptor[STR_DESC_LEN] = {
     { (u8 *)u8_usbStringAlt0,    0x36 },
     { (u8 *)u8_usbStringAlt1,    0x3A }
 };
-

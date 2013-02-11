@@ -25,7 +25,7 @@ typedef enum _EP_DBUF_DIR
   EP_DBUF_ERR,
   EP_DBUF_OUT,
   EP_DBUF_IN
-}EP_DBUF_DIR;
+} EP_DBUF_DIR;
 
 /* endpoint buffer number */
 enum EP_BUF_NUM

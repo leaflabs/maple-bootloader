@@ -330,7 +330,7 @@ u8 *dfuCopyStatus(u16 length) {
         pInformation->Ctrl_Info.Usb_wLength = 6;
         return NULL;
     } else {
-        return(&dfuAppStatus);
+        return (&dfuAppStatus);
     }
 }
 
@@ -350,7 +350,7 @@ u8 *dfuCopyUPLOAD(u16 length) {
         pInformation->Ctrl_Info.Usb_wLength = thisBlockLen - pInformation->Ctrl_Info.Usb_wOffset;
         return NULL;
     } else {
-        return((u8*) userAppAddr + userFirmwareLen + pInformation->Ctrl_Info.Usb_wOffset);
+        return ((u8*) userAppAddr + userFirmwareLen + pInformation->Ctrl_Info.Usb_wOffset);
     }
 }
 

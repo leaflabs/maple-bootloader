@@ -93,6 +93,7 @@ RESULT usbDataSetup(u8 request);
 RESULT usbNoDataSetup(u8 request);
 RESULT usbGetInterfaceSetting(u8, u8);
 
+u8 *usbGetVendorDescriptor(u16 length);
 u8 *usbGetDeviceDescriptor(u16 length);
 u8 *usbGetConfigDescriptor(u16 length);
 u8 *usbGetStringDescriptor(u16 length);

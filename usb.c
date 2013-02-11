@@ -159,8 +159,9 @@ void usbResumeInit(void) {
 void usbResume(RESUME_STATE eResumeSetVal) {
     u16 wCNTR;
 
-    if (eResumeSetVal != RESUME_ESOF)
+    if (eResumeSetVal != RESUME_ESOF) {
         ResumeS.eState = eResumeSetVal;
+    }
 
     switch (ResumeS.eState) {
     case RESUME_EXTERNAL:
@@ -177,8 +178,9 @@ void usbResume(RESUME_STATE eResumeSetVal) {
         break;
     case RESUME_WAIT:
         ResumeS.bESOFcnt--;
-        if (ResumeS.bESOFcnt == 0)
+        if (ResumeS.bESOFcnt == 0) {
             ResumeS.eState = RESUME_START;
+        }
         break;
     case RESUME_START:
         wCNTR = _GetCNTR();
@@ -281,21 +283,29 @@ RESULT usbDataSetup(u8 request) {
     u8 *(*CopyRoutine)(u16);
     CopyRoutine = NULL;
 
+    if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (VENDOR_REQUEST | DEVICE_RECIPIENT)) {
+        if (pInformation->USBwIndex0 == 0x0004) {
+            if (pInformation->USBbRequest == USB_WCID_REQUEST_CODE) {
+                CopyRoutine = usbGetVendorDescriptor;
+            }
+        }
+    }
+
     /* handle dfu class requests */
     if ((pInformation->USBbmRequestType & (REQUEST_TYPE | RECIPIENT)) == (CLASS_REQUEST | INTERFACE_RECIPIENT)) {
         if (dfuUpdateByRequest()) {
             /* successfull state transition, handle the request */
             switch (request) {
-            case(DFU_GETSTATUS):
+            case (DFU_GETSTATUS):
                 CopyRoutine = dfuCopyStatus;
                 break;
-            case(DFU_GETSTATE):
+            case (DFU_GETSTATE):
                 CopyRoutine = dfuCopyState;
                 break;
-            case(DFU_DNLOAD):
+            case (DFU_DNLOAD):
                 CopyRoutine = dfuCopyDNLOAD;
                 break;
-            case(DFU_UPLOAD):
+            case (DFU_UPLOAD):
                 CopyRoutine = dfuCopyUPLOAD;
                 break;
             default:
@@ -335,6 +345,11 @@ RESULT usbGetInterfaceSetting(u8 interface, u8 altSetting) {
     }
 }
 
+
+u8* usbGetVendorDescriptor(u16 length) {
+    return Standard_GetDescriptorData(length, &wcid_Descriptor);
+}
+
 u8 *usbGetDeviceDescriptor(u16 len) {
     return Standard_GetDescriptorData(len, &usbDeviceDescriptorDFU);
 }
@@ -345,7 +360,9 @@ u8 *usbGetConfigDescriptor(u16 len) {
 
 u8 *usbGetStringDescriptor(u16 len) {
     u8 strIndex = pInformation->USBwValue0;
-    if (strIndex > STR_DESC_LEN) {
+    if (strIndex == 0xEE) {
+        return Standard_GetDescriptorData(len, &iMS_Descriptor);
+    } else if (strIndex > STR_DESC_LEN) {
         return NULL;
     } else {
         return Standard_GetDescriptorData(len, &usbStringDescriptor[strIndex]);
