@@ -41,7 +41,7 @@ static volatile DFUStatus dfuAppStatus;       /* includes state */
 static volatile bool userFlash = FALSE;
 volatile bool dfuBusy = FALSE;
 
-static volatile u8 recvBuffer[wTransferSize];
+static volatile u8 recvBuffer[wTransferSize] __attribute__((aligned(4)));
 static volatile u32 userFirmwareLen = 0;
 static volatile u16 thisBlockLen = 0;
 static volatile u16 uploadBlockLen = 0;
