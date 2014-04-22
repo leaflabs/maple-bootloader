@@ -35,19 +35,19 @@
 #include "usb.h"
 
 /* DFU globals */
-u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
-u32 userAppEnd = RAM_END;
-DFUStatus dfuAppStatus;       /* includes state */
-bool userFlash = FALSE;
-bool dfuBusy = FALSE;
+static volatile u32 userAppAddr = USER_CODE_RAM; /* default RAM user code location */
+static volatile u32 userAppEnd = RAM_END;
+static volatile DFUStatus dfuAppStatus;       /* includes state */
+static volatile bool userFlash = FALSE;
+volatile bool dfuBusy = FALSE;
 
-u8 recvBuffer[wTransferSize];
-u32 userFirmwareLen = 0;
-u16 thisBlockLen = 0;
-u16 uploadBlockLen = 0;
+static volatile u8 recvBuffer[wTransferSize];
+static volatile u32 userFirmwareLen = 0;
+static volatile u16 thisBlockLen = 0;
+static volatile u16 uploadBlockLen = 0;
 
 
-PLOT code_copy_lock;
+volatile PLOT code_copy_lock;
 
 /* todo: force dfu globals to be singleton to avoid re-inits? */
 void dfuInit(void) {
@@ -330,7 +330,7 @@ u8 *dfuCopyStatus(u16 length) {
         pInformation->Ctrl_Info.Usb_wLength = 6;
         return NULL;
     } else {
-        return(&dfuAppStatus);
+        return (u8*)(&dfuAppStatus);
     }
 }
 
@@ -363,7 +363,7 @@ void dfuCopyBufferToExec() {
         /* we dont need to handle when thisBlock len is not divisible by 4,
            since the linker will align everything to 4B anyway */
         for (i = 0; i < thisBlockLen; i = i + 4) {
-            *userSpace++ = *(u32 *)(recvBuffer + i);
+            *userSpace++ = *(u32 *)(recvBuffer+i);
         }
     } else {
         userSpace = (u32 *)(USER_CODE_FLASH + userFirmwareLen);
@@ -371,7 +371,7 @@ void dfuCopyBufferToExec() {
         flashErasePage((u32)(userSpace));
 
         for (i = 0; i < thisBlockLen; i = i + 4) {
-            flashWriteWord(userSpace++, *(u32 *)(recvBuffer + i));
+            flashWriteWord((u32)(userSpace++), *(u32 *)(recvBuffer +i));
         }
 
     }
