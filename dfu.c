@@ -363,7 +363,7 @@ void dfuCopyBufferToExec() {
         /* we dont need to handle when thisBlock len is not divisible by 4,
            since the linker will align everything to 4B anyway */
         for (i = 0; i < thisBlockLen; i = i + 4) {
-            *userSpace++ = *(u32 *)(recvBuffer+i);
+            *userSpace++ = *(u32 *)(recvBuffer + i);
         }
     } else {
         userSpace = (u32 *)(USER_CODE_FLASH + userFirmwareLen);
