@@ -17,8 +17,8 @@ ST_LIB = stm32_lib
 ST_USB = usb_lib
 
 # Optimization level [0,1,2,3,s]
-OPT = 0
-DEBUG = -g
+OPT ?= 0
+DEBUG = 
 #DEBUG = dwarf-2
 
 INCDIRS = ./$(ST_LIB) ./$(ST_USB)
