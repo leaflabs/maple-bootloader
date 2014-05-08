@@ -64,6 +64,7 @@
 #define GPIO_IDR(port)  (port+0x08)
 #define GPIO_ODR(port)  (port+0x0c)
 #define GPIO_BSRR(port) (port+0x10)
+#define GPIO_BRR(port)  (port+0x14)
 
 #define SCS_BASE   ((u32)0xE000E000)
 #define NVIC_BASE  (SCS_BASE + 0x0100)

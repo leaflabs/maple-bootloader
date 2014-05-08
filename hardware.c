@@ -38,8 +38,8 @@ void setPin(u32 bank, u8 pin) {
 }
 
 void resetPin(u32 bank, u8 pin) {
-    u32 pinMask = 0x1 << (16 + pin);
-    SET_REG(GPIO_BSRR(bank), pinMask);
+    u32 pinMask = 0x1 << (pin);
+    SET_REG(GPIO_BRR(bank), pinMask);
 }
 
 bool readPin(u32 bank, u8 pin) {
