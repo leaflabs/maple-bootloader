@@ -35,11 +35,12 @@
 
 #define LED_BANK GPIOA
 #define LED      5
-#define BLINK_FAST 0x50000
-#define BLINK_SLOW 0x100000
 
 #define BUTTON_BANK GPIOC
 #define BUTTON      9
+
+#define BLINK_FAST 0x50000
+#define BLINK_SLOW 0x100000
 
 #define STARTUP_BLINKS 5
 #define BOOTLOADER_WAIT 6
