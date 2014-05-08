@@ -33,8 +33,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include "common.h"
-
 #define LED_BANK GPIOA
 #define LED      5
 #define BLINK_FAST 0x50000
