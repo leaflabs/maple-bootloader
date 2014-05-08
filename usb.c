@@ -36,25 +36,34 @@
 void setupUSB(void) {
     u32 rwmVal; /* read-write-modify place holder var */
 
-    /* Setup the USB DISC Pin */
+    /* Setup APB2 for USB disconnect GPIO bank */
     rwmVal  = GET_REG(RCC_APB2ENR);
-    rwmVal |= 0x00000010;
+    rwmVal |= USB_DISC_RCC_APB2ENR_GPIO;
     SET_REG(RCC_APB2ENR, rwmVal);
 
-    // todo, macroize usb_disc pin
-    /* Setup GPIOC Pin 12 as OD out */
-    rwmVal  = GET_REG(GPIO_CRH(GPIOC));
-    rwmVal &= 0xFFF0FFFF;
-    rwmVal |= 0x00050000;
-    setPin(GPIOC, 12);
-    SET_REG(GPIO_CRH(GPIOC), rwmVal);
+#if (USB_DISC < 8)
+# define USB_DISC_GPIO_CR GPIO_CRL(USB_DISC_BANK)
+# define USB_DISC_CR_PORT (USB_DISC)
+#else
+# define USB_DISC_GPIO_CR GPIO_CRH(USB_DISC_BANK)
+# define USB_DISC_CR_PORT (USB_DISC - 8)
+#endif
 
-    pRCC->APB1ENR |= 0x00800000;
+    /* preset pin to high */
+    setPin(USB_DISC_BANK, USB_DISC);
+
+    /* Setup GPIO Pin as OD out */
+    rwmVal  = GET_REG(USB_DISC_GPIO_CR);
+    rwmVal &= ~(0xF << (USB_DISC_CR_PORT * 4));
+    rwmVal |= (0x5 << (USB_DISC_CR_PORT * 4));
+    SET_REG(USB_DISC_GPIO_CR, rwmVal);
+
+    /* enable USB clock */
+    pRCC->APB1ENR |= RCC_APB1ENR_USB;
 
     /* initialize the usb application */
-    resetPin(GPIOC, 12);  /* present ourselves to the host */
+    resetPin(USB_DISC_BANK, USB_DISC);  /* present ourselves to the host */
     usbAppInit();
-
 }
 
 vu32 bDeviceState = UNCONNECTED;

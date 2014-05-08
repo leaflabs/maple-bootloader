@@ -33,6 +33,7 @@
 #define RCC   ((u32)0x40021000)
 #define FLASH ((u32)0x40022000)
 #define GPIOA ((u32)0x40010800)
+#define GPIOB ((u32)0x40010C00)
 #define GPIOC ((u32)0x40011000)
 
 #define RCC_CR      RCC
@@ -41,6 +42,10 @@
 #define RCC_AHBENR  (RCC + 0x14)
 #define RCC_APB2ENR (RCC + 0x18)
 #define RCC_APB1ENR (RCC + 0x1C)
+#define RCC_APB2ENR_GPIOA 0x00000004
+#define RCC_APB2ENR_GPIOB 0x00000008
+#define RCC_APB2ENR_GPIOC 0x00000010
+#define RCC_APB1ENR_USB 0x00800000
 
 #define FLASH_ACR     (FLASH + 0x00)
 #define FLASH_KEYR    (FLASH + 0x04)
