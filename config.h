@@ -33,17 +33,23 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define LED_BANK GPIOA
-#define LED_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOA
-#define LED      5
+#ifdef MAPLE
 
-#define BUTTON_BANK GPIOC
-#define BUTTON_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
-#define BUTTON      9
+# define LED_BANK GPIOA
+# define LED_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOA
+# define LED      5
 
-#define USB_DISC_BANK GPIOC
-#define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
-#define USB_DISC      12
+# define BUTTON_BANK GPIOC
+# define BUTTON_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
+# define BUTTON      9
+
+# define USB_DISC_BANK GPIOC
+# define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
+# define USB_DISC      12
+
+#else
+# error "Unknown platform"
+#endif
 
 #define BLINK_FAST 0x50000
 #define BLINK_SLOW 0x100000
