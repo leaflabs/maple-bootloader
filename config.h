@@ -47,6 +47,20 @@
 # define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
 # define USB_DISC      12
 
+#elif defined MAPLE_MINI
+
+# define LED_BANK GPIOB
+# define LED_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define LED      1
+
+# define BUTTON_BANK GPIOB
+# define BUTTON_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define BUTTON      8
+
+# define USB_DISC_BANK GPIOB
+# define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define USB_DISC      9
+
 #else
 # error "Unknown platform"
 #endif
