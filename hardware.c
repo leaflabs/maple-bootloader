@@ -105,8 +105,6 @@ void setupLED(void) {
     SET_REG(RCC_APB2ENR, rwmVal);
 
     /* Setup GPIOA Pin 5 as PP Out */
-    SET_REG(GPIO_CRL(GPIOA), 0x00100000);
-
     rwmVal =  GET_REG(GPIO_CRL(GPIOA));
     rwmVal &= 0xFF0FFFFF;
     rwmVal |= 0x00100000;
