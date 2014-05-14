@@ -33,15 +33,40 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include "common.h"
+#ifdef MAPLE
 
-#define LED_BANK GPIOA
-#define LED      5
+# define LED_BANK GPIOA
+# define LED_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOA
+# define LED      5
+
+# define BUTTON_BANK GPIOC
+# define BUTTON_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
+# define BUTTON      9
+
+# define USB_DISC_BANK GPIOC
+# define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOC
+# define USB_DISC      12
+
+#elif defined MAPLE_MINI
+
+# define LED_BANK GPIOB
+# define LED_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define LED      1
+
+# define BUTTON_BANK GPIOB
+# define BUTTON_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define BUTTON      8
+
+# define USB_DISC_BANK GPIOB
+# define USB_DISC_RCC_APB2ENR_GPIO RCC_APB2ENR_GPIOB
+# define USB_DISC      9
+
+#else
+# error "Unknown platform"
+#endif
+
 #define BLINK_FAST 0x50000
 #define BLINK_SLOW 0x100000
-
-#define BUTTON_BANK GPIOC
-#define BUTTON      9
 
 #define STARTUP_BLINKS 5
 #define BOOTLOADER_WAIT 6

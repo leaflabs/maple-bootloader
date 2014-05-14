@@ -38,8 +38,8 @@ void setPin(u32 bank, u8 pin) {
 }
 
 void resetPin(u32 bank, u8 pin) {
-    u32 pinMask = 0x1 << (16 + pin);
-    SET_REG(GPIO_BSRR(bank), pinMask);
+    u32 pinMask = 0x1 << (pin);
+    SET_REG(GPIO_BRR(bank), pinMask);
 }
 
 bool readPin(u32 bank, u8 pin) {
@@ -96,40 +96,51 @@ void setupCLK(void) {
 }
 
 void setupLED(void) {
-    // todo, swap out hardcoded pin/bank with macro
     u32 rwmVal; /* read-write-modify place holder var */
 
-    /* Setup APB2 (GPIOA) */
+    /* Setup APB2 for LED GPIO bank */
     rwmVal =  GET_REG(RCC_APB2ENR);
-    rwmVal |= 0x00000004;
+    rwmVal |= LED_RCC_APB2ENR_GPIO;
     SET_REG(RCC_APB2ENR, rwmVal);
 
-    /* Setup GPIOA Pin 5 as PP Out */
-    SET_REG(GPIO_CRL(GPIOA), 0x00100000);
+#if (LED < 8)
+# define LED_GPIO_CR GPIO_CRL(LED_BANK)
+# define LED_CR_PORT (LED)
+#else
+# define LED_GPIO_CR GPIO_CRH(LED_BANK)
+# define LED_CR_PORT (LED - 8)
+#endif
 
-    rwmVal =  GET_REG(GPIO_CRL(GPIOA));
-    rwmVal &= 0xFF0FFFFF;
-    rwmVal |= 0x00100000;
-    SET_REG(GPIO_CRL(GPIOA), rwmVal);
+    /* Setup GPIO Pin as PP Out */
+    rwmVal =  GET_REG(LED_GPIO_CR);
+    rwmVal &= ~(0xF << (LED_CR_PORT * 4));
+    rwmVal |= (0x1 << (LED_CR_PORT * 4));
+    SET_REG(LED_GPIO_CR, rwmVal);
 
-    setPin(GPIOA, 5);
+    setPin(LED_BANK, LED);
 }
 
 void setupBUTTON(void) {
-    // todo, swap out hardcoded pin/bank with macro
     u32 rwmVal; /* read-write-modify place holder var */
 
-    /* Setup APB2 (GPIOC) */
+    /* Setup APB2 for button GPIO bank */
     rwmVal =  GET_REG(RCC_APB2ENR);
-    rwmVal |= 0x00000010;
+    rwmVal |= BUTTON_RCC_APB2ENR_GPIO;
     SET_REG(RCC_APB2ENR, rwmVal);
 
-    /* Setup GPIOC Pin 9 as PP Out */
-    rwmVal =  GET_REG(GPIO_CRH(GPIOC));
-    rwmVal &= 0xFFFFFF0F;
-    rwmVal |= 0x00000040;
-    SET_REG(GPIO_CRH(GPIOC), rwmVal);
+#if (BUTTON < 8)
+# define BUTTON_GPIO_CR GPIO_CRL(BUTTON_BANK)
+# define BUTTON_CR_PORT (BUTTON)
+#else
+# define BUTTON_GPIO_CR GPIO_CRH(BUTTON_BANK)
+# define BUTTON_CR_PORT (BUTTON - 8)
+#endif
 
+    /* Setup button GPIO Pin as input */
+    rwmVal =  GET_REG(BUTTON_GPIO_CR);
+    rwmVal &= ~(0xF << (BUTTON_CR_PORT * 4));
+    rwmVal |= (0x4 << (BUTTON_CR_PORT * 4));
+    SET_REG(BUTTON_GPIO_CR, rwmVal);
 }
 
 void setupFLASH() {
@@ -166,7 +177,7 @@ void jumpToUser(u32 usrAddr) {
     flashLock();
     usbDsbISR();
     nvicDisableInterrupts();
-    setPin(GPIOC, 12); // disconnect usb from host. todo, macroize pin
+    setPin(USB_DISC_BANK, USB_DISC); // disconnect usb from host
     systemReset(); // resets clocks and periphs, not core regs
 
 
