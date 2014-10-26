@@ -4,9 +4,9 @@ Original Copyright RAISONANCE S.A.S. 2008
 Modified P Harrison May 2009
 */
 
-/* 
- *	Default stack sizes. 
- * 
+/*
+ *	Default stack sizes.
+ *
  *	These are used by the startup in order to allocate stacks for the different modes.
  *	PROVIDE" allows to easily override these values from an object file or the commmand line.
  */
@@ -33,9 +33,9 @@ _estack = 0x20005000;
 
 SECTIONS
 {
-/* 
- * for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, 
- * which goes to FLASH 
+/*
+ * for Cortex devices, the beginning of the startup code is stored in the .isr_vector section,
+ * which goes to FLASH
  */
 	.isr_vector :
     {
@@ -44,9 +44,9 @@ SECTIONS
 			. = ALIGN(4);
     } >FLASH
 
-/* 
- * for some STRx devices, the beginning of the startup code is stored in the .flashtext section, 
- * which goes to FLASH 
+/*
+ * for some STRx devices, the beginning of the startup code is stored in the .flashtext section,
+ * which goes to FLASH
  */
 	.flashtext :
     {
@@ -55,8 +55,8 @@ SECTIONS
 			. = ALIGN(4);
     } >FLASH
 
- /* 
-  * the program code is stored in the .text section, which goes to Flash 
+ /*
+  * the program code is stored in the .text section, which goes to Flash
   */
   .text :
 		{
@@ -72,7 +72,7 @@ SECTIONS
 		_sidata = _etext;
     } >FLASH
 
-/* 
+/*
  * This is the initialized data section. It is stored in RAM but the initial values
  * are held in flash and copied to RAM by the startup code
  */
@@ -87,10 +87,10 @@ SECTIONS
 			. = ALIGN(4);
 	    _edata = . ; /* Used by the startup in order to initialize the .data section */
     } >RAM
-    
-    
 
-/* 
+
+
+/*
  * This is the uninitialized data section. Date here is stored in RAM and will be
  * set to zero by the startup code.
  */
@@ -103,12 +103,12 @@ SECTIONS
       . = ALIGN(4);
 	    _ebss = . ; /* Used by the startup in order to initialize the .bss section */
     } >RAM
-    
+
 PROVIDE ( end = _ebss );
 PROVIDE ( _end = _ebss );
-    
-/* 
- * This is the user stack section 
+
+/*
+ * This is the user stack section
  * This is just to check that there is enough RAM left for the User mode stack
  * It should generate an error if it's full.
  */
@@ -120,11 +120,11 @@ PROVIDE ( _end = _ebss );
       . = ALIGN(4);
       _eusrstack = . ;
     } >RAM
-    
-/* 
- * after that it's only debugging information. 
+
+/*
+ * after that it's only debugging information.
  */
- 
+
 /* remove the debugging information from the standard libraries */
 DISCARD :
 	{
@@ -141,12 +141,12 @@ DISCARD :
     .stab.index    0 : { *(.stab.index) }
     .stab.indexstr 0 : { *(.stab.indexstr) }
     .comment       0 : { *(.comment) }
-/* 
+/*
  * DWARF debug sections.
  * Symbols in the DWARF debugging sections are relative to the beginning
- * of the section so we begin them at 0.  
+ * of the section so we begin them at 0.
  */
- 
+
 /* DWARF 1 */
     .debug          0 : { *(.debug) }
     .line           0 : { *(.line) }

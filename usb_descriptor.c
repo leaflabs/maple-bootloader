@@ -27,15 +27,14 @@
  *  @file usb_descriptor.c
  *
  *  @brief aka application descriptor; big static struct and callbacks for sending
- *  the descriptor. 
+ *  the descriptor.
  *
  */
 
 
 #include "usb_descriptor.h"
 
-u8 u8_usbDeviceDescriptorDFU[18] = 
-  {
+u8 u8_usbDeviceDescriptorDFU[18] = {
     0x12,   /* bLength */
     0x01,   /* bDescriptorType */
     0x00,   /* bcdUSB, version 1.00 */
@@ -56,37 +55,33 @@ u8 u8_usbDeviceDescriptorDFU[18] =
     0x02,   /* iProduct      : index of string descriptor of product*/
     0x03,   /* iSerialNumber : index of string serial number*/
     0x01    /*bNumConfigurations */
-  };
+};
 
-ONE_DESCRIPTOR usbDeviceDescriptorDFU = 
-  {
+ONE_DESCRIPTOR usbDeviceDescriptorDFU = {
     u8_usbDeviceDescriptorDFU,
     0x12
-  };
+};
 
-u8 u8_usbFunctionalDescriptor[9] = 
-  {
+u8 u8_usbFunctionalDescriptor[9] = {
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
     0x21,   /* DFU Functional Descriptor*/
-    0x01,   /*bmAttribute, can only download for now */
+    0x03,   /*bmAttributes, bitCanDnload | bitCanUpload */
     0xFF,   /*DetachTimeOut= 255 ms*/
     0x00,
     (wTransferSize & 0x00FF),
     (wTransferSize & 0xFF00) >> 8, /* TransferSize = 1024 Byte*/
     0x10,                          /* bcdDFUVersion = 1.1 */
     0x01
-  };
+};
 
-ONE_DESCRIPTOR usbFunctionalDescriptor = 
-  {
+ONE_DESCRIPTOR usbFunctionalDescriptor = {
     u8_usbFunctionalDescriptor,
     0x09
-  };
+};
 
 
-u8 u8_usbConfigDescriptorDFU[36] = 
-  {
+u8 u8_usbConfigDescriptorDFU[36] = {
     0x09,   /* bLength: Configuation Descriptor size */
     0x02,   /* bDescriptorType: Configuration */
     0x24,   /* wTotalLength: Bytes returned */
@@ -127,7 +122,7 @@ u8 u8_usbConfigDescriptorDFU[36] =
     /******************** DFU Functional Descriptor********************/
     0x09,   /*blength = 7 Bytes*/
     0x21,   /* DFU Functional Descriptor*/
-    0x01,   /*bmAttribute, can only download for now */
+    0x03,   /*bmAttributes, bitCanDnload | bitCanUpload */
     0xFF,   /*DetachTimeOut= 255 ms*/
     0x00,
     (wTransferSize & 0x00FF),
@@ -136,71 +131,63 @@ u8 u8_usbConfigDescriptorDFU[36] =
     0x01
     /***********************************************************/
     /*36*/
-  };
+};
 
-ONE_DESCRIPTOR usbConfigDescriptorDFU = 
-  {
+ONE_DESCRIPTOR usbConfigDescriptorDFU = {
     u8_usbConfigDescriptorDFU,
     0x24
-  };
+};
 
-u8 u8_usbStringLangId[0x04] =
-  {
+u8 u8_usbStringLangId[0x04] = {
     0x04,
     0x03,
     0x09,
     0x04    /* LangID = 0x0409: U.S. English */
-  };
+};
 
-u8 u8_usbStringVendor[0x12] = 
-  {
+u8 u8_usbStringVendor[0x12] = {
     0x12,
     0x03,
-    'L',0,'e',0,'a',0,'f',0,'L',0,'a',0,'b',0,'s',0
-  };
+    'L', 0, 'e', 0, 'a', 0, 'f', 0, 'L', 0, 'a', 0, 'b', 0, 's', 0
+};
 
-u8 u8_usbStringProduct[0x14] = 
-  {
+u8 u8_usbStringProduct[0x14] = {
     0x14,
     0x03,
-    'M',0,'a',0,'p',0,'l',0,'e',0,' ',0,'0',0,'0',0,'3',0
-  };
+    'M', 0, 'a', 0, 'p', 0, 'l', 0, 'e', 0, ' ', 0, '0', 0, '0', 0, '3', 0
+};
 
-u8 u8_usbStringSerial[0x10] = 
-  {
+u8 u8_usbStringSerial[0x10] = {
     0x10,
     0x03,
-    'L',0,'L',0,'M',0,' ',0,'0',0,'0',0,'3',0
-  };
+    'L', 0, 'L', 0, 'M', 0, ' ', 0, '0', 0, '0', 0, '3', 0
+};
 
-u8 u8_usbStringAlt0[0x36] = 
-  {
+u8 u8_usbStringAlt0[0x36] = {
     0x36,
     0x03,
-    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
-    'a',0,'m',0,' ',0,'R',0,'A',0,'M',0,' ',0,'0',0,'x',0,
-    '2',0,'0',0,'0',0,'0',0,'0',0,'C',0,'0',0,'0',0
-  };
+    'D', 0, 'F', 0, 'U', 0, ' ', 0, 'P', 0, 'r', 0, 'o', 0, 'g', 0, 'r', 0,
+    'a', 0, 'm', 0, ' ', 0, 'R', 0, 'A', 0, 'M', 0, ' ', 0, '0', 0, 'x', 0,
+    '2', 0, '0', 0, '0', 0, '0', 0, '0', 0, 'C', 0, '0', 0, '0', 0
+};
 
-u8 u8_usbStringAlt1[0x3A] = 
-  {
+u8 u8_usbStringAlt1[0x3A] = {
     0x3A,
     0x03,
-    'D',0,'F',0,'U',0,' ',0,'P',0,'r',0,'o',0,'g',0,'r',0,
-    'a',0,'m',0,' ',0,'F',0,'L',0,'A',0,'S',0,'H',0,' ',0,
-    '0',0,'x',0,'0',0,'8',0,'0',0,'0',0,'5',0,'0',0,'0',0,
-    '0',0
-  };
+    'D', 0, 'F', 0, 'U', 0, ' ', 0, 'P', 0, 'r', 0, 'o', 0, 'g', 0, 'r', 0,
+    'a', 0, 'm', 0, ' ', 0, 'F', 0, 'L', 0, 'A', 0, 'S', 0, 'H', 0, ' ', 0,
+    '0', 0, 'x', 0, '0', 0, '8', 0, '0', 0, '0', 0, '5', 0, '0', 0, '0', 0,
+    '0', 0
+};
 
 u8 u8_usbStringInterface = NULL;
 
-ONE_DESCRIPTOR usbStringDescriptor[STR_DESC_LEN] =
-  {
-    { (u8*)u8_usbStringLangId,  0x04 },
-    { (u8*)u8_usbStringVendor,  0x12 },
-    { (u8*)u8_usbStringProduct, 0x20 },
-    { (u8*)u8_usbStringSerial,  0x10 },
-    { (u8*)u8_usbStringAlt0,    0x36 },
-    { (u8*)u8_usbStringAlt1,    0x3A }
-  };
+ONE_DESCRIPTOR usbStringDescriptor[STR_DESC_LEN] = {
+    { (u8 *)u8_usbStringLangId,  0x04 },
+    { (u8 *)u8_usbStringVendor,  0x12 },
+    { (u8 *)u8_usbStringProduct, 0x20 },
+    { (u8 *)u8_usbStringSerial,  0x10 },
+    { (u8 *)u8_usbStringAlt0,    0x36 },
+    { (u8 *)u8_usbStringAlt1,    0x3A }
+};
 

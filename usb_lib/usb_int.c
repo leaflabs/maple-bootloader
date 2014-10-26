@@ -149,7 +149,7 @@ void CTR_LP(void)
 
 /*******************************************************************************
 * Function Name  : CTR_HP.
-* Description    : High Priority Endpoint Correct Transfer interrupt's service 
+* Description    : High Priority Endpoint Correct Transfer interrupt's service
 *                  routine.
 * Input          : None.
 * Output         : None.

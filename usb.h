@@ -61,10 +61,9 @@
                  CNTR_SOFM   |			\
                  CNTR_ESOFM  |			\
                  CNTR_RESETM			\
-		 )
+                )
 
-typedef enum _RESUME_STATE
-  {
+typedef enum _RESUME_STATE {
     RESUME_EXTERNAL,
     RESUME_INTERNAL,
     RESUME_LATER,
@@ -73,17 +72,16 @@ typedef enum _RESUME_STATE
     RESUME_ON,
     RESUME_OFF,
     RESUME_ESOF
-  } RESUME_STATE;
+} RESUME_STATE;
 
-typedef enum _DEVICE_STATE
-  {
+typedef enum _DEVICE_STATE {
     UNCONNECTED,
     ATTACHED,
     POWERED,
     SUSPENDED,
     ADDRESSED,
     CONFIGURED
-  } DEVICE_STATE;
+} DEVICE_STATE;
 
 void setupUSB(void);
 void usbDsbBus(void);
@@ -103,12 +101,12 @@ void usbStatusOut(void);
 
 RESULT usbDataSetup(u8 request);
 RESULT usbNoDataSetup(u8 request);
-RESULT usbGetInterfaceSetting(u8,u8);
+RESULT usbGetInterfaceSetting(u8, u8);
 
-u8* usbGetDeviceDescriptor(u16 length);
-u8* usbGetConfigDescriptor(u16 length);
-u8* usbGetStringDescriptor(u16 length);
-u8* usbGetFunctionalDescriptor(u16 length);
+u8 *usbGetDeviceDescriptor(u16 length);
+u8 *usbGetConfigDescriptor(u16 length);
+u8 *usbGetStringDescriptor(u16 length);
+u8 *usbGetFunctionalDescriptor(u16 length);
 
 /* internal callbacks to respond to standard requests */
 void usbGetConfiguration(void);
@@ -121,16 +119,16 @@ void usbSetEndpointFeature(void);
 void usbSetDeviceFeature(void);
 void usbSetDeviceAddress(void);
 
-/* the small number of comm emulator functions to 
+/* the small number of comm emulator functions to
    eventually be migrated into their own usart sources
 */
-u8* vcomGetLineCoding(u16 length);
-u8* vcomSetLineCoding(u16 length);
+u8 *vcomGetLineCoding(u16 length);
+u8 *vcomSetLineCoding(u16 length);
 void vcomEp1In(void);
 void vcomEp3Out(void);
 
-/* Interrupt setup/handling exposed only so that 
-   its obvious from main what interrupts are overloaded 
+/* Interrupt setup/handling exposed only so that
+   its obvious from main what interrupts are overloaded
    from c_only_startup.s (see the top of main.c) */
 void usbDsbISR(void);
 void usbEnbISR(void);
