@@ -28,24 +28,24 @@
 #include "common.h"
 
 /* exposed types */
-typedef u8*(*ClassReqCB)(u16);
+typedef u8 *(*ClassReqCB)(u16);
 
 /* exposed structs */
 typedef struct _DFUStatus {
-  u8 bStatus;
-  u8 bwPollTimeout0;
-  u8 bwPollTimeout1;
-  u8 bwPollTimeout2;
-  u8 bState;  /* state of device at the time the host receives the message! */
-  u8 iString;
+    u8 bStatus;
+    u8 bwPollTimeout0;
+    u8 bwPollTimeout1;
+    u8 bwPollTimeout2;
+    u8 bState;  /* state of device at the time the host receives the message! */
+    u8 iString;
 } DFUStatus;
 
 typedef enum _PLOT {
-  BEGINNING,
-  MIDDLE,
-  END,
-  WAIT
-}PLOT;
+    BEGINNING,
+    MIDDLE,
+    END,
+    WAIT
+} PLOT;
 
 
 /*** DFU bRequest Values ******/
@@ -93,26 +93,26 @@ typedef enum _PLOT {
 
 
 
-extern bool dfuBusy;
+extern volatile bool dfuBusy;
 
 /* exposed functions */
 void dfuInit(void);  /* singleton dfu initializer */
 
 /* should consume dfuEvent type, but for now we can use pInfo (see comment above) */
 bool dfuUpdateByRequest(void);  /* returns if new status is OK */
-void dfuUpdateByReset(void); 
-void dfuUpdateByTimeout(void); 
+void dfuUpdateByReset(void);
+void dfuUpdateByTimeout(void);
 
 /* usb callbacks */
-u8* dfuCopyState(u16);
-u8* dfuCopyStatus(u16);
-u8* dfuCopyDNLOAD(u16);
-u8* dfuCopyUPLOAD(u16);
+u8 *dfuCopyState(u16);
+u8 *dfuCopyStatus(u16);
+u8 *dfuCopyDNLOAD(u16);
+u8 *dfuCopyUPLOAD(u16);
 
 void dfuCopyBufferToExec(void);
 bool checkTestFile(void);
 
-u8 dfuGetState(void); 
+u8 dfuGetState(void);
 void dfuSetState(u8);
 bool dfuUploadStarted();
 void dfuFinishUpload();

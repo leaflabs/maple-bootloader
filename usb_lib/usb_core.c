@@ -31,9 +31,6 @@
 #define USB_StatusIn() Send0LengthData()
 #define USB_StatusOut() vSetEPRxStatus(EP_RX_VALID)
 
-#define StatusInfo0 StatusInfo.bw.bb1 /* Reverse bb0 & bb1 */
-#define StatusInfo1 StatusInfo.bw.bb0
-
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 u16_u8 StatusInfo;
@@ -498,13 +495,13 @@ void DataStageIn(void)
       ControlState = LAST_IN_DATA;
       Data_Mul_MaxPacketSize = FALSE;
     }
-    else 
+    else
     {
       /* No more data to send so STALL the TX Status*/
       ControlState = WAIT_STATUS_OUT;
       vSetEPTxStatus(EP_TX_STALL);
     }
-    
+
     goto Expect_Status_Out;
   }
 
@@ -768,7 +765,7 @@ void Data_Setup0(void)
     }
 
   }
-  
+
   if (CopyRoutine)
   {
     pInformation->Ctrl_Info.Usb_wOffset = wOffset;
@@ -806,13 +803,13 @@ void Data_Setup0(void)
   {
     /* Device ==> Host */
     vu32 wLength = pInformation->USBwLength;
-     
+
     /* Restrict the data length to be the one host asks */
     if (pInformation->Ctrl_Info.Usb_wLength > wLength)
     {
       pInformation->Ctrl_Info.Usb_wLength = wLength;
     }
-    
+
     else if (pInformation->Ctrl_Info.Usb_wLength < pInformation->USBwLength)
     {
       if (pInformation->Ctrl_Info.Usb_wLength < pProperty->MaxPacketSize)
@@ -823,7 +820,7 @@ void Data_Setup0(void)
       {
         Data_Mul_MaxPacketSize = TRUE;
       }
-    }   
+    }
 
     pInformation->Ctrl_Info.PacketSize = pProperty->MaxPacketSize;
     DataStageIn();
@@ -860,11 +857,11 @@ u8 Setup0_Process(void)
     pInformation->USBbmRequestType = *pBuf.b++; /* bmRequestType */
     pInformation->USBbRequest = *pBuf.b++; /* bRequest */
     pBuf.w++;  /* word not accessed because of 32 bits addressing */
-    pInformation->USBwValue = ByteSwap(*pBuf.w++); /* wValue */
+    pInformation->USBwValue = *pBuf.w++; /* wValue in Little Endian */
     pBuf.w++;  /* word not accessed because of 32 bits addressing */
-    pInformation->USBwIndex  = ByteSwap(*pBuf.w++); /* wIndex */
+    pInformation->USBwIndex  = *pBuf.w++; /* wIndex in Little Endian */
     pBuf.w++;  /* word not accessed because of 32 bits addressing */
-    pInformation->USBwLength = *pBuf.w; /* wLength */
+    pInformation->USBwLength = *pBuf.w; /* wLength in Little Endian */
   }
 
   pInformation->ControlState = SETTING_UP;
